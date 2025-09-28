@@ -6,6 +6,7 @@ import type {
   Post,
   Profile,
   ResourceLink,
+  SectionsContent,
   Tutorial,
 } from '../content'
 import { defaultContent } from '../content'
@@ -15,6 +16,7 @@ import {
   updateExperiences as updateExperiencesOnServer,
   updatePosts as updatePostsOnServer,
   updateProfile as updateProfileOnServer,
+  updateSections as updateSectionsOnServer,
   updateTutorials as updateTutorialsOnServer,
   updateUsefulLinks as updateUsefulLinksOnServer,
 } from '../lib/api'
@@ -29,6 +31,7 @@ type ContentContextValue = {
   updateExperiences: (experiences: Experience[]) => Promise<Experience[]>
   updateUsefulLinks: (links: ResourceLink[]) => Promise<ResourceLink[]>
   updateTutorials: (tutorials: Tutorial[]) => Promise<Tutorial[]>
+  updateSections: (sections: SectionsContent) => Promise<SectionsContent>
   resetContent: () => Promise<ContentState>
 }
 
@@ -135,6 +138,21 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
+  const updateSections = useCallback(async (sections: SectionsContent) => {
+    try {
+      const saved = await updateSectionsOnServer(sections)
+      setContent((prev) => ({
+        ...prev,
+        sections: saved,
+      }))
+      setError(null)
+      return saved
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Failed to save sections')
+      throw saveError
+    }
+  }, [])
+
   const resetContent = useCallback(async () => {
     try {
       const data = await resetContentOnServer()
@@ -158,6 +176,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       updateExperiences,
       updateUsefulLinks,
       updateTutorials,
+      updateSections,
       resetContent,
     }),
     [
@@ -170,6 +189,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       updateExperiences,
       updateUsefulLinks,
       updateTutorials,
+      updateSections,
       resetContent,
     ],
   )

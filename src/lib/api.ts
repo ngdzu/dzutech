@@ -4,6 +4,7 @@ import type {
   Post,
   Profile,
   ResourceLink,
+  SectionsContent,
   Tutorial,
 } from '../content'
 
@@ -93,6 +94,15 @@ export const updateTutorials = async (payload: Tutorial[]): Promise<Tutorial[]> 
     body: JSON.stringify(payload),
   })
   return handleResponse<Tutorial[]>(response)
+}
+
+export const updateSections = async (payload: SectionsContent): Promise<SectionsContent> => {
+  const response = await fetch(normalizeUrl('/api/sections'), {
+    method: 'PUT',
+    headers: jsonHeaders,
+    body: JSON.stringify(payload),
+  })
+  return handleResponse<SectionsContent>(response)
 }
 
 export const resetContent = async (): Promise<ContentState> => {

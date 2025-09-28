@@ -42,10 +42,20 @@ export type Tutorial = {
   duration: string
 }
 
+export type SectionDetails = {
+  description: string
+}
+
+export type SectionsContent = {
+  about: SectionDetails
+  contact: SectionDetails
+}
+
 export type ContentState = {
   profile: Profile
   experiences: Experience[]
   usefulLinks: ResourceLink[]
   posts: Post[]
   tutorials: Tutorial[]
+  sections: SectionsContent
 }

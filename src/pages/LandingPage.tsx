@@ -195,7 +195,7 @@ const navItems = [
 
 export const LandingPage = () => {
   const { content } = useContent()
-  const { profile, experiences, usefulLinks, posts, tutorials } = content
+  const { profile, experiences, usefulLinks, posts, tutorials, sections } = content
 
   return (
     <div className="relative min-h-screen bg-night-900 text-slate-100">
@@ -301,11 +301,7 @@ export const LandingPage = () => {
 
         <Section id="about" title="About" eyebrow="Profile">
           <div className="grid gap-10 md:grid-cols-[1.3fr,1fr]">
-            <p className="text-lg text-slate-300/90">
-              I thrive at the intersection of product vision and engineering execution. Over the last decade
-              I have led teams delivering mission-critical platforms for fintech, aerospace, and AI-driven products.
-              I love mentoring builders, crafting ambitious roadmaps, and pairing on architectural deep dives.
-            </p>
+            <p className="text-lg text-slate-300/90 whitespace-pre-line">{sections.about.description}</p>
             <div className="space-y-6 rounded-3xl border border-slate-800/70 bg-slate-900/40 p-6">
               <h3 className="text-sm uppercase tracking-[0.35em] text-slate-400">Ways to reach me</h3>
               <div className="space-y-3">
@@ -377,9 +373,8 @@ export const LandingPage = () => {
           <div className="flex flex-col gap-6 rounded-3xl border border-slate-800/70 bg-gradient-to-br from-night-800/80 via-slate-900/40 to-night-900/80 p-8 text-center shadow-glow md:flex-row md:items-center md:justify-between md:text-left">
             <div className="space-y-3">
               <h3 className="text-2xl font-semibold text-white">Ready to craft resilient software?</h3>
-              <p className="max-w-2xl text-base text-slate-300/85">
-                I partner with founders, product leaders, and engineering teams to untangle complex systems, accelerate delivery,
-                and coach developers. Drop a note and let’s explore how we can collaborate.
+              <p className="max-w-2xl text-base text-slate-300/85 whitespace-pre-line">
+                {sections.contact.description}
               </p>
             </div>
             <div className="flex flex-col gap-3 md:min-w-[220px]">

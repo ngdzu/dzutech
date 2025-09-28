@@ -1,6 +1,14 @@
 import { readJson, writeJson } from './db.js'
 import { defaultContent } from './defaultContent.js'
-import type { ContentState, Experience, Post, Profile, ResourceLink, Tutorial } from './types.js'
+import type {
+  ContentState,
+  Experience,
+  Post,
+  Profile,
+  ResourceLink,
+  SectionsContent,
+  Tutorial,
+} from './types.js'
 
 const CONTENT_KEYS: (keyof ContentState)[] = [
   'profile',
@@ -8,6 +16,7 @@ const CONTENT_KEYS: (keyof ContentState)[] = [
   'usefulLinks',
   'posts',
   'tutorials',
+  'sections',
 ]
 
 export const getContent = async (): Promise<ContentState> => {
@@ -30,6 +39,9 @@ export const getContent = async (): Promise<ContentState> => {
           break
         case 'tutorials':
           content.tutorials = value as ContentState['tutorials']
+          break
+        case 'sections':
+          content.sections = value as ContentState['sections']
           break
       }
     }
@@ -60,6 +72,11 @@ export const savePosts = async (posts: Post[]): Promise<Post[]> => {
 export const saveTutorials = async (tutorials: Tutorial[]): Promise<Tutorial[]> => {
   await writeJson('tutorials', tutorials)
   return tutorials
+}
+
+export const saveSections = async (sections: SectionsContent): Promise<SectionsContent> => {
+  await writeJson('sections', sections)
+  return sections
 }
 
 export const resetContent = async (): Promise<ContentState> => {

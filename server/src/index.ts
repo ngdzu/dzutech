@@ -7,10 +7,11 @@ import {
   saveExperiences,
   savePosts,
   saveProfile,
+  saveSections,
   saveTutorials,
   saveUsefulLinks,
 } from './repository.js'
-import type { Experience, Post, Profile, ResourceLink, Tutorial } from './types.js'
+import type { Experience, Post, Profile, ResourceLink, SectionsContent, Tutorial } from './types.js'
 import './db.js'
 
 dotenv.config()
@@ -94,6 +95,18 @@ const validatePost = (post: Post, index: number): string | undefined => {
   return undefined
 }
 
+const validateSections = (sections: SectionsContent): string | undefined => {
+  if (!isNonEmptyString(sections.about.description)) {
+    return 'sections.about.description is required'
+  }
+
+  if (!isNonEmptyString(sections.contact.description)) {
+    return 'sections.contact.description is required'
+  }
+
+  return undefined
+}
+
 app.put('/api/profile', async (req: Request, res: Response) => {
   const payload = req.body as Partial<Profile>
   if (!payload) {
@@ -159,6 +172,46 @@ app.put('/api/posts', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Failed to save posts', error)
     res.status(500).json({ message: 'Failed to save posts' })
+  }
+})
+
+app.put('/api/sections', async (req: Request, res: Response) => {
+  const payload = req.body as Partial<SectionsContent> | undefined
+
+  let currentSections: SectionsContent
+  try {
+    currentSections = (await getContent()).sections
+  } catch (error) {
+    console.error('Failed to load existing sections', error)
+    return res.status(500).json({ message: 'Failed to load existing sections' })
+  }
+
+  const next: SectionsContent = {
+    about: {
+      description:
+        typeof payload?.about?.description === 'string'
+          ? payload.about.description
+          : currentSections.about.description,
+    },
+    contact: {
+      description:
+        typeof payload?.contact?.description === 'string'
+          ? payload.contact.description
+          : currentSections.contact.description,
+    },
+  }
+
+  const errorMessage = validateSections(next)
+  if (errorMessage) {
+    return res.status(422).json({ message: errorMessage })
+  }
+
+  try {
+    const saved = await saveSections(next)
+    res.json(saved)
+  } catch (error) {
+    console.error('Failed to save sections', error)
+    res.status(500).json({ message: 'Failed to save sections' })
   }
 })
 
