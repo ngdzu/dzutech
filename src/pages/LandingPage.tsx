@@ -1,0 +1,430 @@
+import { Fragment, type ReactNode } from 'react'
+import { motion } from 'framer-motion'
+import {
+  FiArrowDownCircle,
+  FiExternalLink,
+  FiGithub,
+  FiLinkedin,
+  FiMail,
+} from 'react-icons/fi'
+import { useContent } from '../context/ContentContext'
+
+const formatSocialDisplay = (url: string) => {
+  try {
+    const parsed = new URL(url)
+    const hostname = parsed.hostname.replace(/^www\./, '')
+    const normalizedPath = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/$/, '')
+    return normalizedPath ? `${hostname}${normalizedPath}` : hostname
+  } catch (error) {
+    if (url.startsWith('mailto:')) {
+      return url.replace('mailto:', '')
+    }
+
+    return url.replace(/^https?:\/\//, '').replace(/^www\./, '')
+  }
+}
+
+const Section = ({
+  id,
+  title,
+  eyebrow,
+  children,
+}: {
+  id: string
+  title: string
+  eyebrow?: string
+  children: ReactNode
+}) => (
+  <section id={id} className="scroll-mt-24">
+    <motion.div
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '0px 0px -120px' }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      className="space-y-6"
+    >
+      <div className="space-y-2">
+        {eyebrow && (
+          <span className="inline-flex items-center rounded-full border border-slate-700/60 bg-slate-900/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300/80">
+            {eyebrow}
+          </span>
+        )}
+        <h2 className="text-3xl font-semibold text-white md:text-4xl">{title}</h2>
+      </div>
+      {children}
+    </motion.div>
+  </section>
+)
+
+const ExperienceCard = ({
+  role,
+  company,
+  period,
+  description,
+  achievements,
+  stack,
+}: ReturnType<typeof useContent>['content']['experiences'][number]) => (
+  <motion.article
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: '0px 0px -120px' }}
+    transition={{ duration: 0.55, ease: 'easeOut' }}
+    className="group relative overflow-hidden rounded-3xl border border-slate-800/80 bg-gradient-to-br from-slate-900/80 via-night-800/60 to-slate-900/40 p-8 shadow-lg shadow-slate-950/40"
+  >
+    <div className="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{period}</p>
+        <h3 className="mt-2 text-2xl font-semibold text-white">
+          {role} · <span className="text-accent-400">{company}</span>
+        </h3>
+      </div>
+      <ul className="flex flex-wrap gap-2 text-xs font-medium text-slate-300">
+        {stack.map((item) => (
+          <li
+            key={item}
+            className="rounded-full border border-slate-700/70 bg-slate-900/80 px-3 py-1"
+          >
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+    <p className="mt-4 text-base text-slate-300/95">{description}</p>
+    <ul className="mt-6 space-y-3 text-sm text-slate-300/90">
+      {achievements.map((achievement) => (
+        <li key={achievement} className="flex gap-3">
+          <span
+            className="mt-1 inline-block h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent-500"
+            aria-hidden
+          />
+          <span>{achievement}</span>
+        </li>
+      ))}
+    </ul>
+    <div className="pointer-events-none absolute -right-16 top-24 h-40 w-40 rounded-full bg-accent-500/10 blur-3xl transition-transform duration-500 group-hover:-translate-y-6" />
+  </motion.article>
+)
+
+const ResourceLink = ({
+  label,
+  href,
+  description,
+}: ReturnType<typeof useContent>['content']['usefulLinks'][number]) => (
+  <motion.a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="group flex flex-col gap-3 rounded-3xl border border-slate-800/60 bg-slate-900/40 p-6 transition hover:border-accent-500/60 hover:bg-night-800/70 hover:shadow-glow"
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: '0px 0px -80px' }}
+    transition={{ duration: 0.5, ease: 'easeOut' }}
+  >
+    <div className="flex items-center gap-3">
+      <span className="text-lg font-semibold text-white">{label}</span>
+      <FiExternalLink className="text-accent-400 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-1" />
+    </div>
+    <p className="text-sm text-slate-300/90">{description}</p>
+  </motion.a>
+)
+
+const PostCard = ({
+  title,
+  href,
+  summary,
+  tags,
+}: ReturnType<typeof useContent>['content']['posts'][number]) => (
+  <motion.a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="flex flex-col gap-4 rounded-3xl border border-slate-800/60 bg-slate-900/40 p-6 transition hover:border-accent-500/40 hover:bg-night-800/80"
+    initial={{ opacity: 0, y: 24 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: '0px 0px -80px' }}
+    transition={{ duration: 0.45, ease: 'easeOut' }}
+  >
+    <div className="flex items-start justify-between gap-4">
+      <h3 className="text-xl font-semibold text-white">{title}</h3>
+      <FiExternalLink className="mt-1 flex-shrink-0 text-accent-400" />
+    </div>
+    <p className="text-sm text-slate-300/80">{summary}</p>
+    <div className="flex flex-wrap gap-2 text-xs text-slate-300/80">
+      {tags.map((tag) => (
+        <span
+          key={tag}
+          className="rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1"
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+  </motion.a>
+)
+
+const TutorialChip = ({
+  title,
+  href,
+  duration,
+}: ReturnType<typeof useContent>['content']['tutorials'][number]) => (
+  <motion.a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="flex items-center justify-between gap-4 rounded-2xl border border-slate-800/60 bg-slate-900/50 px-4 py-3 transition hover:border-accent-400/60 hover:bg-night-800/80"
+    initial={{ opacity: 0, y: 16 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: '0px 0px -80px' }}
+    transition={{ duration: 0.4, ease: 'easeOut' }}
+  >
+    <div>
+      <p className="text-sm font-medium text-white">{title}</p>
+      <span className="text-xs text-slate-400">{duration}</span>
+    </div>
+    <FiArrowDownCircle className="text-accent-400" />
+  </motion.a>
+)
+
+const navItems = [
+  { href: '#about', label: 'About' },
+  { href: '#experience', label: 'Experience' },
+  { href: '#resources', label: 'Useful links' },
+  { href: '#writing', label: 'Writing' },
+  { href: '#contact', label: 'Contact' },
+]
+
+export const LandingPage = () => {
+  const { content } = useContent()
+  const { profile, experiences, usefulLinks, posts, tutorials } = content
+
+  return (
+    <div className="relative min-h-screen bg-night-900 text-slate-100">
+      <div className="pointer-events-none fixed inset-0 -z-10 bg-grid-radial opacity-60" aria-hidden />
+      <header className="sticky top-0 z-50 border-b border-white/5 bg-night-900/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <a href="#hero" className="text-lg font-semibold tracking-tight text-white">
+            dzutech<span className="text-accent-400">.</span>
+          </a>
+          <nav className="hidden items-center gap-6 text-sm font-medium text-slate-300 md:flex">
+            {navItems.map((item) => (
+              <a key={item.href} href={item.href} className="transition hover:text-white">
+                {item.label}
+              </a>
+            ))}
+          </nav>
+          <a
+            href={`mailto:${profile.email}`}
+            className="hidden items-center gap-2 rounded-full border border-accent-500/50 bg-accent-500/10 px-4 py-2 text-sm font-semibold text-accent-200 transition hover:border-accent-500 hover:bg-accent-500/20 md:inline-flex"
+          >
+            <FiMail />
+            Say hello
+          </a>
+        </div>
+      </header>
+
+      <main className="mx-auto flex max-w-6xl flex-col gap-32 px-6 pb-24 pt-20 md:pt-28">
+        <section
+          id="hero"
+          className="relative isolate overflow-hidden rounded-3xl border border-slate-800/70 bg-gradient-to-br from-slate-900/80 via-night-800/40 to-slate-900/20 p-10 md:p-16"
+        >
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
+            className="relative z-10 grid gap-10 md:grid-cols-[2fr,1fr] md:items-center"
+          >
+            <div className="space-y-6">
+              <p className="text-sm uppercase tracking-[0.35em] text-accent-300/80">
+                {profile.title}
+              </p>
+              <h1 className="text-4xl font-semibold leading-tight text-white md:text-6xl">
+                {profile.name}
+              </h1>
+              <p className="text-lg text-slate-300/90 md:text-xl">{profile.tagline}</p>
+              <p className="max-w-xl text-base text-slate-300/80">{profile.summary}</p>
+              <div className="flex flex-wrap items-center gap-4 text-sm">
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-5 py-2 font-semibold text-night-900 shadow-glow transition hover:bg-accent-400"
+                >
+                  <FiMail />
+                  Contact me
+                </a>
+                <a
+                  href={profile.social.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-5 py-2 font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+                >
+                  <FiLinkedin />
+                  LinkedIn
+                </a>
+                <a
+                  href={profile.social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-5 py-2 font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+                >
+                  <FiGithub />
+                  GitHub
+                </a>
+              </div>
+            </div>
+            <div className="flex flex-col gap-4 rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 shadow-inner shadow-black/40">
+              <dl className="space-y-4 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-slate-400">Location</dt>
+                  <dd className="font-medium text-white">{profile.location}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-slate-400">Availability</dt>
+                  <dd className="font-medium text-white">Open to mentoring & advisory work</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-slate-400">Focus areas</dt>
+                  <dd className="max-w-[200px] text-right text-white">
+                    Platform architecture · Developer experience · Applied AI
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </motion.div>
+          <motion.div
+            className="pointer-events-none absolute -top-24 right-0 h-80 w-80 rounded-full bg-accent-500/20 blur-3xl"
+            animate={{
+              y: [0, -20, 0],
+              rotate: [0, 6, 0],
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+          />
+        </section>
+
+        <Section id="about" title="About" eyebrow="Profile">
+          <div className="grid gap-10 md:grid-cols-[1.3fr,1fr]">
+            <p className="text-lg text-slate-300/90">
+              I thrive at the intersection of product vision and engineering execution. Over the last decade
+              I have led teams delivering mission-critical platforms for fintech, aerospace, and AI-driven products.
+              I love mentoring builders, crafting ambitious roadmaps, and pairing on architectural deep dives.
+            </p>
+            <div className="space-y-6 rounded-3xl border border-slate-800/70 bg-slate-900/40 p-6">
+              <h3 className="text-sm uppercase tracking-[0.35em] text-slate-400">Ways to reach me</h3>
+              <div className="space-y-3">
+                <a
+                  href={`mailto:${profile.email}`}
+                  className="flex items-center gap-3 text-slate-200 hover:text-white"
+                >
+                  <FiMail className="text-accent-400" />
+                  {profile.email}
+                </a>
+                <a
+                  href={profile.social.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-slate-200 hover:text-white"
+                >
+                  <FiLinkedin className="text-accent-400" />
+                  {formatSocialDisplay(profile.social.linkedin)}
+                </a>
+                <a
+                  href={profile.social.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 text-slate-200 hover:text-white"
+                >
+                  <FiGithub className="text-accent-400" />
+                  {formatSocialDisplay(profile.social.github)}
+                </a>
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        <Section id="experience" title="Experience" eyebrow="Career timeline">
+          <div className="space-y-8">
+            {experiences.map((experience) => (
+              <ExperienceCard key={`${experience.company}-${experience.role}`} {...experience} />
+            ))}
+          </div>
+        </Section>
+
+        <Section id="resources" title="Useful links" eyebrow="Resources">
+          <div className="grid gap-6 md:grid-cols-2">
+            {usefulLinks.map((resource) => (
+              <ResourceLink key={resource.href} {...resource} />
+            ))}
+          </div>
+        </Section>
+
+        <Section id="writing" title="Blogs & tutorials" eyebrow="Knowledge sharing">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
+            <div className="space-y-6">
+              {posts.map((post) => (
+                <PostCard key={post.href} {...post} />
+              ))}
+            </div>
+            <div className="space-y-3 rounded-3xl border border-slate-800/70 bg-slate-900/40 p-6">
+              <h3 className="text-sm uppercase tracking-[0.35em] text-slate-400">Hands-on tutorials</h3>
+              <div className="space-y-3">
+                {tutorials.map((tutorial) => (
+                  <TutorialChip key={tutorial.href} {...tutorial} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </Section>
+
+        <Section id="contact" title="Let’s build something" eyebrow="Stay in touch">
+          <div className="flex flex-col gap-6 rounded-3xl border border-slate-800/70 bg-gradient-to-br from-night-800/80 via-slate-900/40 to-night-900/80 p-8 text-center shadow-glow md:flex-row md:items-center md:justify-between md:text-left">
+            <div className="space-y-3">
+              <h3 className="text-2xl font-semibold text-white">Ready to craft resilient software?</h3>
+              <p className="max-w-2xl text-base text-slate-300/85">
+                I partner with founders, product leaders, and engineering teams to untangle complex systems, accelerate delivery,
+                and coach developers. Drop a note and let’s explore how we can collaborate.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 md:min-w-[220px]">
+              <a
+                href={`mailto:${profile.email}`}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 px-5 py-3 font-semibold text-night-900 transition hover:bg-accent-400"
+              >
+                <FiMail />
+                Email Dustin
+              </a>
+              <a
+                href={profile.social.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-5 py-3 font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+              >
+                <FiLinkedin />
+                Connect on LinkedIn
+              </a>
+            </div>
+          </div>
+        </Section>
+      </main>
+
+      <footer className="border-t border-white/5 bg-night-900/90 py-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
+          <span>
+            © {new Date().getFullYear()} {profile.name}. Crafted with React, Tailwind, and curiosity.
+          </span>
+          <div className="flex items-center gap-4">
+            {[profile.social.linkedin, profile.social.github, profile.social.x].map((href) => (
+              <Fragment key={href}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition hover:text-white"
+                >
+                  {formatSocialDisplay(href)}
+                </a>
+              </Fragment>
+            ))}
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}

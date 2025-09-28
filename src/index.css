@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  @apply scroll-smooth;
+}
+
+body {
+  @apply bg-night-900 text-slate-100 font-sans antialiased;
+  background-image: radial-gradient(circle at top left, rgba(56, 189, 248, 0.15), transparent 55%), radial-gradient(circle at bottom, rgba(12, 74, 110, 0.12), transparent 45%);
+  min-height: 100vh;
+}
+
+#root {
+  @apply min-h-screen;
+}
