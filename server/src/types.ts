@@ -1,7 +1,12 @@
 export type SocialLinks = {
   linkedin: string
   github: string
-  x: string
+}
+
+export type ContactVisibility = {
+  email: boolean
+  linkedin: boolean
+  github: boolean
 }
 
 export type Profile = {
@@ -12,6 +17,7 @@ export type Profile = {
   location: string
   email: string
   social: SocialLinks
+  contactVisibility: ContactVisibility
   highlightsEnabled: boolean
   availability: ProfileHighlight
   focusAreas: ProfileHighlight

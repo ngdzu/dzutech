@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { motion } from 'framer-motion'
 import {
   FiArrowDownCircle,
@@ -205,6 +205,13 @@ export const LandingPage = () => {
   const homeLinkClasses = homeUsesLogo
     ? 'inline-flex items-center gap-3 rounded-xl font-semibold text-white transition hover:text-accent-200'
     : 'inline-flex items-center gap-2 text-lg font-semibold tracking-tight text-white transition hover:text-accent-200'
+  const contactVisibility = profile.contactVisibility ?? { email: true, linkedin: true, github: true }
+  const emailAddress = profile.email.trim()
+  const linkedinUrl = profile.social.linkedin.trim()
+  const githubUrl = profile.social.github.trim()
+  const showEmailContact = Boolean(contactVisibility.email && emailAddress)
+  const showLinkedinContact = Boolean(contactVisibility.linkedin && linkedinUrl)
+  const showGithubContact = Boolean(contactVisibility.github && githubUrl)
   const highlightsEnabled = profile.highlightsEnabled !== false
   const locationText = profile.location?.trim() ?? ''
   const availabilityText = profile.availability?.value?.trim() ?? ''
@@ -247,13 +254,15 @@ export const LandingPage = () => {
               </a>
             ))}
           </nav>
-          <a
-            href={`mailto:${profile.email}`}
-            className="hidden items-center gap-2 rounded-full border border-accent-500/50 bg-accent-500/10 px-4 py-2 text-sm font-semibold text-accent-200 transition hover:border-accent-500 hover:bg-accent-500/20 md:inline-flex"
-          >
-            <FiMail />
-            Say hello
-          </a>
+          {showEmailContact && (
+            <a
+              href={`mailto:${emailAddress}`}
+              className="hidden items-center gap-2 rounded-full border border-accent-500/50 bg-accent-500/10 px-4 py-2 text-sm font-semibold text-accent-200 transition hover:border-accent-500 hover:bg-accent-500/20 md:inline-flex"
+            >
+              <FiMail />
+              Say hello
+            </a>
+          )}
         </div>
       </header>
 
@@ -277,33 +286,41 @@ export const LandingPage = () => {
               </h1>
               <p className="text-lg text-slate-300/90 md:text-xl">{profile.tagline}</p>
               <p className="max-w-xl text-base text-slate-300/80">{profile.summary}</p>
-              <div className="flex flex-wrap items-center gap-4 text-sm">
-                <a
-                  href={`mailto:${profile.email}`}
-                  className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-5 py-2 font-semibold text-night-900 shadow-glow transition hover:bg-accent-400"
-                >
-                  <FiMail />
-                  Contact me
-                </a>
-                <a
-                  href={profile.social.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-5 py-2 font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-                >
-                  <FiLinkedin />
-                  LinkedIn
-                </a>
-                <a
-                  href={profile.social.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-5 py-2 font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-                >
-                  <FiGithub />
-                  GitHub
-                </a>
-              </div>
+              {(showEmailContact || showLinkedinContact || showGithubContact) && (
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  {showEmailContact && (
+                    <a
+                      href={`mailto:${emailAddress}`}
+                      className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-5 py-2 font-semibold text-night-900 shadow-glow transition hover:bg-accent-400"
+                    >
+                      <FiMail />
+                      Contact me
+                    </a>
+                  )}
+                  {showLinkedinContact && (
+                    <a
+                      href={linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-5 py-2 font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+                    >
+                      <FiLinkedin />
+                      LinkedIn
+                    </a>
+                  )}
+                  {showGithubContact && (
+                    <a
+                      href={githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-5 py-2 font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+                    >
+                      <FiGithub />
+                      GitHub
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
             {showHighlights && (
               <div className="flex flex-col gap-4 rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 shadow-inner shadow-black/40">
@@ -343,36 +360,44 @@ export const LandingPage = () => {
         <Section id="about" title="About" eyebrow="Profile">
           <div className="grid gap-10 md:grid-cols-[1.3fr,1fr]">
             <p className="text-lg text-slate-300/90 whitespace-pre-line">{sections.about.description}</p>
-            <div className="space-y-6 rounded-3xl border border-slate-800/70 bg-slate-900/40 p-6">
-              <h3 className="text-sm uppercase tracking-[0.35em] text-slate-400">Ways to reach me</h3>
-              <div className="space-y-3">
-                <a
-                  href={`mailto:${profile.email}`}
-                  className="flex items-center gap-3 text-slate-200 hover:text-white"
-                >
-                  <FiMail className="text-accent-400" />
-                  {profile.email}
-                </a>
-                <a
-                  href={profile.social.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-slate-200 hover:text-white"
-                >
-                  <FiLinkedin className="text-accent-400" />
-                  {formatSocialDisplay(profile.social.linkedin)}
-                </a>
-                <a
-                  href={profile.social.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-slate-200 hover:text-white"
-                >
-                  <FiGithub className="text-accent-400" />
-                  {formatSocialDisplay(profile.social.github)}
-                </a>
+            {(showEmailContact || showLinkedinContact || showGithubContact) && (
+              <div className="space-y-6 rounded-3xl border border-slate-800/70 bg-slate-900/40 p-6">
+                <h3 className="text-sm uppercase tracking-[0.35em] text-slate-400">Ways to reach me</h3>
+                <div className="space-y-3">
+                  {showEmailContact && (
+                    <a
+                      href={`mailto:${emailAddress}`}
+                      className="flex items-center gap-3 text-slate-200 hover:text-white"
+                    >
+                      <FiMail className="text-accent-400" />
+                      {emailAddress}
+                    </a>
+                  )}
+                  {showLinkedinContact && (
+                    <a
+                      href={linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 text-slate-200 hover:text-white"
+                    >
+                      <FiLinkedin className="text-accent-400" />
+                      {formatSocialDisplay(linkedinUrl)}
+                    </a>
+                  )}
+                  {showGithubContact && (
+                    <a
+                      href={githubUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 text-slate-200 hover:text-white"
+                    >
+                      <FiGithub className="text-accent-400" />
+                      {formatSocialDisplay(githubUrl)}
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </Section>
 
@@ -418,24 +443,41 @@ export const LandingPage = () => {
                 {sections.contact.description}
               </p>
             </div>
-            <div className="flex flex-col gap-3 md:min-w-[220px]">
-              <a
-                href={`mailto:${profile.email}`}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 px-5 py-3 font-semibold text-night-900 transition hover:bg-accent-400"
-              >
-                <FiMail />
-                Email {firstName}
-              </a>
-              <a
-                href={profile.social.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-5 py-3 font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-              >
-                <FiLinkedin />
-                Connect on LinkedIn
-              </a>
-            </div>
+            {(showEmailContact || showLinkedinContact || showGithubContact) && (
+              <div className="flex flex-col gap-3 md:min-w-[220px]">
+                {showEmailContact && (
+                  <a
+                    href={`mailto:${emailAddress}`}
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 px-5 py-3 font-semibold text-night-900 transition hover:bg-accent-400"
+                  >
+                    <FiMail />
+                    Email {firstName}
+                  </a>
+                )}
+                {showLinkedinContact && (
+                  <a
+                    href={linkedinUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-5 py-3 font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+                  >
+                    <FiLinkedin />
+                    Connect on LinkedIn
+                  </a>
+                )}
+                {showGithubContact && (
+                  <a
+                    href={githubUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/80 px-5 py-3 font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+                  >
+                    <FiGithub />
+                    Explore GitHub
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         </Section>
       </main>
@@ -445,20 +487,30 @@ export const LandingPage = () => {
           <span>
             © {new Date().getFullYear()} {profile.name}. Crafted with React, Tailwind, and curiosity.
           </span>
-          <div className="flex items-center gap-4">
-            {[profile.social.linkedin, profile.social.github, profile.social.x].map((href) => (
-              <Fragment key={href}>
+          {(showLinkedinContact || showGithubContact) && (
+            <div className="flex items-center gap-4">
+              {showLinkedinContact && (
                 <a
-                  href={href}
+                  href={linkedinUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="transition hover:text-white"
                 >
-                  {formatSocialDisplay(href)}
+                  {formatSocialDisplay(linkedinUrl)}
                 </a>
-              </Fragment>
-            ))}
-          </div>
+              )}
+              {showGithubContact && (
+                <a
+                  href={githubUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="transition hover:text-white"
+                >
+                  {formatSocialDisplay(githubUrl)}
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </footer>
     </div>

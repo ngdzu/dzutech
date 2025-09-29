@@ -38,7 +38,9 @@ type ProfileFormState = {
   email: string
   linkedin: string
   github: string
-  x: string
+  showEmail: boolean
+  showLinkedin: boolean
+  showGithub: boolean
   highlightsEnabled: boolean
   availabilityValue: string
   focusAreasValue: string
@@ -46,7 +48,7 @@ type ProfileFormState = {
 
 type ProfileFormTextField = Exclude<
   keyof ProfileFormState,
-  'highlightsEnabled'
+  'showEmail' | 'showLinkedin' | 'showGithub' | 'highlightsEnabled'
 >
 
 const AVAILABILITY_MAX_LENGTH = 50
@@ -106,7 +108,18 @@ const AdminDashboard = () => {
       email: profile.email,
       linkedin: profile.social.linkedin,
       github: profile.social.github,
-      x: profile.social.x,
+      showEmail:
+        typeof profile.contactVisibility?.email === 'boolean'
+          ? profile.contactVisibility.email
+          : true,
+      showLinkedin:
+        typeof profile.contactVisibility?.linkedin === 'boolean'
+          ? profile.contactVisibility.linkedin
+          : true,
+      showGithub:
+        typeof profile.contactVisibility?.github === 'boolean'
+          ? profile.contactVisibility.github
+          : true,
       highlightsEnabled,
       availabilityValue: typeof availabilityHighlight.value === 'string' ? availabilityHighlight.value : '',
       focusAreasValue: typeof focusAreasHighlight.value === 'string' ? focusAreasHighlight.value : '',
@@ -197,6 +210,11 @@ const AdminDashboard = () => {
     setForm((prev) => ({ ...prev, highlightsEnabled: event.target.checked }))
   }
 
+  const handleContactToggle = (field: 'showEmail' | 'showLinkedin' | 'showGithub') =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setForm((prev) => ({ ...prev, [field]: event.target.checked }))
+    }
+
   const handleSiteTextChange = (field: 'title' | 'description') =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setSiteForm((prev) => ({ ...prev, [field]: event.target.value }))
@@ -267,6 +285,9 @@ const AdminDashboard = () => {
     const trimmedLocation = form.location.trim()
     const trimmedAvailability = form.availabilityValue.trim()
     const trimmedFocusAreas = form.focusAreasValue.trim()
+    const trimmedLinkedin = form.linkedin.trim()
+    const trimmedGithub = form.github.trim()
+    const trimmedEmail = form.email.trim()
 
     if (trimmedAvailability.length > AVAILABILITY_MAX_LENGTH) {
       setStatus({ state: 'error', message: `Availability must be ${AVAILABILITY_MAX_LENGTH} characters or fewer` })
@@ -293,6 +314,16 @@ const AdminDashboard = () => {
       return
     }
 
+    if (form.showLinkedin && trimmedLinkedin.length === 0) {
+      setStatus({ state: 'error', message: 'Add a LinkedIn URL or hide the link' })
+      return
+    }
+
+    if (form.showGithub && trimmedGithub.length === 0) {
+      setStatus({ state: 'error', message: 'Add a GitHub URL or hide the link' })
+      return
+    }
+
     try {
       await updateProfile({
         name: form.name,
@@ -300,11 +331,15 @@ const AdminDashboard = () => {
         tagline: form.tagline,
         summary: form.summary,
         location: trimmedLocation,
-        email: form.email,
+        email: trimmedEmail,
         social: {
-          linkedin: form.linkedin,
-          github: form.github,
-          x: form.x,
+          linkedin: trimmedLinkedin,
+          github: trimmedGithub,
+        },
+        contactVisibility: {
+          email: form.showEmail,
+          linkedin: form.showLinkedin,
+          github: form.showGithub,
         },
         highlightsEnabled: form.highlightsEnabled,
         availability: {
@@ -821,44 +856,82 @@ const AdminDashboard = () => {
               className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
             >
               <h2 className="text-lg font-semibold text-white">Contact</h2>
-              <label className="flex flex-col gap-2">
-                <span className={labelStyle}>Email</span>
-                <input
-                  type="email"
-                  className={fieldStyle}
-                  value={form.email}
-                  onChange={handleChange('email')}
-                  disabled={profileBusy}
-                />
-              </label>
-              <div className="grid gap-6 md:grid-cols-3">
-                <label className="flex flex-col gap-2">
-                  <span className={labelStyle}>LinkedIn</span>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-night-900/60 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-white">Email</p>
+                      <p className="text-xs text-slate-500">Used for direct contact buttons across the site.</p>
+                    </div>
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
+                        checked={form.showEmail}
+                        onChange={handleContactToggle('showEmail')}
+                        disabled={profileBusy}
+                      />
+                      <span>{form.showEmail ? 'Visible' : 'Hidden'}</span>
+                    </label>
+                  </div>
+                  <input
+                    type="email"
+                    className={fieldStyle}
+                    value={form.email}
+                    onChange={handleChange('email')}
+                    disabled={profileBusy}
+                  />
+                </div>
+                <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-night-900/60 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-white">LinkedIn</p>
+                      <p className="text-xs text-slate-500">Appears as a social link when visible.</p>
+                    </div>
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
+                        checked={form.showLinkedin}
+                        onChange={handleContactToggle('showLinkedin')}
+                        disabled={profileBusy}
+                      />
+                      <span>{form.showLinkedin ? 'Visible' : 'Hidden'}</span>
+                    </label>
+                  </div>
                   <input
                     className={fieldStyle}
                     value={form.linkedin}
                     onChange={handleChange('linkedin')}
-                    disabled={profileBusy}
+                    disabled={profileBusy || !form.showLinkedin}
+                    placeholder="https://www.linkedin.com/in/your-profile"
                   />
-                </label>
-                <label className="flex flex-col gap-2">
-                  <span className={labelStyle}>GitHub</span>
+                </div>
+                <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-night-900/60 p-4 md:col-span-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-white">GitHub</p>
+                      <p className="text-xs text-slate-500">Shown wherever your developer presence is highlighted.</p>
+                    </div>
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
+                        checked={form.showGithub}
+                        onChange={handleContactToggle('showGithub')}
+                        disabled={profileBusy}
+                      />
+                      <span>{form.showGithub ? 'Visible' : 'Hidden'}</span>
+                    </label>
+                  </div>
                   <input
                     className={fieldStyle}
                     value={form.github}
                     onChange={handleChange('github')}
-                    disabled={profileBusy}
+                    disabled={profileBusy || !form.showGithub}
+                    placeholder="https://github.com/your-handle"
                   />
-                </label>
-                <label className="flex flex-col gap-2">
-                  <span className={labelStyle}>X (Twitter)</span>
-                  <input
-                    className={fieldStyle}
-                    value={form.x}
-                    onChange={handleChange('x')}
-                    disabled={profileBusy}
-                  />
-                </label>
+                </div>
               </div>
             </section>
 

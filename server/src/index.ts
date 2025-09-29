@@ -267,9 +267,28 @@ app.put('/api/profile', async (req: Request, res: Response) => {
       typeof payload.location === 'string' ? payload.location.trim() : profile.location.trim(),
     email: payload.email ?? profile.email,
     social: {
-      linkedin: payload.social?.linkedin ?? profile.social.linkedin,
-      github: payload.social?.github ?? profile.social.github,
-      x: payload.social?.x ?? profile.social.x,
+      linkedin:
+        typeof payload.social?.linkedin === 'string'
+          ? payload.social.linkedin.trim()
+          : profile.social.linkedin.trim(),
+      github:
+        typeof payload.social?.github === 'string'
+          ? payload.social.github.trim()
+          : profile.social.github.trim(),
+    },
+    contactVisibility: {
+      email:
+        typeof payload.contactVisibility?.email === 'boolean'
+          ? payload.contactVisibility.email
+          : profile.contactVisibility?.email ?? true,
+      linkedin:
+        typeof payload.contactVisibility?.linkedin === 'boolean'
+          ? payload.contactVisibility.linkedin
+          : profile.contactVisibility?.linkedin ?? true,
+      github:
+        typeof payload.contactVisibility?.github === 'boolean'
+          ? payload.contactVisibility.github
+          : profile.contactVisibility?.github ?? true,
     },
     highlightsEnabled:
       typeof payload.highlightsEnabled === 'boolean'

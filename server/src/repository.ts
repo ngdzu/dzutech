@@ -78,6 +78,7 @@ const withProfileDefaults = (value: unknown, defaults: Profile): Profile => {
     isString(input) ? input : fallback
 
   const socialCandidate = (candidate.social ?? {}) as Partial<Profile['social']>
+  const visibilityCandidate = (candidate.contactVisibility ?? {}) as Partial<Profile['contactVisibility']>
   const highlightsEnabled =
     typeof candidate.highlightsEnabled === 'boolean'
       ? candidate.highlightsEnabled
@@ -93,7 +94,18 @@ const withProfileDefaults = (value: unknown, defaults: Profile): Profile => {
     social: {
       linkedin: stringOrDefault(socialCandidate.linkedin, defaults.social.linkedin),
       github: stringOrDefault(socialCandidate.github, defaults.social.github),
-      x: stringOrDefault(socialCandidate.x, defaults.social.x),
+    },
+    contactVisibility: {
+      email:
+        typeof visibilityCandidate.email === 'boolean' ? visibilityCandidate.email : defaults.contactVisibility.email,
+      linkedin:
+        typeof visibilityCandidate.linkedin === 'boolean'
+          ? visibilityCandidate.linkedin
+          : defaults.contactVisibility.linkedin,
+      github:
+        typeof visibilityCandidate.github === 'boolean'
+          ? visibilityCandidate.github
+          : defaults.contactVisibility.github,
     },
     highlightsEnabled,
     availability: coerceHighlight(candidate.availability, defaults.availability, highlightsEnabled),

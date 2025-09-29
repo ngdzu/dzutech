@@ -18,7 +18,11 @@ export const defaultContent: ContentState = {
     social: {
       linkedin: 'https://www.linkedin.com/in/your-profile',
       github: 'https://github.com/your-handle',
-      x: 'https://x.com/your-handle',
+    },
+    contactVisibility: {
+      email: true,
+      linkedin: true,
+      github: true,
     },
     highlightsEnabled: true,
     availability: {
