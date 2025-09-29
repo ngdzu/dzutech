@@ -4,7 +4,7 @@ type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string
 
 const databaseUrl =
   process.env.DATABASE_URL ??
-  `postgresql://${process.env.DB_USER ?? 'postgres'}:${process.env.DB_PASSWORD ?? 'postgres'}@${process.env.DB_HOST ?? 'localhost'}:${process.env.DB_PORT ?? '5432'}/${process.env.DB_NAME ?? 'dzutech'}`
+  `postgresql://${process.env.DB_USER ?? 'postgres'}:${process.env.DB_PASSWORD ?? 'postgres'}@${process.env.DB_HOST ?? 'db'}:${process.env.DB_PORT ?? '5432'}/${process.env.DB_NAME ?? 'dzutech'}`
 
 const sslMode = process.env.DB_SSL === 'true'
 

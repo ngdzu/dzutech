@@ -27,6 +27,12 @@ cp .env.example .env
 cp server/.env.example server/.env
 ```
 
+For local development make the following edits before starting the services:
+
+- In `.env`, set `VITE_API_URL=http://localhost:4000` so the Vite dev server talks to the locally running API.
+- In both `.env` and `server/.env`, add `http://localhost:5173` to `ALLOWED_ORIGIN` (and `http://localhost:4173` if you use the Docker dev override) to satisfy CORS while iterating locally.
+- Optionally keep the production domains in the list so a single file works for both local testing and deployment.
+
 Ensure PostgreSQL is running locally (or use `docker compose up db` to boot the bundled instance). Then, in one terminal, run the API in watch mode:
 
 ```bash
@@ -60,7 +66,7 @@ Build and run the entire stack (database, API, frontend) with Docker Compose:
 docker compose up --build
 ```
 
-The marketing site will be available at <http://localhost:4173>, the API at <http://localhost:4000>, and PostgreSQL on port 5432. Customize credentials or origins via the `.env` file in the project root.
+By default the site is served at <https://dzutech.com> with the API proxied at <https://dzutech.com/api>. Override the origins or point everything back to localhost for development by editing the `.env` file in the project root. PostgreSQL remains exposed on port 5432 inside Docker.
 
 To stop and clean up the container:
 
@@ -89,7 +95,7 @@ docker compose down
 
 ## 🔐 Admin dashboard notes
 
-- Navigate to `http://localhost:5173/admin` (or your deployed origin) to edit core profile fields
+- Navigate to `https://dzutech.com/admin` (or `http://localhost:5173/admin` if you override the origin for local work) to edit core profile fields
 - Changes persist in PostgreSQL via the API and immediately update the public landing page
 - Use the **Restore defaults** button to repopulate the seeded profile data across the stack
 

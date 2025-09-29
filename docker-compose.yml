@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: ${DB_NAME:-dzutech}
       POSTGRES_USER: ${DB_USER:-dzutech}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-dzutech-password}
+      POSTGRES_PASSWORD: "${DB_PASSWORD:?DB_PASSWORD must be set}"
     ports:
       - '${DB_PORT:-5432}:5432'
     healthcheck:
@@ -22,8 +22,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4000
-      DATABASE_URL: postgresql://${DB_USER:-dzutech}:${DB_PASSWORD:-dzutech-password}@db:5432/${DB_NAME:-dzutech}
-      ALLOWED_ORIGIN: "${ALLOWED_ORIGIN:-http://localhost:4173,http://localhost:5173,http://0.0.0.0:4173,http://0.0.0.0:5173}"
+      DATABASE_URL: "postgresql://${DB_USER:-dzutech}:${DB_PASSWORD:?DB_PASSWORD must be set}@db:5432/${DB_NAME:-dzutech}"
+      ALLOWED_ORIGIN: "${ALLOWED_ORIGIN:-https://dzutech.com,https://www.dzutech.com}"
     depends_on:
       db:
         condition: service_healthy
