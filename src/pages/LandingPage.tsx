@@ -71,7 +71,7 @@ const ExperienceCard = ({
     transition={{ duration: 0.55, ease: 'easeOut' }}
     className="group relative overflow-hidden rounded-3xl border border-slate-800/80 bg-gradient-to-br from-slate-900/80 via-night-800/60 to-slate-900/40 p-8 shadow-lg shadow-slate-950/40"
   >
-    <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="space-y-4">
       <div>
         <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{period}</p>
         <h3 className="mt-2 text-2xl font-semibold text-white">
