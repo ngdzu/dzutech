@@ -53,6 +53,7 @@ const withSiteDefaults = (value: unknown, defaults: SiteMeta): SiteMeta => {
 const coerceHighlight = (
   input: unknown,
   defaults: Profile['availability'],
+  highlightsEnabled: boolean,
 ): Profile['availability'] => {
   if (!input || typeof input !== 'object') {
     return { ...defaults }
@@ -65,7 +66,7 @@ const coerceHighlight = (
 
   return {
     value,
-    enabled: trimmed.length > 0 ? enabledRaw : false,
+    enabled: highlightsEnabled && trimmed.length > 0 ? enabledRaw : false,
   }
 }
 
@@ -77,21 +78,26 @@ const withProfileDefaults = (value: unknown, defaults: Profile): Profile => {
     isString(input) ? input : fallback
 
   const socialCandidate = (candidate.social ?? {}) as Partial<Profile['social']>
+  const highlightsEnabled =
+    typeof candidate.highlightsEnabled === 'boolean'
+      ? candidate.highlightsEnabled
+      : defaults.highlightsEnabled
 
   return {
     name: stringOrDefault(candidate.name, defaults.name),
     title: stringOrDefault(candidate.title, defaults.title),
     tagline: stringOrDefault(candidate.tagline, defaults.tagline),
     summary: stringOrDefault(candidate.summary, defaults.summary),
-    location: stringOrDefault(candidate.location, defaults.location),
+    location: stringOrDefault(candidate.location, defaults.location).trim(),
     email: stringOrDefault(candidate.email, defaults.email),
     social: {
       linkedin: stringOrDefault(socialCandidate.linkedin, defaults.social.linkedin),
       github: stringOrDefault(socialCandidate.github, defaults.social.github),
       x: stringOrDefault(socialCandidate.x, defaults.social.x),
     },
-    availability: coerceHighlight(candidate.availability, defaults.availability),
-    focusAreas: coerceHighlight(candidate.focusAreas, defaults.focusAreas),
+    highlightsEnabled,
+    availability: coerceHighlight(candidate.availability, defaults.availability, highlightsEnabled),
+    focusAreas: coerceHighlight(candidate.focusAreas, defaults.focusAreas, highlightsEnabled),
   }
 }
 

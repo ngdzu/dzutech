@@ -237,23 +237,24 @@ app.put('/api/profile', async (req: Request, res: Response) => {
     current: Profile['availability'],
     label: string,
     maxLength: number,
+    highlightsEnabled: boolean,
   ) => {
     const rawValue = typeof incoming?.value === 'string' ? incoming.value : current.value
     const trimmedValue = rawValue.trim()
-    const enabled =
+    const fallbackEnabled =
       typeof incoming?.enabled === 'boolean' ? incoming.enabled : current.enabled ?? true
 
     if (trimmedValue.length > maxLength) {
       throw new Error(`${label} must be ${maxLength} characters or fewer`)
     }
 
-    if (enabled && trimmedValue.length === 0) {
-      throw new Error(`${label} is required when visible`)
+    if (highlightsEnabled && trimmedValue.length === 0) {
+      throw new Error(`${label} is required when highlights are visible`)
     }
 
     return {
       value: trimmedValue,
-      enabled: enabled && trimmedValue.length > 0,
+      enabled: highlightsEnabled && trimmedValue.length > 0 && fallbackEnabled,
     }
   }
 
@@ -262,15 +263,33 @@ app.put('/api/profile', async (req: Request, res: Response) => {
     title: payload.title ?? profile.title,
     tagline: payload.tagline ?? profile.tagline,
     summary: payload.summary ?? profile.summary,
-    location: payload.location ?? profile.location,
+    location:
+      typeof payload.location === 'string' ? payload.location.trim() : profile.location.trim(),
     email: payload.email ?? profile.email,
     social: {
       linkedin: payload.social?.linkedin ?? profile.social.linkedin,
       github: payload.social?.github ?? profile.social.github,
       x: payload.social?.x ?? profile.social.x,
     },
+    highlightsEnabled:
+      typeof payload.highlightsEnabled === 'boolean'
+        ? payload.highlightsEnabled
+        : profile.highlightsEnabled ?? true,
     availability: profile.availability,
     focusAreas: profile.focusAreas,
+  }
+
+  try {
+    if (next.highlightsEnabled && !next.location) {
+      throw new Error('Location is required when highlights are visible')
+    }
+  } catch (validationError) {
+    return res.status(422).json({
+      message:
+        validationError instanceof Error
+          ? validationError.message
+          : 'Invalid highlight provided',
+    })
   }
 
   try {
@@ -279,12 +298,14 @@ app.put('/api/profile', async (req: Request, res: Response) => {
       profile.availability,
       'Availability',
       50,
+      next.highlightsEnabled,
     )
     next.focusAreas = sanitizeHighlight(
       payload.focusAreas,
       profile.focusAreas,
       'Focus areas',
       80,
+      next.highlightsEnabled,
     )
   } catch (validationError) {
     return res.status(422).json({

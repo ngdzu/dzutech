@@ -205,10 +205,17 @@ export const LandingPage = () => {
   const homeLinkClasses = homeUsesLogo
     ? 'inline-flex items-center gap-3 rounded-xl font-semibold text-white transition hover:text-accent-200'
     : 'inline-flex items-center gap-2 text-lg font-semibold tracking-tight text-white transition hover:text-accent-200'
+  const highlightsEnabled = profile.highlightsEnabled !== false
+  const locationText = profile.location?.trim() ?? ''
   const availabilityText = profile.availability?.value?.trim() ?? ''
-  const showAvailability = Boolean(profile.availability?.enabled && availabilityText)
+  const showAvailability = Boolean(highlightsEnabled && profile.availability?.enabled && availabilityText)
   const focusAreasText = profile.focusAreas?.value?.trim() ?? ''
-  const showFocusAreas = Boolean(profile.focusAreas?.enabled && focusAreasText)
+  const showFocusAreas = Boolean(highlightsEnabled && profile.focusAreas?.enabled && focusAreasText)
+  const showLocation = Boolean(highlightsEnabled && locationText)
+  const showHighlights = showLocation || showAvailability || showFocusAreas
+  const heroGridClasses = showHighlights
+    ? 'relative z-10 grid gap-10 md:grid-cols-[2fr,1fr] md:items-center'
+    : 'relative z-10 grid gap-10'
 
   return (
     <div className="relative min-h-screen bg-night-900 text-slate-100">
@@ -259,7 +266,7 @@ export const LandingPage = () => {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="relative z-10 grid gap-10 md:grid-cols-[2fr,1fr] md:items-center"
+            className={heroGridClasses}
           >
             <div className="space-y-6">
               <p className="text-sm uppercase tracking-[0.35em] text-accent-300/80">
@@ -298,26 +305,30 @@ export const LandingPage = () => {
                 </a>
               </div>
             </div>
-            <div className="flex flex-col gap-4 rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 shadow-inner shadow-black/40">
-              <dl className="space-y-4 text-sm">
-                <div className="flex items-baseline justify-between gap-4">
-                  <dt className="text-slate-400">Location</dt>
-                  <dd className="font-medium text-white">{profile.location}</dd>
-                </div>
-                {showAvailability && (
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-slate-400">Availability</dt>
-                    <dd className="max-w-[200px] text-right font-medium text-white">{availabilityText}</dd>
-                  </div>
-                )}
-                {showFocusAreas && (
-                  <div className="flex items-baseline justify-between gap-4">
-                    <dt className="text-slate-400">Focus areas</dt>
-                    <dd className="max-w-[200px] text-right text-white">{focusAreasText}</dd>
-                  </div>
-                )}
-              </dl>
-            </div>
+            {showHighlights && (
+              <div className="flex flex-col gap-4 rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 shadow-inner shadow-black/40">
+                <dl className="space-y-4 text-sm">
+                  {showLocation && (
+                    <div className="flex items-baseline justify-between gap-4">
+                      <dt className="text-slate-400">Location</dt>
+                      <dd className="font-medium text-white">{locationText}</dd>
+                    </div>
+                  )}
+                  {showAvailability && (
+                    <div className="flex items-baseline justify-between gap-4">
+                      <dt className="text-slate-400">Availability</dt>
+                      <dd className="max-w-[200px] text-right font-medium text-white">{availabilityText}</dd>
+                    </div>
+                  )}
+                  {showFocusAreas && (
+                    <div className="flex items-baseline justify-between gap-4">
+                      <dt className="text-slate-400">Focus areas</dt>
+                      <dd className="max-w-[200px] text-right text-white">{focusAreasText}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            )}
           </motion.div>
           <motion.div
             className="pointer-events-none absolute -top-24 right-0 h-80 w-80 rounded-full bg-accent-500/20 blur-3xl"

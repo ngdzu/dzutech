@@ -20,6 +20,7 @@ export const defaultContent: ContentState = {
       github: 'https://github.com/your-handle',
       x: 'https://x.com/your-handle',
     },
+    highlightsEnabled: true,
     availability: {
       value: 'Open to mentoring & advisory work',
       enabled: true,

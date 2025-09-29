@@ -39,18 +39,15 @@ type ProfileFormState = {
   linkedin: string
   github: string
   x: string
+  highlightsEnabled: boolean
   availabilityValue: string
-  availabilityEnabled: boolean
   focusAreasValue: string
-  focusAreasEnabled: boolean
 }
 
 type ProfileFormTextField = Exclude<
   keyof ProfileFormState,
-  'availabilityEnabled' | 'focusAreasEnabled'
+  'highlightsEnabled'
 >
-
-type HighlightToggleField = 'availabilityEnabled' | 'focusAreasEnabled'
 
 const AVAILABILITY_MAX_LENGTH = 50
 const FOCUS_AREAS_MAX_LENGTH = 80
@@ -97,6 +94,8 @@ const AdminDashboard = () => {
   const initialForm = useMemo<ProfileFormState>(() => {
     const availabilityHighlight = profile.availability ?? EMPTY_HIGHLIGHT
     const focusAreasHighlight = profile.focusAreas ?? EMPTY_HIGHLIGHT
+    const highlightsEnabled =
+      typeof profile.highlightsEnabled === 'boolean' ? profile.highlightsEnabled : true
 
     return {
       name: profile.name,
@@ -108,16 +107,9 @@ const AdminDashboard = () => {
       linkedin: profile.social.linkedin,
       github: profile.social.github,
       x: profile.social.x,
+      highlightsEnabled,
       availabilityValue: typeof availabilityHighlight.value === 'string' ? availabilityHighlight.value : '',
-      availabilityEnabled:
-        typeof availabilityHighlight.enabled === 'boolean'
-          ? availabilityHighlight.enabled && availabilityHighlight.value.trim().length > 0
-          : false,
       focusAreasValue: typeof focusAreasHighlight.value === 'string' ? focusAreasHighlight.value : '',
-      focusAreasEnabled:
-        typeof focusAreasHighlight.enabled === 'boolean'
-          ? focusAreasHighlight.enabled && focusAreasHighlight.value.trim().length > 0
-          : false,
     }
   }, [profile])
 
@@ -201,10 +193,9 @@ const AdminDashboard = () => {
       setForm((prev) => ({ ...prev, [field]: value }))
     }
 
-  const handleHighlightToggle = (field: HighlightToggleField) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      setForm((prev) => ({ ...prev, [field]: event.target.checked }))
-    }
+  const handleHighlightsToggle = (event: ChangeEvent<HTMLInputElement>) => {
+    setForm((prev) => ({ ...prev, highlightsEnabled: event.target.checked }))
+  }
 
   const handleSiteTextChange = (field: 'title' | 'description') =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -273,6 +264,7 @@ const AdminDashboard = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setStatus({ state: 'saving' })
+    const trimmedLocation = form.location.trim()
     const trimmedAvailability = form.availabilityValue.trim()
     const trimmedFocusAreas = form.focusAreasValue.trim()
 
@@ -286,13 +278,18 @@ const AdminDashboard = () => {
       return
     }
 
-    if (form.availabilityEnabled && trimmedAvailability.length === 0) {
-      setStatus({ state: 'error', message: 'Availability is required when visible' })
+    if (form.highlightsEnabled && trimmedLocation.length === 0) {
+      setStatus({ state: 'error', message: 'Location is required when highlights are visible' })
       return
     }
 
-    if (form.focusAreasEnabled && trimmedFocusAreas.length === 0) {
-      setStatus({ state: 'error', message: 'Focus areas are required when visible' })
+    if (form.highlightsEnabled && trimmedAvailability.length === 0) {
+      setStatus({ state: 'error', message: 'Availability is required when highlights are visible' })
+      return
+    }
+
+    if (form.highlightsEnabled && trimmedFocusAreas.length === 0) {
+      setStatus({ state: 'error', message: 'Focus areas are required when highlights are visible' })
       return
     }
 
@@ -302,20 +299,21 @@ const AdminDashboard = () => {
         title: form.title,
         tagline: form.tagline,
         summary: form.summary,
-        location: form.location,
+        location: trimmedLocation,
         email: form.email,
         social: {
           linkedin: form.linkedin,
           github: form.github,
           x: form.x,
         },
+        highlightsEnabled: form.highlightsEnabled,
         availability: {
           value: trimmedAvailability,
-          enabled: form.availabilityEnabled && trimmedAvailability.length > 0,
+          enabled: form.highlightsEnabled && trimmedAvailability.length > 0,
         },
         focusAreas: {
           value: trimmedFocusAreas,
-          enabled: form.focusAreasEnabled && trimmedFocusAreas.length > 0,
+          enabled: form.highlightsEnabled && trimmedFocusAreas.length > 0,
         },
       })
       setStatus({ state: 'saved' })
@@ -726,65 +724,65 @@ const AdminDashboard = () => {
                 </label>
               </div>
               <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/50 p-4">
-                <div className="space-y-1">
-                  <span className={labelStyle}>Hero highlights</span>
-                  <p className="text-xs text-slate-500">
-                    Fine-tune the quick facts that appear beside your hero copy.
-                  </p>
-                </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-slate-900/50 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm font-semibold text-white">Availability</span>
-                      <label className="flex items-center gap-2 text-xs text-slate-400">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
-                          checked={form.availabilityEnabled}
-                          onChange={handleHighlightToggle('availabilityEnabled')}
-                          disabled={profileBusy}
-                        />
-                        <span>Show</span>
-                      </label>
-                    </div>
-                    <input
-                      className={fieldStyle}
-                      value={form.availabilityValue}
-                      onChange={handleChange('availabilityValue')}
-                      maxLength={AVAILABILITY_MAX_LENGTH}
-                      placeholder="Availability status"
-                      disabled={profileBusy}
-                    />
-                    <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                      <span>Max {AVAILABILITY_MAX_LENGTH} chars</span>
-                      <span>{form.availabilityValue.trim().length}/{AVAILABILITY_MAX_LENGTH}</span>
-                    </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-1">
+                    <span className={labelStyle}>Highlight group</span>
+                    <p className="text-xs text-slate-500">
+                      Control the quick facts (location, availability, focus areas) that appear beside your hero copy.
+                    </p>
                   </div>
-                  <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-slate-900/50 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm font-semibold text-white">Focus areas</span>
-                      <label className="flex items-center gap-2 text-xs text-slate-400">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
-                          checked={form.focusAreasEnabled}
-                          onChange={handleHighlightToggle('focusAreasEnabled')}
-                          disabled={profileBusy}
-                        />
-                        <span>Show</span>
-                      </label>
-                    </div>
+                  <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
                     <input
-                      className={fieldStyle}
-                      value={form.focusAreasValue}
-                      onChange={handleChange('focusAreasValue')}
-                      maxLength={FOCUS_AREAS_MAX_LENGTH}
-                      placeholder="Key focus areas"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
+                      checked={form.highlightsEnabled}
+                      onChange={handleHighlightsToggle}
                       disabled={profileBusy}
                     />
-                    <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                      <span>Max {FOCUS_AREAS_MAX_LENGTH} chars</span>
-                      <span>{form.focusAreasValue.trim().length}/{FOCUS_AREAS_MAX_LENGTH}</span>
+                    <span>{form.highlightsEnabled ? 'Visible' : 'Hidden'}</span>
+                  </label>
+                </div>
+                <div className={`space-y-4 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4 transition ${form.highlightsEnabled ? '' : 'opacity-50'}`}>
+                  <label className="flex flex-col gap-2">
+                    <span className={labelStyle}>Location</span>
+                    <input
+                      className={fieldStyle}
+                      value={form.location}
+                      onChange={handleChange('location')}
+                      placeholder="Where you're based"
+                      disabled={profileBusy || !form.highlightsEnabled}
+                    />
+                  </label>
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <div className="space-y-3">
+                      <span className="text-sm font-semibold text-white">Availability</span>
+                      <input
+                        className={fieldStyle}
+                        value={form.availabilityValue}
+                        onChange={handleChange('availabilityValue')}
+                        maxLength={AVAILABILITY_MAX_LENGTH}
+                        placeholder="Availability status"
+                        disabled={profileBusy || !form.highlightsEnabled}
+                      />
+                      <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                        <span>Max {AVAILABILITY_MAX_LENGTH} chars</span>
+                        <span>{form.availabilityValue.trim().length}/{AVAILABILITY_MAX_LENGTH}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <span className="text-sm font-semibold text-white">Focus areas</span>
+                      <input
+                        className={fieldStyle}
+                        value={form.focusAreasValue}
+                        onChange={handleChange('focusAreasValue')}
+                        maxLength={FOCUS_AREAS_MAX_LENGTH}
+                        placeholder="Key focus areas"
+                        disabled={profileBusy || !form.highlightsEnabled}
+                      />
+                      <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                        <span>Max {FOCUS_AREAS_MAX_LENGTH} chars</span>
+                        <span>{form.focusAreasValue.trim().length}/{FOCUS_AREAS_MAX_LENGTH}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -823,27 +821,16 @@ const AdminDashboard = () => {
               className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
             >
               <h2 className="text-lg font-semibold text-white">Contact</h2>
-              <div className="grid gap-6 md:grid-cols-2">
-                <label className="flex flex-col gap-2">
-                  <span className={labelStyle}>Location</span>
-                  <input
-                    className={fieldStyle}
-                    value={form.location}
-                    onChange={handleChange('location')}
-                    disabled={profileBusy}
-                  />
-                </label>
-                <label className="flex flex-col gap-2">
-                  <span className={labelStyle}>Email</span>
-                  <input
-                    type="email"
-                    className={fieldStyle}
-                    value={form.email}
-                    onChange={handleChange('email')}
-                    disabled={profileBusy}
-                  />
-                </label>
-              </div>
+              <label className="flex flex-col gap-2">
+                <span className={labelStyle}>Email</span>
+                <input
+                  type="email"
+                  className={fieldStyle}
+                  value={form.email}
+                  onChange={handleChange('email')}
+                  disabled={profileBusy}
+                />
+              </label>
               <div className="grid gap-6 md:grid-cols-3">
                 <label className="flex flex-col gap-2">
                   <span className={labelStyle}>LinkedIn</span>

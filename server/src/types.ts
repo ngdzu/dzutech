@@ -12,6 +12,7 @@ export type Profile = {
   location: string
   email: string
   social: SocialLinks
+  highlightsEnabled: boolean
   availability: ProfileHighlight
   focusAreas: ProfileHighlight
 }
