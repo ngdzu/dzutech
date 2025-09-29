@@ -22,6 +22,17 @@ const AdminDashboard = () => {
   const [siteStatus, setSiteStatus] = useState<ActionStatus>({ state: 'idle' })
   const [status, setStatus] = useState<ActionStatus>({ state: 'idle' })
   const [sectionsStatus, setSectionsStatus] = useState<ActionStatus>({ state: 'idle' })
+  const sectionNav = useMemo(
+    () => [
+      { id: 'site-metadata', label: 'Site metadata' },
+      { id: 'profile-identity', label: 'Identity' },
+      { id: 'profile-narrative', label: 'Narrative' },
+      { id: 'profile-contact', label: 'Contact' },
+      { id: 'site-sections', label: 'Site sections' },
+    ],
+    [],
+  )
+  const [activeSection, setActiveSection] = useState<string>(sectionNav[0]?.id ?? '')
 
   const siteInitialForm = useMemo(
     () => ({
@@ -90,6 +101,34 @@ const AdminDashboard = () => {
     const timeout = window.setTimeout(() => setSectionsStatus({ state: 'idle' }), 2500)
     return () => window.clearTimeout(timeout)
   }, [sectionsStatus])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+        if (visible.length > 0) {
+          setActiveSection(visible[0].target.id)
+        }
+      },
+      {
+        rootMargin: '-40% 0px -40% 0px',
+        threshold: [0, 0.25, 0.5, 0.75, 1],
+      },
+    )
+
+    sectionNav.forEach(({ id }) => {
+      const element = document.getElementById(id)
+      if (element) {
+        observer.observe(element)
+      }
+    })
+
+    return () => observer.disconnect()
+  }, [sectionNav])
 
   const handleChange = (
     field: keyof typeof form,
@@ -278,10 +317,44 @@ const AdminDashboard = () => {
           )}
         </header>
 
-        <div className="grid gap-10">
+        <div className="flex flex-col gap-10 lg:flex-row">
+          <nav className="lg:w-60 xl:w-64">
+            <div className="sticky top-24 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Navigate</p>
+              <ul className="mt-4 space-y-2">
+                {sectionNav.map(({ id, label }) => {
+                  const isActive = activeSection === id
+                  return (
+                    <li key={id}>
+                      <a
+                        href={`#${id}`}
+                        className={`group flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                          isActive
+                            ? 'bg-accent-500/15 text-accent-200 shadow-glow'
+                            : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                        }`}
+                        aria-current={isActive ? 'true' : undefined}
+                      >
+                        <span>{label}</span>
+                        <span
+                          className={`h-2 w-2 rounded-full transition ${
+                            isActive ? 'bg-accent-400' : 'bg-slate-700/80 group-hover:bg-slate-500'
+                          }`}
+                          aria-hidden
+                        />
+                      </a>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          </nav>
+
+          <div className="flex-1 space-y-10">
           <form
+            id="site-metadata"
             onSubmit={handleSiteSubmit}
-            className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6"
+            className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
           >
             <div className="space-y-2">
               <h2 className="text-lg font-semibold text-white">Site metadata</h2>
@@ -332,7 +405,10 @@ const AdminDashboard = () => {
           </form>
 
           <form onSubmit={handleSubmit} className="grid gap-8">
-            <section className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6">
+            <section
+              id="profile-identity"
+              className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
+            >
               <h2 className="text-lg font-semibold text-white">Identity</h2>
               <div className="grid gap-6 md:grid-cols-2">
                 <label className="flex flex-col gap-2">
@@ -356,7 +432,10 @@ const AdminDashboard = () => {
               </div>
             </section>
 
-            <section className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6">
+            <section
+              id="profile-narrative"
+              className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
+            >
               <h2 className="text-lg font-semibold text-white">Narrative</h2>
               <label className="flex flex-col gap-2">
                 <span className={labelStyle}>Tagline</span>
@@ -380,7 +459,10 @@ const AdminDashboard = () => {
               </label>
             </section>
 
-            <section className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6">
+            <section
+              id="profile-contact"
+              className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
+            >
               <h2 className="text-lg font-semibold text-white">Contact</h2>
               <div className="grid gap-6 md:grid-cols-2">
                 <label className="flex flex-col gap-2">
@@ -460,7 +542,8 @@ const AdminDashboard = () => {
 
           <form
             onSubmit={handleSectionsSubmit}
-            className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6"
+            id="site-sections"
+            className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
           >
             <div className="space-y-2">
               <h2 className="text-lg font-semibold text-white">Site sections</h2>
@@ -501,6 +584,7 @@ const AdminDashboard = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     </div>
