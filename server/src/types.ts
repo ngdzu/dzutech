@@ -12,6 +12,13 @@ export type Profile = {
   location: string
   email: string
   social: SocialLinks
+  availability: ProfileHighlight
+  focusAreas: ProfileHighlight
+}
+
+export type ProfileHighlight = {
+  value: string
+  enabled: boolean
 }
 
 export type Experience = {
@@ -51,9 +58,17 @@ export type SectionsContent = {
   contact: SectionDetails
 }
 
+export type SiteLogo = {
+  data: string
+  type: string
+  alt?: string
+}
+
 export type SiteMeta = {
   title: string
   description: string
+  homeButtonMode: 'text' | 'logo'
+  logo: SiteLogo | null
 }
 
 export type ContentState = {

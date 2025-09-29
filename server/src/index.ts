@@ -12,7 +12,16 @@ import {
   saveTutorials,
   saveUsefulLinks,
 } from './repository.js'
-import type { Experience, Post, Profile, ResourceLink, SectionsContent, Tutorial } from './types.js'
+import type {
+  Experience,
+  Post,
+  Profile,
+  ResourceLink,
+  SectionsContent,
+  SiteLogo,
+  SiteMeta,
+  Tutorial,
+} from './types.js'
 import './db.js'
 
 dotenv.config()
@@ -47,24 +56,100 @@ app.get('/api/content', async (_req: Request, res: Response) => {
   }
 })
 
-app.put('/api/site', async (req: Request, res: Response) => {
-  const payload = req.body as Partial<{ title: string; description: string }> | undefined
+const MAX_LOGO_BYTES = 512 * 1024
+const allowedLogoTypes = new Set(['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp'])
 
-  if (!payload || (typeof payload.title !== 'string' && typeof payload.description !== 'string')) {
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+const sanitizeLogo = (input: unknown): SiteLogo | null => {
+  if (input == null) return null
+  if (!isObject(input)) {
+    throw new Error('Logo payload must be an object')
+  }
+
+  const { data, type, alt } = input as {
+    data?: unknown
+    type?: unknown
+    alt?: unknown
+  }
+
+  if (typeof data !== 'string' || typeof type !== 'string') {
+    throw new Error('Logo requires base64 data and image type')
+  }
+
+  if (!allowedLogoTypes.has(type)) {
+    throw new Error('Unsupported logo format. Use PNG, SVG, JPEG, or WEBP')
+  }
+
+  const expectedPrefix = `data:${type};base64,`
+  if (!data.startsWith(expectedPrefix)) {
+    throw new Error('Logo data must be a base64 data URL')
+  }
+
+  const base64Payload = data.slice(expectedPrefix.length)
+  let decodedLength = 0
+  try {
+    decodedLength = Buffer.from(base64Payload, 'base64').length
+  } catch (error) {
+    console.error('Failed to decode logo payload', error)
+    throw new Error('Logo data must be valid base64')
+  }
+
+  if (!Number.isFinite(decodedLength) || Number.isNaN(decodedLength)) {
+    throw new Error('Logo data must be valid base64')
+  }
+
+  if (decodedLength > MAX_LOGO_BYTES) {
+    throw new Error('Logo file is too large. Keep it under 512KB')
+  }
+
+  const sanitizedAlt = typeof alt === 'string' ? alt.trim() : undefined
+
+  return {
+    data,
+    type,
+    ...(sanitizedAlt ? { alt: sanitizedAlt } : {}),
+  }
+}
+
+app.put('/api/site', async (req: Request, res: Response) => {
+  const payload = req.body as Partial<SiteMeta> | undefined
+
+  if (!payload || typeof payload !== 'object') {
     return res.status(400).json({ message: 'Site metadata is required' })
   }
 
-  const nextSite = {
-    title: typeof payload.title === 'string' ? payload.title.trim() : undefined,
-    description: typeof payload.description === 'string' ? payload.description.trim() : undefined,
-  }
+  const title = typeof payload.title === 'string' ? payload.title.trim() : ''
+  const description = typeof payload.description === 'string' ? payload.description.trim() : ''
+  const homeButtonMode: SiteMeta['homeButtonMode'] = payload.homeButtonMode === 'logo' ? 'logo' : 'text'
 
-  if (!nextSite.title || !nextSite.description) {
+  if (!title || !description) {
     return res.status(422).json({ message: 'Site title and description are required' })
   }
 
+  let logo: SiteLogo | null
   try {
-    const saved = await saveSite({ title: nextSite.title, description: nextSite.description })
+    logo = sanitizeLogo('logo' in payload ? payload.logo : undefined)
+  } catch (validationError) {
+    const message =
+      validationError instanceof Error ? validationError.message : 'Invalid logo provided'
+    return res.status(422).json({ message })
+  }
+
+  if (homeButtonMode === 'logo' && !logo) {
+    return res.status(422).json({ message: 'Provide a logo before enabling the logo home button' })
+  }
+
+  const nextSite: SiteMeta = {
+    title,
+    description,
+    homeButtonMode,
+    logo,
+  }
+
+  try {
+    const saved = await saveSite(nextSite)
     res.json(saved)
   } catch (error) {
     console.error('Failed to save site metadata', error)
@@ -147,6 +232,31 @@ app.put('/api/profile', async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Failed to load existing profile' })
   }
 
+  const sanitizeHighlight = (
+    incoming: Partial<Profile['availability']> | undefined,
+    current: Profile['availability'],
+    label: string,
+    maxLength: number,
+  ) => {
+    const rawValue = typeof incoming?.value === 'string' ? incoming.value : current.value
+    const trimmedValue = rawValue.trim()
+    const enabled =
+      typeof incoming?.enabled === 'boolean' ? incoming.enabled : current.enabled ?? true
+
+    if (trimmedValue.length > maxLength) {
+      throw new Error(`${label} must be ${maxLength} characters or fewer`)
+    }
+
+    if (enabled && trimmedValue.length === 0) {
+      throw new Error(`${label} is required when visible`)
+    }
+
+    return {
+      value: trimmedValue,
+      enabled: enabled && trimmedValue.length > 0,
+    }
+  }
+
   const next: Profile = {
     name: payload.name ?? profile.name,
     title: payload.title ?? profile.title,
@@ -159,6 +269,30 @@ app.put('/api/profile', async (req: Request, res: Response) => {
       github: payload.social?.github ?? profile.social.github,
       x: payload.social?.x ?? profile.social.x,
     },
+    availability: profile.availability,
+    focusAreas: profile.focusAreas,
+  }
+
+  try {
+    next.availability = sanitizeHighlight(
+      payload.availability,
+      profile.availability,
+      'Availability',
+      50,
+    )
+    next.focusAreas = sanitizeHighlight(
+      payload.focusAreas,
+      profile.focusAreas,
+      'Focus areas',
+      80,
+    )
+  } catch (validationError) {
+    return res.status(422).json({
+      message:
+        validationError instanceof Error
+          ? validationError.message
+          : 'Invalid highlight provided',
+    })
   }
 
   if (!next.name.trim()) {

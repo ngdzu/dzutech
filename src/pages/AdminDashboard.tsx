@@ -2,11 +2,59 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
+import type { SiteLogo, SiteMeta } from '../content'
 
 const fieldStyle =
   'block w-full rounded-xl border border-slate-800/60 bg-night-800/80 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-accent-400 focus:outline-none focus:ring-2 focus:ring-accent-500/30'
 
 const labelStyle = 'text-sm font-medium text-slate-200'
+
+const allowedLogoTypes = new Set(['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp'])
+const MAX_LOGO_SIZE_BYTES = 512 * 1024
+
+const readFileAsDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result
+      if (typeof result === 'string') {
+        resolve(result)
+      } else {
+        reject(new Error('Failed to read file'))
+      }
+    }
+    reader.onerror = () => reject(new Error('Failed to read file'))
+    reader.readAsDataURL(file)
+  })
+
+type SiteFormState = Pick<SiteMeta, 'title' | 'description' | 'homeButtonMode' | 'logo'>
+
+type ProfileFormState = {
+  name: string
+  title: string
+  tagline: string
+  summary: string
+  location: string
+  email: string
+  linkedin: string
+  github: string
+  x: string
+  availabilityValue: string
+  availabilityEnabled: boolean
+  focusAreasValue: string
+  focusAreasEnabled: boolean
+}
+
+type ProfileFormTextField = Exclude<
+  keyof ProfileFormState,
+  'availabilityEnabled' | 'focusAreasEnabled'
+>
+
+type HighlightToggleField = 'availabilityEnabled' | 'focusAreasEnabled'
+
+const AVAILABILITY_MAX_LENGTH = 50
+const FOCUS_AREAS_MAX_LENGTH = 80
+const EMPTY_HIGHLIGHT = { value: '', enabled: false } as const
 
 type ActionStatus =
   | { state: 'idle' }
@@ -34,18 +82,23 @@ const AdminDashboard = () => {
   )
   const [activeSection, setActiveSection] = useState<string>(sectionNav[0]?.id ?? '')
 
-  const siteInitialForm = useMemo(
+  const siteInitialForm = useMemo<SiteFormState>(
     () => ({
       title: site.title,
       description: site.description,
+      homeButtonMode: site.homeButtonMode ?? 'text',
+      logo: site.logo ? { ...site.logo } : null,
     }),
     [site],
   )
 
-  const [siteForm, setSiteForm] = useState(siteInitialForm)
+  const [siteForm, setSiteForm] = useState<SiteFormState>(siteInitialForm)
 
-  const initialForm = useMemo(
-    () => ({
+  const initialForm = useMemo<ProfileFormState>(() => {
+    const availabilityHighlight = profile.availability ?? EMPTY_HIGHLIGHT
+    const focusAreasHighlight = profile.focusAreas ?? EMPTY_HIGHLIGHT
+
+    return {
       name: profile.name,
       title: profile.title,
       tagline: profile.tagline,
@@ -55,11 +108,20 @@ const AdminDashboard = () => {
       linkedin: profile.social.linkedin,
       github: profile.social.github,
       x: profile.social.x,
-    }),
-    [profile],
-  )
+      availabilityValue: typeof availabilityHighlight.value === 'string' ? availabilityHighlight.value : '',
+      availabilityEnabled:
+        typeof availabilityHighlight.enabled === 'boolean'
+          ? availabilityHighlight.enabled && availabilityHighlight.value.trim().length > 0
+          : false,
+      focusAreasValue: typeof focusAreasHighlight.value === 'string' ? focusAreasHighlight.value : '',
+      focusAreasEnabled:
+        typeof focusAreasHighlight.enabled === 'boolean'
+          ? focusAreasHighlight.enabled && focusAreasHighlight.value.trim().length > 0
+          : false,
+    }
+  }, [profile])
 
-  const [form, setForm] = useState(initialForm)
+  const [form, setForm] = useState<ProfileFormState>(initialForm)
 
   const sectionsInitialForm = useMemo(
     () => ({
@@ -131,7 +193,7 @@ const AdminDashboard = () => {
   }, [sectionNav])
 
   const handleChange = (
-    field: keyof typeof form,
+    field: ProfileFormTextField,
     transform?: (value: string) => string,
   ) =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -139,10 +201,69 @@ const AdminDashboard = () => {
       setForm((prev) => ({ ...prev, [field]: value }))
     }
 
-  const handleSiteChange = (field: keyof typeof siteForm) =>
+  const handleHighlightToggle = (field: HighlightToggleField) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setForm((prev) => ({ ...prev, [field]: event.target.checked }))
+    }
+
+  const handleSiteTextChange = (field: 'title' | 'description') =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setSiteForm((prev) => ({ ...prev, [field]: event.target.value }))
     }
+
+  const handleHomeButtonModeChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const mode = event.target.value === 'logo' ? 'logo' : 'text'
+    setSiteForm((prev) => ({ ...prev, homeButtonMode: mode }))
+  }
+
+  const handleLogoAltChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const altValue = event.target.value
+    setSiteForm((prev) => (prev.logo ? { ...prev, logo: { ...prev.logo, alt: altValue } } : prev))
+  }
+
+  const handleLogoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+
+    if (!file) {
+      setSiteForm((prev) => ({ ...prev, logo: null }))
+      return
+    }
+
+    if (!allowedLogoTypes.has(file.type)) {
+      setSiteStatus({ state: 'error', message: 'Logo must be PNG, SVG, JPG, or WEBP' })
+      event.target.value = ''
+      return
+    }
+
+    if (file.size > MAX_LOGO_SIZE_BYTES) {
+      setSiteStatus({ state: 'error', message: 'Logo must be smaller than 512KB' })
+      event.target.value = ''
+      return
+    }
+
+    try {
+      const dataUrl = await readFileAsDataUrl(file)
+      setSiteForm((prev) => ({
+        ...prev,
+        logo: {
+          data: dataUrl,
+          type: file.type,
+          ...(prev.logo?.alt ? { alt: prev.logo.alt } : {}),
+        },
+      }))
+      setSiteStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev))
+    } catch (uploadError) {
+      console.error('Failed to load logo', uploadError)
+      setSiteStatus({ state: 'error', message: 'Unable to read logo file' })
+    } finally {
+      event.target.value = ''
+    }
+  }
+
+  const handleLogoClear = () => {
+    setSiteForm((prev) => ({ ...prev, logo: null, homeButtonMode: prev.homeButtonMode === 'logo' ? 'text' : prev.homeButtonMode }))
+    setSiteStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev))
+  }
 
   const handleSectionsChange = (field: keyof typeof sectionsForm) =>
     (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -152,6 +273,29 @@ const AdminDashboard = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setStatus({ state: 'saving' })
+    const trimmedAvailability = form.availabilityValue.trim()
+    const trimmedFocusAreas = form.focusAreasValue.trim()
+
+    if (trimmedAvailability.length > AVAILABILITY_MAX_LENGTH) {
+      setStatus({ state: 'error', message: `Availability must be ${AVAILABILITY_MAX_LENGTH} characters or fewer` })
+      return
+    }
+
+    if (trimmedFocusAreas.length > FOCUS_AREAS_MAX_LENGTH) {
+      setStatus({ state: 'error', message: `Focus areas must be ${FOCUS_AREAS_MAX_LENGTH} characters or fewer` })
+      return
+    }
+
+    if (form.availabilityEnabled && trimmedAvailability.length === 0) {
+      setStatus({ state: 'error', message: 'Availability is required when visible' })
+      return
+    }
+
+    if (form.focusAreasEnabled && trimmedFocusAreas.length === 0) {
+      setStatus({ state: 'error', message: 'Focus areas are required when visible' })
+      return
+    }
+
     try {
       await updateProfile({
         name: form.name,
@@ -165,6 +309,14 @@ const AdminDashboard = () => {
           github: form.github,
           x: form.x,
         },
+        availability: {
+          value: trimmedAvailability,
+          enabled: form.availabilityEnabled && trimmedAvailability.length > 0,
+        },
+        focusAreas: {
+          value: trimmedFocusAreas,
+          enabled: form.focusAreasEnabled && trimmedFocusAreas.length > 0,
+        },
       })
       setStatus({ state: 'saved' })
     } catch (saveError) {
@@ -176,18 +328,42 @@ const AdminDashboard = () => {
   const handleSiteSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setSiteStatus({ state: 'saving' })
-    const trimmed = {
-      title: siteForm.title.trim(),
-      description: siteForm.description.trim(),
-    }
+    const trimmedTitle = siteForm.title.trim()
+    const trimmedDescription = siteForm.description.trim()
+    const sanitizedLogo: SiteLogo | null = siteForm.logo
+      ? {
+          data: siteForm.logo.data,
+          type: siteForm.logo.type,
+          ...(siteForm.logo.alt && siteForm.logo.alt.trim().length > 0
+            ? { alt: siteForm.logo.alt.trim() }
+            : {}),
+        }
+      : null
 
-    if (!trimmed.title || !trimmed.description) {
+    if (!trimmedTitle || !trimmedDescription) {
       setSiteStatus({ state: 'error', message: 'Title and description are required' })
       return
     }
 
+    if (siteForm.homeButtonMode === 'logo' && !sanitizedLogo) {
+      setSiteStatus({ state: 'error', message: 'Upload a logo before enabling the logo home button' })
+      return
+    }
+
+    if (siteForm.homeButtonMode === 'logo' && sanitizedLogo && !sanitizedLogo.alt) {
+      setSiteStatus({ state: 'error', message: 'Add alt text so the logo link remains accessible' })
+      return
+    }
+
+    const payload: SiteMeta = {
+      title: trimmedTitle,
+      description: trimmedDescription,
+      homeButtonMode: siteForm.homeButtonMode === 'logo' && !sanitizedLogo ? 'text' : siteForm.homeButtonMode,
+      logo: sanitizedLogo,
+    }
+
     try {
-      await updateSite(trimmed)
+      await updateSite(payload)
       setSiteStatus({ state: 'saved' })
     } catch (saveError) {
       const message =
@@ -369,7 +545,7 @@ const AdminDashboard = () => {
                 <input
                   className={fieldStyle}
                   value={siteForm.title}
-                  onChange={handleSiteChange('title')}
+                  onChange={handleSiteTextChange('title')}
                   disabled={siteBusy}
                 />
                 <span className="text-xs text-slate-500">
@@ -381,7 +557,7 @@ const AdminDashboard = () => {
                 <textarea
                   className={`${fieldStyle} min-h-[120px]`}
                   value={siteForm.description}
-                  onChange={handleSiteChange('description')}
+                  onChange={handleSiteTextChange('description')}
                   maxLength={300}
                   disabled={siteBusy}
                 />
@@ -389,6 +565,125 @@ const AdminDashboard = () => {
                   Summarize what visitors can expect. Ideal length is under 160 characters.
                 </span>
               </label>
+              <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/40 p-4">
+                <div className="space-y-1">
+                  <span className={labelStyle}>Home button</span>
+                  <p className="text-xs text-slate-500">
+                    Choose how the header links back to the hero section.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${
+                    siteForm.homeButtonMode === 'text'
+                      ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
+                      : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="homeButtonMode"
+                        value="text"
+                        checked={siteForm.homeButtonMode === 'text'}
+                        onChange={handleHomeButtonModeChange}
+                        disabled={siteBusy}
+                        className="h-4 w-4 rounded-full border-slate-600 bg-night-900 text-accent-500 focus:ring-accent-400"
+                      />
+                      <span className="font-semibold">Text label</span>
+                    </div>
+                    <span className="text-xs text-slate-500">
+                      Uses the site title for the header link.
+                    </span>
+                  </label>
+                  <label className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${
+                    siteForm.homeButtonMode === 'logo'
+                      ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
+                      : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="homeButtonMode"
+                        value="logo"
+                        checked={siteForm.homeButtonMode === 'logo'}
+                        onChange={handleHomeButtonModeChange}
+                        disabled={siteBusy || !siteForm.logo}
+                        className="h-4 w-4 rounded-full border-slate-600 bg-night-900 text-accent-500 focus:ring-accent-400"
+                      />
+                      <span className="font-semibold">Logo button</span>
+                    </div>
+                    <span className="text-xs text-slate-500">
+                      Displays your uploaded logo instead of text.
+                    </span>
+                  </label>
+                </div>
+                <div className="space-y-3 rounded-2xl border border-dashed border-slate-700/60 bg-night-900/60 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-slate-200">Logo</p>
+                      <p className="text-xs text-slate-500">
+                        Upload an SVG, PNG, JPG, or WEBP file up to 512KB. Transparent backgrounds work best.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-700/60 bg-night-900/80 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-accent-100">
+                        <input
+                          type="file"
+                          accept="image/png,image/svg+xml,image/jpeg,image/webp"
+                          onChange={handleLogoUpload}
+                          disabled={siteBusy}
+                          className="sr-only"
+                        />
+                        <span>Upload logo</span>
+                      </label>
+                      {siteForm.logo && (
+                        <button
+                          type="button"
+                          onClick={handleLogoClear}
+                          className="inline-flex items-center gap-2 rounded-full border border-slate-700/60 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:border-red-400/60 hover:text-red-200"
+                          disabled={siteBusy}
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  {siteForm.logo ? (
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-slate-800/70 bg-night-900/80">
+                          <img
+                            src={siteForm.logo.data}
+                            alt={siteForm.logo.alt ?? 'Site logo preview'}
+                            className="max-h-14 max-w-14 object-contain"
+                          />
+                        </div>
+                        <div className="text-xs text-slate-400">
+                          <p className="font-medium text-slate-300">Current logo</p>
+                          <p>{siteForm.logo.type.replace('image/', '').toUpperCase()}</p>
+                        </div>
+                      </div>
+                      <label className="flex w-full flex-col gap-2 lg:max-w-xs">
+                        <span className={labelStyle}>Logo alt text</span>
+                        <input
+                          className={fieldStyle}
+                          value={siteForm.logo.alt ?? ''}
+                          onChange={handleLogoAltChange}
+                          placeholder="Describe the logo for screen readers"
+                          maxLength={80}
+                          disabled={siteBusy}
+                        />
+                        <span className="text-xs text-slate-500">
+                          Required for accessibility when the logo is displayed.
+                        </span>
+                      </label>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-500">
+                      Upload a logo to unlock the logo home button option.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
             <div className="flex flex-col gap-3 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-xs text-slate-500">
@@ -429,6 +724,70 @@ const AdminDashboard = () => {
                     disabled={profileBusy}
                   />
                 </label>
+              </div>
+              <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/50 p-4">
+                <div className="space-y-1">
+                  <span className={labelStyle}>Hero highlights</span>
+                  <p className="text-xs text-slate-500">
+                    Fine-tune the quick facts that appear beside your hero copy.
+                  </p>
+                </div>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-slate-900/50 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-semibold text-white">Availability</span>
+                      <label className="flex items-center gap-2 text-xs text-slate-400">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
+                          checked={form.availabilityEnabled}
+                          onChange={handleHighlightToggle('availabilityEnabled')}
+                          disabled={profileBusy}
+                        />
+                        <span>Show</span>
+                      </label>
+                    </div>
+                    <input
+                      className={fieldStyle}
+                      value={form.availabilityValue}
+                      onChange={handleChange('availabilityValue')}
+                      maxLength={AVAILABILITY_MAX_LENGTH}
+                      placeholder="Availability status"
+                      disabled={profileBusy}
+                    />
+                    <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                      <span>Max {AVAILABILITY_MAX_LENGTH} chars</span>
+                      <span>{form.availabilityValue.trim().length}/{AVAILABILITY_MAX_LENGTH}</span>
+                    </div>
+                  </div>
+                  <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-slate-900/50 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-semibold text-white">Focus areas</span>
+                      <label className="flex items-center gap-2 text-xs text-slate-400">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
+                          checked={form.focusAreasEnabled}
+                          onChange={handleHighlightToggle('focusAreasEnabled')}
+                          disabled={profileBusy}
+                        />
+                        <span>Show</span>
+                      </label>
+                    </div>
+                    <input
+                      className={fieldStyle}
+                      value={form.focusAreasValue}
+                      onChange={handleChange('focusAreasValue')}
+                      maxLength={FOCUS_AREAS_MAX_LENGTH}
+                      placeholder="Key focus areas"
+                      disabled={profileBusy}
+                    />
+                    <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                      <span>Max {FOCUS_AREAS_MAX_LENGTH} chars</span>
+                      <span>{form.focusAreasValue.trim().length}/{FOCUS_AREAS_MAX_LENGTH}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </section>
 

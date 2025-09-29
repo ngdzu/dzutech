@@ -12,6 +12,13 @@ export type Profile = {
   location: string
   email: string
   social: SocialLinks
+  availability: ProfileHighlight
+  focusAreas: ProfileHighlight
+}
+
+export type ProfileHighlight = {
+  value: string
+  enabled: boolean
 }
 
 export type Experience = {
@@ -51,9 +58,17 @@ export type SectionsContent = {
   contact: SectionDetails
 }
 
+export type SiteLogo = {
+  data: string
+  type: string
+  alt?: string
+}
+
 export type SiteMeta = {
   title: string
   description: string
+  homeButtonMode: 'text' | 'logo'
+  logo: SiteLogo | null
 }
 
 export type ContentState = {
@@ -70,6 +85,8 @@ export const defaultContent: ContentState = {
   site: {
     title: 'Crafted Portfolio',
     description: 'Showcase engineering work, thoughtful processes, and ways to collaborate.',
+    homeButtonMode: 'text',
+    logo: null,
   },
   profile: {
     name: 'Your Name',
@@ -83,6 +100,14 @@ export const defaultContent: ContentState = {
       linkedin: 'https://www.linkedin.com/in/your-profile',
       github: 'https://github.com/your-handle',
       x: 'https://x.com/your-handle',
+    },
+    availability: {
+      value: 'Open to mentoring & advisory work',
+      enabled: true,
+    },
+    focusAreas: {
+      value: 'Platform architecture · Developer experience · Applied AI',
+      enabled: true,
     },
   },
   experiences: [

@@ -8,6 +8,7 @@ A modern, animated personal website for showcasing software engineering work. Bu
 - Hero, about, experience, resources, and writing sections
 - Contact panel with direct email + social links (LinkedIn, GitHub, X)
 - Content delivered through an API-backed context layer with PostgreSQL persistence
+- Configurable site branding with optional logo-based home button and accessible alt text requirements
 - Lightweight admin dashboard at `/admin` for updating headline details without touching code
 - Full-stack Docker Compose setup (frontend, Node API, PostgreSQL)
 
@@ -90,15 +91,17 @@ docker compose down
 
 - Update default names, headlines, or contact info in `src/content.ts`
 - Use the `/admin` dashboard to publish profile changes directly to the database (no redeploy needed)
+- Upload a logo and choose between text or logo home buttons from **Site metadata** to match your branding
 - Adjust theme colors and animations in `tailwind.config.js`
 - Extend sections or add new cards by following the component patterns in `src/pages/LandingPage.tsx`
 
 ## 🔐 Admin dashboard notes
 
-- Manage the site title and meta description from the **Site metadata** card to control tabs and SEO snippets
+ - Manage the site title, meta description, logo upload, and home button style from the **Site metadata** card to control tabs, SEO snippets, and branding
 - Navigate to `https://dzutech.com/admin` (or `http://localhost:5173/admin` if you override the origin for local work) to edit core profile fields
 - Changes persist in PostgreSQL via the API and immediately update the public landing page
 - Use the **Restore defaults** button to repopulate the seeded profile data across the stack
+- When using the logo home button, supply meaningful alt text so the header stays accessible for screen readers
 
 ## 📄 License
 

@@ -199,15 +199,39 @@ export const LandingPage = () => {
   const firstName = profile.name.split(' ')[0] || profile.name
   const siteTitle = site.title.trim()
   const brandLabel = siteTitle ? siteTitle.toLowerCase() : firstName ? firstName.toLowerCase() : 'home'
+  const homeLinkLabel = siteTitle || profile.name || 'Home'
+  const homeUsesLogo = site.homeButtonMode === 'logo' && Boolean(site.logo?.data)
+  const homeLogoAlt = site.logo?.alt?.trim() || homeLinkLabel
+  const homeLinkClasses = homeUsesLogo
+    ? 'inline-flex items-center gap-3 rounded-xl font-semibold text-white transition hover:text-accent-200'
+    : 'inline-flex items-center gap-2 text-lg font-semibold tracking-tight text-white transition hover:text-accent-200'
+  const availabilityText = profile.availability?.value?.trim() ?? ''
+  const showAvailability = Boolean(profile.availability?.enabled && availabilityText)
+  const focusAreasText = profile.focusAreas?.value?.trim() ?? ''
+  const showFocusAreas = Boolean(profile.focusAreas?.enabled && focusAreasText)
 
   return (
     <div className="relative min-h-screen bg-night-900 text-slate-100">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-grid-radial opacity-60" aria-hidden />
       <header className="sticky top-0 z-50 border-b border-white/5 bg-night-900/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <a href="#hero" className="text-lg font-semibold tracking-tight text-white">
-            {brandLabel}
-            <span className="text-accent-400">.</span>
+          <a
+            href="#hero"
+            className={homeLinkClasses}
+            aria-label={homeUsesLogo ? homeLogoAlt : undefined}
+          >
+            {homeUsesLogo && site.logo?.data ? (
+              <img
+                src={site.logo.data}
+                alt={homeLogoAlt}
+                className="h-10 w-auto max-h-10 object-contain"
+              />
+            ) : (
+              <>
+                {brandLabel}
+                <span className="text-accent-400">.</span>
+              </>
+            )}
           </a>
           <nav className="hidden items-center gap-6 text-sm font-medium text-slate-300 md:flex">
             {navItems.map((item) => (
@@ -276,20 +300,22 @@ export const LandingPage = () => {
             </div>
             <div className="flex flex-col gap-4 rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 shadow-inner shadow-black/40">
               <dl className="space-y-4 text-sm">
-                <div className="flex justify-between">
+                <div className="flex items-baseline justify-between gap-4">
                   <dt className="text-slate-400">Location</dt>
                   <dd className="font-medium text-white">{profile.location}</dd>
                 </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-400">Availability</dt>
-                  <dd className="font-medium text-white">Open to mentoring & advisory work</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-400">Focus areas</dt>
-                  <dd className="max-w-[200px] text-right text-white">
-                    Platform architecture · Developer experience · Applied AI
-                  </dd>
-                </div>
+                {showAvailability && (
+                  <div className="flex items-baseline justify-between gap-4">
+                    <dt className="text-slate-400">Availability</dt>
+                    <dd className="max-w-[200px] text-right font-medium text-white">{availabilityText}</dd>
+                  </div>
+                )}
+                {showFocusAreas && (
+                  <div className="flex items-baseline justify-between gap-4">
+                    <dt className="text-slate-400">Focus areas</dt>
+                    <dd className="max-w-[200px] text-right text-white">{focusAreasText}</dd>
+                  </div>
+                )}
               </dl>
             </div>
           </motion.div>
