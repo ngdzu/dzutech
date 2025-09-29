@@ -7,10 +7,12 @@ import type {
   Profile,
   ResourceLink,
   SectionsContent,
+  SiteMeta,
   Tutorial,
 } from './types.js'
 
 const CONTENT_KEYS: (keyof ContentState)[] = [
+  'site',
   'profile',
   'experiences',
   'usefulLinks',
@@ -25,6 +27,9 @@ export const getContent = async (): Promise<ContentState> => {
     const value = await readJson<ContentState[typeof key]>(key)
     if (value !== undefined) {
       switch (key) {
+        case 'site':
+          content.site = value as ContentState['site']
+          break
         case 'profile':
           content.profile = value as ContentState['profile']
           break
@@ -52,6 +57,11 @@ export const getContent = async (): Promise<ContentState> => {
 export const saveProfile = async (profile: Profile): Promise<Profile> => {
   await writeJson('profile', profile)
   return profile
+}
+
+export const saveSite = async (site: SiteMeta): Promise<SiteMeta> => {
+  await writeJson('site', site)
+  return site
 }
 
 export const saveExperiences = async (experiences: Experience[]): Promise<Experience[]> => {

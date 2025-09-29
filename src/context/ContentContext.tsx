@@ -7,6 +7,7 @@ import type {
   Profile,
   ResourceLink,
   SectionsContent,
+  SiteMeta,
   Tutorial,
 } from '../content'
 import { defaultContent } from '../content'
@@ -17,6 +18,7 @@ import {
   updatePosts as updatePostsOnServer,
   updateProfile as updateProfileOnServer,
   updateSections as updateSectionsOnServer,
+  updateSite as updateSiteOnServer,
   updateTutorials as updateTutorialsOnServer,
   updateUsefulLinks as updateUsefulLinksOnServer,
 } from '../lib/api'
@@ -26,6 +28,7 @@ type ContentContextValue = {
   loading: boolean
   error: string | null
   refresh: () => Promise<void>
+  updateSite: (site: SiteMeta) => Promise<SiteMeta>
   updateProfile: (updates: Partial<Profile>) => Promise<Profile>
   updatePosts: (posts: Post[]) => Promise<Post[]>
   updateExperiences: (experiences: Experience[]) => Promise<Experience[]>
@@ -63,6 +66,30 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     void refresh()
   }, [refresh])
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+
+    const siteTitle = content.site?.title?.trim()
+    const name = content.profile?.name?.trim()
+    const role = content.profile?.title?.trim()
+    const computedTitle = siteTitle || [name, role].filter(Boolean).join(' · ') || 'Personal Portfolio'
+
+    if (document.title !== computedTitle) {
+      document.title = computedTitle
+    }
+
+  const siteDescription = content.site?.description?.trim()
+  const summary = content.profile?.summary?.trim()
+  const aboutDescription = content.sections?.about?.description?.trim()
+  const fallbackDescription = 'Portfolio website showcasing software engineering work, projects, and contact details.'
+  const computedDescription = siteDescription || summary || aboutDescription || fallbackDescription
+
+    const metaDescription = document.querySelector('meta[name="description"]')
+    if (metaDescription && metaDescription.getAttribute('content') !== computedDescription) {
+      metaDescription.setAttribute('content', computedDescription)
+    }
+  }, [content])
+
   const updateProfile = useCallback(async (updates: Partial<Profile>) => {
     try {
       const saved = await updateProfileOnServer(updates)
@@ -74,6 +101,21 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       return saved
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Failed to save profile')
+      throw saveError
+    }
+  }, [])
+
+  const updateSite = useCallback(async (siteMeta: SiteMeta) => {
+    try {
+      const saved = await updateSiteOnServer(siteMeta)
+      setContent((prev) => ({
+        ...prev,
+        site: saved,
+      }))
+      setError(null)
+      return saved
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Failed to save site metadata')
       throw saveError
     }
   }, [])
@@ -171,6 +213,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       loading,
       error,
       refresh,
+      updateSite,
       updateProfile,
       updatePosts,
       updateExperiences,
@@ -184,6 +227,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       loading,
       error,
       refresh,
+      updateSite,
       updateProfile,
       updatePosts,
       updateExperiences,

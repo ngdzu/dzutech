@@ -5,6 +5,7 @@ import type {
   Profile,
   ResourceLink,
   SectionsContent,
+  SiteMeta,
   Tutorial,
 } from '../content'
 
@@ -58,6 +59,15 @@ export const updateProfile = async (payload: Partial<Profile>): Promise<Profile>
     body: JSON.stringify(payload),
   })
   return handleResponse<Profile>(response)
+}
+
+export const updateSite = async (payload: SiteMeta): Promise<SiteMeta> => {
+  const response = await fetch(normalizeUrl('/api/site'), {
+    method: 'PUT',
+    headers: jsonHeaders,
+    body: JSON.stringify(payload),
+  })
+  return handleResponse<SiteMeta>(response)
 }
 
 export const updatePosts = async (payload: Post[]): Promise<Post[]> => {

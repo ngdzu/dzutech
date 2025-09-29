@@ -195,7 +195,10 @@ const navItems = [
 
 export const LandingPage = () => {
   const { content } = useContent()
-  const { profile, experiences, usefulLinks, posts, tutorials, sections } = content
+  const { site, profile, experiences, usefulLinks, posts, tutorials, sections } = content
+  const firstName = profile.name.split(' ')[0] || profile.name
+  const siteTitle = site.title.trim()
+  const brandLabel = siteTitle ? siteTitle.toLowerCase() : firstName ? firstName.toLowerCase() : 'home'
 
   return (
     <div className="relative min-h-screen bg-night-900 text-slate-100">
@@ -203,7 +206,8 @@ export const LandingPage = () => {
       <header className="sticky top-0 z-50 border-b border-white/5 bg-night-900/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <a href="#hero" className="text-lg font-semibold tracking-tight text-white">
-            dzutech<span className="text-accent-400">.</span>
+            {brandLabel}
+            <span className="text-accent-400">.</span>
           </a>
           <nav className="hidden items-center gap-6 text-sm font-medium text-slate-300 md:flex">
             {navItems.map((item) => (
@@ -383,7 +387,7 @@ export const LandingPage = () => {
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-accent-500 px-5 py-3 font-semibold text-night-900 transition hover:bg-accent-400"
               >
                 <FiMail />
-                Email Dustin
+                Email {firstName}
               </a>
               <a
                 href={profile.social.linkedin}

@@ -95,6 +95,7 @@ docker compose down
 
 ## 🔐 Admin dashboard notes
 
+- Manage the site title and meta description from the **Site metadata** card to control tabs and SEO snippets
 - Navigate to `https://dzutech.com/admin` (or `http://localhost:5173/admin` if you override the origin for local work) to edit core profile fields
 - Changes persist in PostgreSQL via the API and immediately update the public landing page
 - Use the **Restore defaults** button to repopulate the seeded profile data across the stack

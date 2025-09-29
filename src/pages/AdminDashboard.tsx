@@ -17,10 +17,21 @@ type ActionStatus =
   | { state: 'error'; message: string }
 
 const AdminDashboard = () => {
-  const { content, loading, error, updateProfile, updateSections, resetContent } = useContent()
-  const { profile, sections } = content
+  const { content, loading, error, updateSite, updateProfile, updateSections, resetContent } = useContent()
+  const { site, profile, sections } = content
+  const [siteStatus, setSiteStatus] = useState<ActionStatus>({ state: 'idle' })
   const [status, setStatus] = useState<ActionStatus>({ state: 'idle' })
   const [sectionsStatus, setSectionsStatus] = useState<ActionStatus>({ state: 'idle' })
+
+  const siteInitialForm = useMemo(
+    () => ({
+      title: site.title,
+      description: site.description,
+    }),
+    [site],
+  )
+
+  const [siteForm, setSiteForm] = useState(siteInitialForm)
 
   const initialForm = useMemo(
     () => ({
@@ -50,6 +61,10 @@ const AdminDashboard = () => {
   const [sectionsForm, setSectionsForm] = useState(sectionsInitialForm)
 
   useEffect(() => {
+    setSiteForm(siteInitialForm)
+  }, [siteInitialForm])
+
+  useEffect(() => {
     setForm(initialForm)
   }, [initialForm])
 
@@ -62,6 +77,12 @@ const AdminDashboard = () => {
     const timeout = window.setTimeout(() => setStatus({ state: 'idle' }), 2500)
     return () => window.clearTimeout(timeout)
   }, [status])
+
+  useEffect(() => {
+    if (siteStatus.state === 'idle' || siteStatus.state === 'saving' || siteStatus.state === 'resetting') return
+    const timeout = window.setTimeout(() => setSiteStatus({ state: 'idle' }), 2500)
+    return () => window.clearTimeout(timeout)
+  }, [siteStatus])
 
   useEffect(() => {
     if (sectionsStatus.state === 'idle' || sectionsStatus.state === 'saving' || sectionsStatus.state === 'resetting')
@@ -77,6 +98,11 @@ const AdminDashboard = () => {
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const value = transform ? transform(event.target.value) : event.target.value
       setForm((prev) => ({ ...prev, [field]: value }))
+    }
+
+  const handleSiteChange = (field: keyof typeof siteForm) =>
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setSiteForm((prev) => ({ ...prev, [field]: event.target.value }))
     }
 
   const handleSectionsChange = (field: keyof typeof sectionsForm) =>
@@ -108,6 +134,29 @@ const AdminDashboard = () => {
     }
   }
 
+  const handleSiteSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setSiteStatus({ state: 'saving' })
+    const trimmed = {
+      title: siteForm.title.trim(),
+      description: siteForm.description.trim(),
+    }
+
+    if (!trimmed.title || !trimmed.description) {
+      setSiteStatus({ state: 'error', message: 'Title and description are required' })
+      return
+    }
+
+    try {
+      await updateSite(trimmed)
+      setSiteStatus({ state: 'saved' })
+    } catch (saveError) {
+      const message =
+        saveError instanceof Error ? saveError.message : 'Failed to save site metadata'
+      setSiteStatus({ state: 'error', message })
+    }
+  }
+
   const handleSectionsSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setSectionsStatus({ state: 'saving' })
@@ -131,28 +180,37 @@ const AdminDashboard = () => {
 
   const handleReset = async () => {
     setStatus({ state: 'resetting' })
+    setSiteStatus({ state: 'resetting' })
     setSectionsStatus({ state: 'resetting' })
     try {
       await resetContent()
       setStatus({ state: 'reset' })
+      setSiteStatus({ state: 'reset' })
       setSectionsStatus({ state: 'reset' })
     } catch (resetError) {
       const message = resetError instanceof Error ? resetError.message : 'Failed to reset content'
       setStatus({ state: 'error', message })
+      setSiteStatus({ state: 'error', message })
       setSectionsStatus({ state: 'error', message })
     }
   }
 
   const profileBusy = loading || status.state === 'saving' || status.state === 'resetting'
+  const siteBusy =
+    loading || status.state === 'resetting' || sectionsStatus.state === 'resetting' || siteStatus.state === 'saving' || siteStatus.state === 'resetting'
   const sectionsBusy =
     loading || status.state === 'resetting' || sectionsStatus.state === 'saving' || sectionsStatus.state === 'resetting'
 
-  const getStatusLabel = (currentStatus: ActionStatus, scope: 'profile' | 'sections') => {
+  const getStatusLabel = (currentStatus: ActionStatus, scope: 'profile' | 'sections' | 'site') => {
     switch (currentStatus.state) {
       case 'saving':
-        return scope === 'profile' ? 'Saving profile...' : 'Saving section copy...'
+        if (scope === 'profile') return 'Saving profile...'
+        if (scope === 'site') return 'Saving site metadata...'
+        return 'Saving section copy...'
       case 'saved':
-        return scope === 'profile' ? 'Profile updated' : 'Section copy updated'
+        if (scope === 'profile') return 'Profile updated'
+        if (scope === 'site') return 'Site metadata updated'
+        return 'Section copy updated'
       case 'resetting':
         return 'Restoring defaults...'
       case 'reset':
@@ -164,10 +222,15 @@ const AdminDashboard = () => {
     }
   }
 
+  const siteStatusLabel = getStatusLabel(siteStatus, 'site')
   const profileStatusLabel = getStatusLabel(status, 'profile')
   const sectionsStatusLabel = getStatusLabel(sectionsStatus, 'sections')
 
   const statusMessages = [
+    siteStatusLabel && {
+      message: siteStatusLabel,
+      tone: siteStatus.state === 'error' ? 'error' : 'default',
+    },
     profileStatusLabel && {
       message: profileStatusLabel,
       tone: status.state === 'error' ? 'error' : 'default',
@@ -216,6 +279,58 @@ const AdminDashboard = () => {
         </header>
 
         <div className="grid gap-10">
+          <form
+            onSubmit={handleSiteSubmit}
+            className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6"
+          >
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold text-white">Site metadata</h2>
+              <p className="text-sm text-slate-400">
+                Control how the site identifies itself in browser tabs and search results. These values
+                drive the document title and meta description.
+              </p>
+            </div>
+            <div className="space-y-6">
+              <label className="flex flex-col gap-2">
+                <span className={labelStyle}>Site title</span>
+                <input
+                  className={fieldStyle}
+                  value={siteForm.title}
+                  onChange={handleSiteChange('title')}
+                  disabled={siteBusy}
+                />
+                <span className="text-xs text-slate-500">
+                  Appears in the browser tab and social previews.
+                </span>
+              </label>
+              <label className="flex flex-col gap-2">
+                <span className={labelStyle}>Meta description</span>
+                <textarea
+                  className={`${fieldStyle} min-h-[120px]`}
+                  value={siteForm.description}
+                  onChange={handleSiteChange('description')}
+                  maxLength={300}
+                  disabled={siteBusy}
+                />
+                <span className="text-xs text-slate-500">
+                  Summarize what visitors can expect. Ideal length is under 160 characters.
+                </span>
+              </label>
+            </div>
+            <div className="flex flex-col gap-3 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-xs text-slate-500">
+                Updates apply instantly to the live site once saved.
+              </div>
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={siteBusy}
+              >
+                Save site metadata
+              </button>
+            </div>
+          </form>
+
           <form onSubmit={handleSubmit} className="grid gap-8">
             <section className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6">
               <h2 className="text-lg font-semibold text-white">Identity</h2>

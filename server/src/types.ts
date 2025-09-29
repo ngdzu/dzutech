@@ -51,7 +51,13 @@ export type SectionsContent = {
   contact: SectionDetails
 }
 
+export type SiteMeta = {
+  title: string
+  description: string
+}
+
 export type ContentState = {
+  site: SiteMeta
   profile: Profile
   experiences: Experience[]
   usefulLinks: ResourceLink[]

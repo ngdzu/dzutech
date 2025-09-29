@@ -8,6 +8,7 @@ import {
   savePosts,
   saveProfile,
   saveSections,
+  saveSite,
   saveTutorials,
   saveUsefulLinks,
 } from './repository.js'
@@ -43,6 +44,31 @@ app.get('/api/content', async (_req: Request, res: Response) => {
   } catch (error) {
     console.error('Failed to load content', error)
     res.status(500).json({ message: 'Failed to load content' })
+  }
+})
+
+app.put('/api/site', async (req: Request, res: Response) => {
+  const payload = req.body as Partial<{ title: string; description: string }> | undefined
+
+  if (!payload || (typeof payload.title !== 'string' && typeof payload.description !== 'string')) {
+    return res.status(400).json({ message: 'Site metadata is required' })
+  }
+
+  const nextSite = {
+    title: typeof payload.title === 'string' ? payload.title.trim() : undefined,
+    description: typeof payload.description === 'string' ? payload.description.trim() : undefined,
+  }
+
+  if (!nextSite.title || !nextSite.description) {
+    return res.status(422).json({ message: 'Site title and description are required' })
+  }
+
+  try {
+    const saved = await saveSite({ title: nextSite.title, description: nextSite.description })
+    res.json(saved)
+  } catch (error) {
+    console.error('Failed to save site metadata', error)
+    res.status(500).json({ message: 'Failed to save site metadata' })
   }
 })
 
