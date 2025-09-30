@@ -192,7 +192,6 @@ const TutorialChip = ({
 )
 
 const navItems = [
-  { href: '#about', label: 'About' },
   { href: '#experience', label: 'Experience' },
   { href: '#resources', label: 'Useful links' },
   { href: '#writing', label: 'Writing' },
@@ -362,51 +361,6 @@ export const LandingPage = () => {
             transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
           />
         </section>
-
-        <Section id="about" title="About" eyebrow="Profile">
-          <div className="grid gap-10 md:grid-cols-[1.3fr,1fr]">
-            <p className="text-lg text-slate-300/90 whitespace-pre-line">{sections.about.description}</p>
-            {(showEmailContact || showLinkedinContact || showGithubContact) && (
-              <div className="space-y-6 rounded-3xl border border-slate-800/70 bg-slate-900/40 p-6">
-                <h3 className="text-sm uppercase tracking-[0.35em] text-slate-400">Ways to reach me</h3>
-                <div className="space-y-3">
-                  {showEmailContact && (
-                    <a
-                      href={`mailto:${emailAddress}`}
-                      className="flex items-center gap-3 text-slate-200 hover:text-white"
-                    >
-                      <FiMail className="text-accent-400" />
-                      {emailAddress}
-                    </a>
-                  )}
-                  {showLinkedinContact && (
-                    <a
-                      href={linkedinUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 text-slate-200 hover:text-white"
-                    >
-                      <FiLinkedin className="text-accent-400" />
-                      {formatSocialDisplay(linkedinUrl)}
-                    </a>
-                  )}
-                  {showGithubContact && (
-                    <a
-                      href={githubUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 text-slate-200 hover:text-white"
-                    >
-                      <FiGithub className="text-accent-400" />
-                      {formatSocialDisplay(githubUrl)}
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </Section>
-
         <Section id="experience" title="Experience" eyebrow="Career timeline">
           <div className="space-y-8">
             {experiences.map((experience) => (

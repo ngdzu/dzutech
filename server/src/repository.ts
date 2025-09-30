@@ -156,6 +156,39 @@ const withExperienceDefaults = (value: unknown, defaults: Experience[]): Experie
   })
 }
 
+const withSectionsDefaults = (value: unknown, defaults: SectionsContent): SectionsContent => {
+  const fallbackDescription = defaults.contact.description
+
+  if (!value || typeof value !== 'object') {
+    return {
+      contact: {
+        description: fallbackDescription,
+      },
+    }
+  }
+
+  const candidate = value as Partial<SectionsContent> & {
+    about?: { description?: unknown }
+  }
+
+  const extractDescription = (source?: { description?: unknown }): string | undefined => {
+    if (!source) return undefined
+    const raw = source.description
+    if (typeof raw !== 'string') return undefined
+    const trimmed = raw.trim()
+    return trimmed.length > 0 ? trimmed : undefined
+  }
+
+  const contactDescription =
+    extractDescription(candidate.contact) ?? extractDescription(candidate.about) ?? fallbackDescription
+
+  return {
+    contact: {
+      description: contactDescription,
+    },
+  }
+}
+
 export const getContent = async (): Promise<ContentState> => {
   const content: ContentState = JSON.parse(JSON.stringify(defaultContent))
   for (const key of CONTENT_KEYS) {
@@ -181,7 +214,7 @@ export const getContent = async (): Promise<ContentState> => {
           content.tutorials = value as ContentState['tutorials']
           break
         case 'sections':
-          content.sections = value as ContentState['sections']
+          content.sections = withSectionsDefaults(value, content.sections)
           break
       }
     }

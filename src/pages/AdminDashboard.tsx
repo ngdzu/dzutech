@@ -149,8 +149,7 @@ const AdminDashboard = () => {
 
   const sectionsInitialForm = useMemo(
     () => ({
-      aboutDescription: sections.about.description,
-      contactDescription: sections.contact.description,
+      contactDescription: sections.contact?.description ?? '',
     }),
     [sections],
   )
@@ -585,9 +584,6 @@ const AdminDashboard = () => {
     event.preventDefault()
     setSectionsStatus({ state: 'saving' })
     const nextSections = {
-      about: {
-        description: sectionsForm.aboutDescription.trim(),
-      },
       contact: {
         description: sectionsForm.contactDescription.trim(),
       },
@@ -1312,19 +1308,10 @@ const AdminDashboard = () => {
             <div className="space-y-2">
               <h2 className="text-lg font-semibold text-white">Site sections</h2>
               <p className="text-sm text-slate-400">
-                Update the descriptive copy for the About and Contact sections on the landing page.
+                Update the descriptive copy for the Contact section on the landing page.
               </p>
             </div>
             <div className="space-y-6">
-              <label className="flex flex-col gap-2">
-                <span className={labelStyle}>About section description</span>
-                <textarea
-                  className={`${fieldStyle} min-h-[140px]`}
-                  value={sectionsForm.aboutDescription}
-                  onChange={handleSectionsChange('aboutDescription')}
-                  disabled={sectionsBusy}
-                />
-              </label>
               <label className="flex flex-col gap-2">
                 <span className={labelStyle}>Contact section description</span>
                 <textarea

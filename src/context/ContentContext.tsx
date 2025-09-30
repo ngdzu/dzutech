@@ -78,11 +78,11 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       document.title = computedTitle
     }
 
-  const siteDescription = content.site?.description?.trim()
-  const summary = content.profile?.summary?.trim()
-  const aboutDescription = content.sections?.about?.description?.trim()
-  const fallbackDescription = 'Portfolio website showcasing software engineering work, projects, and contact details.'
-  const computedDescription = siteDescription || summary || aboutDescription || fallbackDescription
+    const siteDescription = content.site?.description?.trim()
+    const summary = content.profile?.summary?.trim()
+    const contactDescription = content.sections?.contact?.description?.trim()
+    const fallbackDescription = 'Portfolio website showcasing software engineering work, projects, and contact details.'
+    const computedDescription = siteDescription || summary || contactDescription || fallbackDescription
 
     const metaDescription = document.querySelector('meta[name="description"]')
     if (metaDescription && metaDescription.getAttribute('content') !== computedDescription) {

@@ -61,7 +61,6 @@ export type SectionDetails = {
 }
 
 export type SectionsContent = {
-  about: SectionDetails
   contact: SectionDetails
 }
 

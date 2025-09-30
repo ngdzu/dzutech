@@ -207,10 +207,6 @@ const validatePost = (post: Post, index: number): string | undefined => {
 }
 
 const validateSections = (sections: SectionsContent): string | undefined => {
-  if (!isNonEmptyString(sections.about.description)) {
-    return 'sections.about.description is required'
-  }
-
   if (!isNonEmptyString(sections.contact.description)) {
     return 'sections.contact.description is required'
   }
@@ -387,12 +383,6 @@ app.put('/api/sections', async (req: Request, res: Response) => {
   }
 
   const next: SectionsContent = {
-    about: {
-      description:
-        typeof payload?.about?.description === 'string'
-          ? payload.about.description
-          : currentSections.about.description,
-    },
     contact: {
       description:
         typeof payload?.contact?.description === 'string'

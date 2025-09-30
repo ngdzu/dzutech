@@ -61,7 +61,6 @@ export type SectionDetails = {
 }
 
 export type SectionsContent = {
-  about: SectionDetails
   contact: SectionDetails
 }
 
@@ -218,10 +217,6 @@ export const defaultContent: ContentState = {
     },
   ],
   sections: {
-    about: {
-      description:
-        'I thrive at the intersection of product vision and engineering execution. I love mentoring builders, crafting ambitious roadmaps, and pairing on architectural deep dives.',
-    },
     contact: {
       description:
         'I partner with founders, product leaders, and engineering teams to untangle complex systems, accelerate delivery, and coach developers. Drop a note and let’s explore how we can collaborate.',
