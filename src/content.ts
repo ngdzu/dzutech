@@ -31,7 +31,7 @@ export type ProfileHighlight = {
 export type Experience = {
   role: string
   company: string
-  period: string
+  year: string
   description: string
   achievements: string[]
   stack: string[]
@@ -126,7 +126,7 @@ export const defaultContent: ContentState = {
     {
       role: 'Principal Software Engineer',
       company: 'Aurora Labs',
-      period: '2023 — Present',
+      year: '2023 — Present',
       description:
         'Leading platform initiatives that help cross-functional teams ship reliably and iterate faster.',
       achievements: [
@@ -139,7 +139,7 @@ export const defaultContent: ContentState = {
     {
       role: 'Staff Software Engineer',
       company: 'Orbit Systems',
-      period: '2020 — 2023',
+      year: '2020 — 2023',
       description:
         'Shipped mission-critical control interfaces used by globally distributed operations teams.',
       achievements: [
@@ -152,7 +152,7 @@ export const defaultContent: ContentState = {
     {
       role: 'Senior Software Engineer',
       company: 'Lumen Collective',
-      period: '2016 — 2020',
+      year: '2016 — 2020',
       description:
         'Guided the build-out of a consumer fintech platform from seed stage through rapid growth.',
       achievements: [

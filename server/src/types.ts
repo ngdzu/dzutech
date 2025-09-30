@@ -31,7 +31,7 @@ export type ProfileHighlight = {
 export type Experience = {
   role: string
   company: string
-  period: string
+  year: string
   description: string
   achievements: string[]
   stack: string[]

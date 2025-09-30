@@ -59,7 +59,7 @@ const Section = ({
 const ExperienceCard = ({
   role,
   company,
-  period,
+  year,
   description,
   achievements,
   stack,
@@ -73,18 +73,24 @@ const ExperienceCard = ({
   >
     <div className="space-y-4">
       <div>
-        <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{period}</p>
+        <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{year}</p>
         <h3 className="mt-2 text-2xl font-semibold text-white">
           {role} · <span className="text-accent-400">{company}</span>
         </h3>
       </div>
       <ul className="flex flex-wrap gap-2 text-xs font-medium text-slate-300">
         {stack.map((item) => (
-          <li
-            key={item}
-            className="rounded-full border border-slate-700/70 bg-slate-900/80 px-3 py-1"
-          >
-            {item}
+          <li key={item}>
+            <button
+              type="button"
+              className="rounded-full border border-slate-700/70 bg-slate-900/80 px-3 py-1 text-slate-300 transition hover:border-accent-400/70 hover:text-accent-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
+              aria-label={`Skill: ${item}`}
+              onClick={() => {
+                /* Reserved for future interactions */
+              }}
+            >
+              {item}
+            </button>
           </li>
         ))}
       </ul>

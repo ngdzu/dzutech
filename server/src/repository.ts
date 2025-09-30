@@ -113,6 +113,49 @@ const withProfileDefaults = (value: unknown, defaults: Profile): Profile => {
   }
 }
 
+const withExperienceDefaults = (value: unknown, defaults: Experience[]): Experience[] => {
+  if (!Array.isArray(value)) {
+    return defaults.map((item) => ({ ...item }))
+  }
+
+  const ensureString = (input: unknown, fallback: string): string =>
+    typeof input === 'string' && input.trim().length > 0 ? input : fallback
+
+  const ensureStringArray = (input: unknown, fallback: string[]): string[] =>
+    Array.isArray(input)
+      ? input.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
+      : [...fallback]
+
+  const getFallback = (idx: number): Experience =>
+    defaults[idx] ?? defaults[defaults.length - 1] ?? {
+      role: '',
+      company: '',
+      year: '',
+      description: '',
+      achievements: [],
+      stack: [],
+    }
+
+  return value.map((entry, index) => {
+    if (!entry || typeof entry !== 'object') {
+      const fallback = getFallback(index)
+      return { ...fallback }
+    }
+
+    const candidate = entry as Partial<Experience> & { period?: unknown }
+    const fallback = getFallback(index)
+
+    return {
+      role: ensureString(candidate.role, fallback.role),
+      company: ensureString(candidate.company, fallback.company),
+      year: ensureString(candidate.year ?? candidate.period, fallback.year),
+      description: ensureString(candidate.description, fallback.description),
+      achievements: ensureStringArray(candidate.achievements, fallback.achievements),
+      stack: ensureStringArray(candidate.stack, fallback.stack),
+    }
+  })
+}
+
 export const getContent = async (): Promise<ContentState> => {
   const content: ContentState = JSON.parse(JSON.stringify(defaultContent))
   for (const key of CONTENT_KEYS) {
@@ -126,7 +169,7 @@ export const getContent = async (): Promise<ContentState> => {
           content.profile = withProfileDefaults(value, content.profile)
           break
         case 'experiences':
-          content.experiences = value as ContentState['experiences']
+          content.experiences = withExperienceDefaults(value, content.experiences)
           break
         case 'usefulLinks':
           content.usefulLinks = value as ContentState['usefulLinks']

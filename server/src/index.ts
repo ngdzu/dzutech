@@ -165,7 +165,7 @@ const isStringArray = (value: unknown): value is string[] =>
 const validateExperience = (experience: Experience, index: number): string | undefined => {
   if (!isNonEmptyString(experience.role)) return `experiences[${index}].role is required`
   if (!isNonEmptyString(experience.company)) return `experiences[${index}].company is required`
-  if (!isNonEmptyString(experience.period)) return `experiences[${index}].period is required`
+  if (!isNonEmptyString(experience.year)) return `experiences[${index}].year is required`
   if (!isNonEmptyString(experience.description)) return `experiences[${index}].description is required`
   if (!isStringArray(experience.achievements)) return `experiences[${index}].achievements must be an array of strings`
   if (!isStringArray(experience.stack)) return `experiences[${index}].stack must be an array of strings`
