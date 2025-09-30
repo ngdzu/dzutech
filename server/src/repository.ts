@@ -156,6 +156,54 @@ const withExperienceDefaults = (value: unknown, defaults: Experience[]): Experie
   })
 }
 
+const withPostsDefaults = (value: unknown, defaults: Post[]): Post[] => {
+  if (!Array.isArray(value)) {
+    return defaults.map((item) => ({ ...item }))
+  }
+
+  const ensureString = (input: unknown, fallback: string): string => {
+    if (typeof input === 'string') {
+      const trimmed = input.trim()
+      if (trimmed.length > 0) {
+        return trimmed
+      }
+    }
+    return fallback
+  }
+
+  const ensureStringArray = (input: unknown, fallback: string[]): string[] =>
+    Array.isArray(input)
+      ? input
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : [...fallback]
+
+  const getFallback = (idx: number): Post =>
+    defaults[idx] ?? defaults[defaults.length - 1] ?? { title: '', content: '', tags: [] }
+
+  return value.map((entry, index) => {
+    if (!entry || typeof entry !== 'object') {
+      const fallback = getFallback(index)
+      return { ...fallback }
+    }
+
+    const candidate = entry as Partial<Post> & { summary?: unknown; href?: unknown }
+    const fallback = getFallback(index)
+    const title = ensureString(candidate.title, fallback.title)
+
+    const contentSource = typeof candidate.content === 'string' ? candidate.content : undefined
+    const fallbackSummary = typeof candidate.summary === 'string' ? candidate.summary : undefined
+    const content = ensureString(contentSource ?? fallbackSummary, fallback.content)
+
+    return {
+      title,
+      content,
+      tags: ensureStringArray(candidate.tags, fallback.tags),
+    }
+  })
+}
+
 const withSectionsDefaults = (value: unknown, defaults: SectionsContent): SectionsContent => {
   const fallbackDescription = defaults.contact.description
 
@@ -208,7 +256,7 @@ export const getContent = async (): Promise<ContentState> => {
           content.usefulLinks = value as ContentState['usefulLinks']
           break
         case 'posts':
-          content.posts = value as ContentState['posts']
+          content.posts = withPostsDefaults(value, content.posts)
           break
         case 'tutorials':
           content.tutorials = value as ContentState['tutorials']

@@ -95,20 +95,20 @@ export const defaultContent: ContentState = {
   posts: [
     {
       title: 'Designing Guardrails for AI-Assisted Coding Teams',
-      href: 'https://blog.example.com/ai-guardrails',
-      summary: 'A practical framework for weaving human oversight into AI-assisted developer workflows.',
+      content:
+        'Shipping with AI copilots requires clear human guardrails. This post walks through the guiding principles, review rituals, and partnership agreements I use with product and design to keep code reviews fast without sacrificing trust.\n\nYou will learn how to set confidence thresholds, build lightweight audit trails, and coach teams on when to lean on automation versus deep architectural thinking.',
       tags: ['AI', 'Productivity', 'Leadership'],
     },
     {
       title: 'Modern Observability in a Polyglot Stack',
-      href: 'https://blog.example.com/observability-polyglot',
-      summary: 'Lessons from unifying telemetry across Node.js, Rust, and serverless workloads.',
+      content:
+        'Unifying telemetry across Node.js services, Rust workers, and serverless glue code can feel like herding cats. I share the dashboards, sampling strategies, and alerting heuristics that kept our operators confident while latency stayed predictable.\n\nFrom tracing and structured logging to incident retros, the article breaks down the practical steps your team can adopt this quarter.',
       tags: ['Observability', 'DevOps'],
     },
     {
       title: 'Scaling Frontend Platforms with Micro-Frontends',
-      href: 'https://blog.example.com/micro-frontends-at-scale',
-      summary: 'Patterns that helped us grow a design system and shipping velocity without slowing teams down.',
+      content:
+        'When design systems and product squads both need to ship quickly, micro-frontends can help—if you invest in tooling and guardrails. I cover the architectural patterns, CI safeguards, and DX improvements that let us scale to dozens of teams without fracturing the user experience.\n\nExpect deployment pipelines, shared contract testing, and a few lessons learned the hard way.',
       tags: ['Frontend', 'Architecture'],
     },
   ],

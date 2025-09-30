@@ -11,15 +11,13 @@ const labelStyle = 'text-sm font-medium text-slate-200'
 
 type BlogFormState = {
   title: string
-  href: string
-  summary: string
+  content: string
   tags: string
 }
 
 const EMPTY_POST: BlogFormState = {
   title: '',
-  href: '',
-  summary: '',
+  content: '',
   tags: '',
 }
 
@@ -64,8 +62,7 @@ const AdminBlogEditorPage = () => {
 
     setForm({
       title: currentPost.title ?? '',
-      href: currentPost.href ?? '',
-      summary: currentPost.summary ?? '',
+      content: currentPost.content ?? '',
       tags: Array.isArray(currentPost.tags) ? currentPost.tags.join(', ') : '',
     })
   }, [isCreateMode, currentPost])
@@ -90,19 +87,17 @@ const AdminBlogEditorPage = () => {
 
     const tags = normalizeTags(form.tags)
     const trimmedTitle = form.title.trim()
-    const trimmedHref = form.href.trim()
-    const trimmedSummary = form.summary.trim()
+    const trimmedContent = form.content.trim()
 
-    if (!trimmedTitle || !trimmedHref) {
+    if (!trimmedTitle || !trimmedContent) {
       setStatus('error')
-      setErrorMessage('Title and URL are required.')
+      setErrorMessage('Title and content are required.')
       return
     }
 
     const nextPost = {
       title: trimmedTitle,
-      href: trimmedHref,
-      summary: trimmedSummary,
+      content: trimmedContent,
       tags,
     }
 
@@ -126,7 +121,7 @@ const AdminBlogEditorPage = () => {
   const title = isCreateMode ? 'Create new blog post' : 'Edit blog post'
   const helper = isCreateMode
     ? 'Publish a new story to showcase your latest thinking.'
-    : 'Update the content, URL, or tags for this blog post.'
+    : 'Update the content or tags for this blog post.'
 
   if (!isCreateMode && !currentPost && !loading) {
     return (
@@ -180,23 +175,12 @@ const AdminBlogEditorPage = () => {
               />
             </label>
             <label className="flex flex-col gap-2">
-              <span className={labelStyle}>Canonical URL</span>
-              <input
-                type="url"
-                className={fieldStyle}
-                value={form.href}
-                onChange={handleChange('href')}
-                placeholder="https://blog.example.com/shipping-fast"
-                required
-              />
-            </label>
-            <label className="flex flex-col gap-2">
-              <span className={labelStyle}>Summary</span>
+              <span className={labelStyle}>Content</span>
               <textarea
-                className={`${fieldStyle} min-h-[160px]`}
-                value={form.summary}
-                onChange={handleChange('summary')}
-                placeholder="Share the key lesson or teaser for this blog post."
+                className={`${fieldStyle} min-h-[260px]`}
+                value={form.content}
+                onChange={handleChange('content')}
+                placeholder="Write or paste the full blog post content."
               />
             </label>
             <label className="flex flex-col gap-2">
@@ -208,7 +192,9 @@ const AdminBlogEditorPage = () => {
                 onChange={handleChange('tags')}
                 placeholder="Engineering, Leadership, Case study"
               />
-              <span className="text-xs text-slate-500">Separate tags with commas.</span>
+              <span className="text-xs text-slate-500">
+                Separate tags with commas. Tags appear as chips on the blog list and power the tag filter page.
+              </span>
             </label>
           </div>
 

@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import {
   FiArrowDownCircle,
@@ -7,6 +7,7 @@ import {
   FiLinkedin,
   FiMail,
 } from 'react-icons/fi'
+import { Link, useLocation } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
 
 const formatSocialDisplay = (url: string) => {
@@ -135,38 +136,47 @@ const ResourceLink = ({
 )
 
 const PostCard = ({
-  title,
-  href,
-  summary,
-  tags,
-}: ReturnType<typeof useContent>['content']['posts'][number]) => (
-  <motion.a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="flex flex-col gap-4 rounded-3xl border border-slate-800/60 bg-slate-900/40 p-6 transition hover:border-accent-500/40 hover:bg-night-800/80"
-    initial={{ opacity: 0, y: 24 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: '0px 0px -80px' }}
-    transition={{ duration: 0.45, ease: 'easeOut' }}
-  >
-    <div className="flex items-start justify-between gap-4">
-      <h3 className="text-xl font-semibold text-white">{title}</h3>
-      <FiExternalLink className="mt-1 flex-shrink-0 text-accent-400" />
-    </div>
-    <p className="text-sm text-slate-300/80">{summary}</p>
-    <div className="flex flex-wrap gap-2 text-xs text-slate-300/80">
-      {tags.map((tag) => (
-        <span
-          key={tag}
-          className="rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1"
-        >
-          {tag}
-        </span>
-      ))}
-    </div>
-  </motion.a>
-)
+  post,
+  index,
+}: {
+  post: ReturnType<typeof useContent>['content']['posts'][number]
+  index: number
+}) => {
+  const trimmedContent = (post.content ?? '').trim()
+  const previewText = trimmedContent.length > 220 ? `${trimmedContent.slice(0, 220)}…` : trimmedContent
+
+  return (
+    <motion.article
+      className="group rounded-3xl border border-slate-800/60 bg-slate-900/40 transition hover:border-accent-500/40 hover:bg-night-800/80"
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '0px 0px -80px' }}
+      transition={{ duration: 0.45, ease: 'easeOut' }}
+    >
+      <Link
+        to={`/blogs/${index}`}
+        className="flex h-full flex-col gap-4 rounded-3xl px-6 py-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
+      >
+        <h3 className="text-xl font-semibold text-white transition-colors group-hover:text-accent-200">
+          {post.title}
+        </h3>
+        <p className="text-sm text-slate-300/80 whitespace-pre-line">
+          {previewText || 'Content coming soon.'}
+        </p>
+        <div className="mt-auto flex flex-wrap gap-2 text-xs text-slate-300/80">
+          {post.tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </Link>
+    </motion.article>
+  )
+}
 
 const TutorialChip = ({
   title,
@@ -199,6 +209,7 @@ const navItems = [
 ]
 
 export const LandingPage = () => {
+  const location = useLocation()
   const { content } = useContent()
   const { site, profile, experiences, usefulLinks, posts, tutorials, sections } = content
   const firstName = profile.name.split(' ')[0] || profile.name
@@ -228,6 +239,19 @@ export const LandingPage = () => {
   const heroGridClasses = showHighlights
     ? 'relative z-10 grid gap-10 md:grid-cols-[2fr,1fr] md:items-center'
     : 'relative z-10 grid gap-10'
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return
+    if (!location.hash) return
+
+    const targetId = location.hash.replace('#', '')
+    if (!targetId) return
+
+    const targetElement = document.getElementById(targetId)
+    if (!targetElement) return
+
+    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [location.hash])
 
   return (
     <div className="relative min-h-screen bg-night-900 text-slate-100">
@@ -380,8 +404,8 @@ export const LandingPage = () => {
         <Section id="writing" title="Blogs & tutorials" eyebrow="Knowledge sharing">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
             <div className="space-y-6">
-              {posts.map((post) => (
-                <PostCard key={post.href} {...post} />
+              {posts.map((post, index) => (
+                <PostCard key={`${post.title}-${index}`} post={post} index={index} />
               ))}
             </div>
             <div className="space-y-3 rounded-3xl border border-slate-800/70 bg-slate-900/40 p-6">

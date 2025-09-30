@@ -191,12 +191,8 @@ const validatePost = (post: Post, index: number): string | undefined => {
     return `posts[${index}].title is required`
   }
 
-  if (!isNonEmptyString(post.href)) {
-    return `posts[${index}].href is required`
-  }
-
-  if (!isNonEmptyString(post.summary)) {
-    return `posts[${index}].summary is required`
+  if (!isNonEmptyString(post.content)) {
+    return `posts[${index}].content is required`
   }
 
   if (!isStringArray(post.tags)) {

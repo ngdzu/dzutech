@@ -45,8 +45,7 @@ export type ResourceLink = {
 
 export type Post = {
   title: string
-  href: string
-  summary: string
+  content: string
   tags: string[]
 }
 

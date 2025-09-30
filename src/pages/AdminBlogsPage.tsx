@@ -1,5 +1,6 @@
+import type { KeyboardEvent } from 'react'
 import { FiEdit2, FiPlus } from 'react-icons/fi'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
 
 const cardStyle =
@@ -7,7 +8,19 @@ const cardStyle =
 
 const AdminBlogsPage = () => {
   const { content } = useContent()
+  const navigate = useNavigate()
   const posts = content.posts ?? []
+
+  const handleNavigateToDetail = (index: number) => () => {
+    navigate(`/admin/blogs/${index}`)
+  }
+
+  const handleKeyNavigate = (index: number) => (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      navigate(`/admin/blogs/${index}`)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
@@ -45,28 +58,56 @@ const AdminBlogsPage = () => {
         ) : (
           <div className="grid gap-5 md:grid-cols-2">
             {posts.map((post, index) => {
-              const tagLine = Array.isArray(post.tags) && post.tags.length > 0 ? post.tags.join(' · ') : '—'
+              const tags = Array.isArray(post.tags) ? post.tags.filter((tag): tag is string => Boolean(tag?.trim())) : []
+              const contentPreview = (post.content ?? '').trim()
+              const previewText = contentPreview.length > 220 ? `${contentPreview.slice(0, 220)}…` : contentPreview || 'No content provided yet.'
 
               return (
-                <article key={post.href || `${index}-${post.title}`} className={cardStyle}>
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-semibold text-white">{post.title}</h2>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{tagLine}</p>
+                <article
+                  key={`${index}-${post.title}`}
+                  className={`${cardStyle} cursor-pointer transition hover:border-accent-500/50 hover:bg-night-800/70`}
+                  role="link"
+                  tabIndex={0}
+                  onClick={handleNavigateToDetail(index)}
+                  onKeyDown={handleKeyNavigate(index)}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-3">
+                      <h2 className="text-lg font-semibold text-white">{post.title}</h2>
+                      <p className="text-sm text-slate-300/90 whitespace-pre-line">{previewText}</p>
+                    </div>
+                    <Link
+                      to={`/admin/blogs/${index}/edit`}
+                      onClick={(event) => event.stopPropagation()}
+                      onKeyDown={(event) => event.stopPropagation()}
+                      className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+                    >
+                      <FiEdit2 className="text-accent-300" />
+                      Edit
+                    </Link>
                   </div>
-                  <Link
-                    to={`/admin/blogs/${index}/edit`}
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-                  >
-                    <FiEdit2 className="text-accent-300" />
-                    Edit
-                  </Link>
-                </div>
-                <p className="text-sm text-slate-300/90">{post.summary || 'No summary provided yet.'}</p>
-                <div className="text-xs text-slate-400">
-                  <span className="font-semibold text-slate-300">URL:</span>{' '}
-                  {post.href || '—'}
-                </div>
+                  <div className="flex flex-wrap gap-2 text-xs text-slate-300">
+                    {tags.length === 0 ? (
+                      <span className="rounded-full border border-slate-700/60 bg-slate-900/60 px-3 py-1 text-slate-500">
+                        No tags assigned
+                      </span>
+                    ) : (
+                      tags.map((tag) => {
+                        const trimmed = tag.trim()
+                        const encoded = encodeURIComponent(trimmed.toLowerCase())
+                        return (
+                          <Link
+                            key={`${trimmed}-${encoded}`}
+                            to={`/admin/blogs/tags/${encoded}`}
+                            onClick={(event) => event.stopPropagation()}
+                            className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1 text-slate-200 transition hover:border-accent-400 hover:text-white"
+                          >
+                            {trimmed}
+                          </Link>
+                        )
+                      })
+                    )}
+                  </div>
                 </article>
               )
             })}
