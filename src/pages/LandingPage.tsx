@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { FiArrowDownCircle, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi'
+import { FiArrowDownCircle, FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi'
 import { Link, useLocation } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
 
@@ -210,6 +210,32 @@ export const LandingPage = () => {
     ? 'relative z-10 grid gap-10 md:grid-cols-[2fr,1fr] md:items-center'
     : 'relative z-10 grid gap-10'
 
+  const parseTimestamp = (value: string | undefined): number | null => {
+    if (typeof value !== 'string') return null
+    const parsed = Date.parse(value)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+
+  const postsWithIndex = posts
+    .map((post, index) => {
+      const datedPost = post as typeof post & { updatedAt?: string; createdAt?: string }
+      const updatedAt = parseTimestamp(datedPost.updatedAt)
+      const createdAt = parseTimestamp(datedPost.createdAt)
+      const timestamp = updatedAt ?? createdAt ?? null
+      return { post, index, timestamp }
+    })
+    .sort((a, b) => {
+      if (a.timestamp == null && b.timestamp == null) {
+        return a.index - b.index
+      }
+      if (a.timestamp == null) return 1
+      if (b.timestamp == null) return -1
+      return b.timestamp - a.timestamp
+    })
+
+  const recentPosts = postsWithIndex.slice(0, 3)
+  const hasMorePosts = posts.length > recentPosts.length
+
   useEffect(() => {
     if (typeof document === 'undefined') return
     if (!location.hash) return
@@ -363,12 +389,29 @@ export const LandingPage = () => {
           </div>
         </Section>
 
-  <Section id="blogs" title="Blogs & tutorials" eyebrow="Knowledge sharing">
+        <Section id="blogs" title="Blogs & tutorials" eyebrow="Knowledge sharing">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
             <div className="space-y-6">
-              {posts.map((post, index) => (
-                <PostCard key={`${post.title}-${index}`} post={post} index={index} />
-              ))}
+              {recentPosts.length > 0 ? (
+                recentPosts.map(({ post, index: postIndex }) => (
+                  <PostCard key={`${post.title}-${postIndex}`} post={post} index={postIndex} />
+                ))
+              ) : (
+                <p className="rounded-2xl border border-slate-800/60 bg-slate-900/40 px-6 py-8 text-center text-sm text-slate-300/80">
+                  Blog posts are on the way. Check back soon.
+                </p>
+              )}
+              {hasMorePosts && (
+                <div className="flex justify-end">
+                  <Link
+                    to="/blogs"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-accent-200 transition hover:text-accent-100"
+                  >
+                    View all blogs
+                    <FiArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+              )}
             </div>
             <div className="space-y-3 rounded-3xl border border-slate-800/70 bg-slate-900/40 p-6">
               <h3 className="text-sm uppercase tracking-[0.35em] text-slate-400">Hands-on tutorials</h3>

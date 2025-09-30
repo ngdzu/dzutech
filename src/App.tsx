@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { LandingPage } from './pages/LandingPage'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { AdminBlogsPage } from './pages/AdminBlogsPage'
+import { BlogListPage } from './pages/BlogListPage'
 import { AdminBlogDetailPage } from './pages/AdminBlogDetailPage'
 import { AdminBlogEditorPage } from './pages/AdminBlogEditorPage'
 import { AdminBlogsByTagPage } from './pages/AdminBlogsByTagPage'
@@ -12,6 +13,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+  <Route path="/blogs" element={<BlogListPage />} />
   <Route path="/blogs/:blogId" element={<BlogDetailPage />} />
   <Route path="/blogs/tags/:tagSlug" element={<BlogTagPage />} />
   <Route path="/admin" element={<AdminDashboard />} />
