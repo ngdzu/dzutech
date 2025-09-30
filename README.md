@@ -80,6 +80,8 @@ docker compose down
 - `src/App.tsx` – router definition for the marketing site and admin dashboard
 - `src/pages/LandingPage.tsx` – public-facing sections (hero, experience, resources, writing, contact)
 - `src/pages/AdminDashboard.tsx` – content editor surfaced at `/admin`
+- `src/pages/AdminBlogsPage.tsx` – blog management hub with list and quick actions
+- `src/pages/AdminBlogEditorPage.tsx` – form for creating or editing individual blog posts
 - `src/context/ContentContext.tsx` – API-driven content provider with loading/error state
 - `src/content.ts` – default profile, experience, links, and writing data
 - `src/lib/api.ts` – thin client for calling the backend REST endpoints
@@ -99,6 +101,7 @@ docker compose down
 
  - Manage the site title, meta description, logo upload, and home button style from the **Site metadata** card to control tabs, SEO snippets, and branding
 - Navigate to `https://dzutech.com/admin` (or `http://localhost:5173/admin` if you override the origin for local work) to edit core profile fields
+- Use the **Manage blogs** shortcut to review all posts, jump into edits, or create new entries
 - Changes persist in PostgreSQL via the API and immediately update the public landing page
 - Use the **Restore defaults** button to repopulate the seeded profile data across the stack
 - When using the logo home button, supply meaningful alt text so the header stays accessible for screen readers

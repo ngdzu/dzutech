@@ -682,14 +682,22 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-night-900">
       <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-12">
         <header className="flex flex-col gap-4 border-b border-slate-800/80 pb-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-3xl font-semibold text-white">Admin dashboard</h1>
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 rounded-full border border-accent-500/60 bg-accent-500/10 px-4 py-2 text-sm font-medium text-accent-200 transition hover:border-accent-500 hover:bg-accent-500/20"
-            >
-              View site
-            </Link>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                to="/admin/blogs"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+              >
+                Manage blogs
+              </Link>
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 rounded-full border border-accent-500/60 bg-accent-500/10 px-4 py-2 text-sm font-medium text-accent-200 transition hover:border-accent-500 hover:bg-accent-500/20"
+              >
+                View site
+              </Link>
+            </div>
           </div>
           <p className="max-w-2xl text-sm text-slate-400">
             Manage the profile content that powers your public site. Updates are saved to the server and reflected on
