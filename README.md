@@ -5,7 +5,7 @@ A modern, animated personal website for showcasing software engineering work. Bu
 ## ✨ Highlights
 
 - Dark, professional theme with subtle gradients and motion cues
-- Hero, about, experience, resources, and blogs sections
+- Hero, about, experience, and blogs sections
 - Contact panel with direct email + social links (LinkedIn, GitHub, X)
 - Content delivered through an API-backed context layer with PostgreSQL persistence
 - Configurable site branding with optional logo-based home button and accessible alt text requirements
@@ -78,13 +78,13 @@ docker compose down
 ## 📁 Project structure
 
 - `src/App.tsx` – router definition for the marketing site and admin dashboard
-- `src/pages/LandingPage.tsx` – public-facing sections (hero, experience, resources, blogs, contact)
+- `src/pages/LandingPage.tsx` – public-facing sections (hero, experience, blogs, contact)
 - `src/pages/AdminDashboard.tsx` – content editor surfaced at `/admin`
 - `src/pages/AdminBlogsPage.tsx` – blog management hub with list and quick actions
 - `src/pages/AdminBlogEditorPage.tsx` – form for creating or editing individual blog posts
 - `src/pages/AdminBlogsByTagPage.tsx` – filtered view showing posts that share a selected tag
 - `src/context/ContentContext.tsx` – API-driven content provider with loading/error state
-- `src/content.ts` – default profile, experience, links, and blog data
+- `src/content.ts` – default profile, experience, and blog data
 - `src/lib/api.ts` – thin client for calling the backend REST endpoints
 - `src/index.css` – global Tailwind layer and base styling
 - `server/` – Express + TypeScript API wired to PostgreSQL (see `server/package.json` for scripts)

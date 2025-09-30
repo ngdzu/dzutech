@@ -1,13 +1,4 @@
-import type {
-  ContentState,
-  Experience,
-  Post,
-  Profile,
-  ResourceLink,
-  SectionsContent,
-  SiteMeta,
-  Tutorial,
-} from '../content'
+import type { ContentState, Experience, Post, Profile, SectionsContent, SiteMeta, Tutorial } from '../content'
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
@@ -86,15 +77,6 @@ export const updateExperiences = async (payload: Experience[]): Promise<Experien
     body: JSON.stringify(payload),
   })
   return handleResponse<Experience[]>(response)
-}
-
-export const updateUsefulLinks = async (payload: ResourceLink[]): Promise<ResourceLink[]> => {
-  const response = await fetch(normalizeUrl('/api/useful-links'), {
-    method: 'PUT',
-    headers: jsonHeaders,
-    body: JSON.stringify(payload),
-  })
-  return handleResponse<ResourceLink[]>(response)
 }
 
 export const updateTutorials = async (payload: Tutorial[]): Promise<Tutorial[]> => {

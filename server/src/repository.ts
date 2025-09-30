@@ -5,7 +5,6 @@ import type {
   Experience,
   Post,
   Profile,
-  ResourceLink,
   SectionsContent,
   SiteLogo,
   SiteMeta,
@@ -16,7 +15,6 @@ const CONTENT_KEYS: (keyof ContentState)[] = [
   'site',
   'profile',
   'experiences',
-  'usefulLinks',
   'posts',
   'tutorials',
   'sections',
@@ -252,9 +250,6 @@ export const getContent = async (): Promise<ContentState> => {
         case 'experiences':
           content.experiences = withExperienceDefaults(value, content.experiences)
           break
-        case 'usefulLinks':
-          content.usefulLinks = value as ContentState['usefulLinks']
-          break
         case 'posts':
           content.posts = withPostsDefaults(value, content.posts)
           break
@@ -283,11 +278,6 @@ export const saveSite = async (site: SiteMeta): Promise<SiteMeta> => {
 export const saveExperiences = async (experiences: Experience[]): Promise<Experience[]> => {
   await writeJson('experiences', experiences)
   return experiences
-}
-
-export const saveUsefulLinks = async (links: ResourceLink[]): Promise<ResourceLink[]> => {
-  await writeJson('usefulLinks', links)
-  return links
 }
 
 export const savePosts = async (posts: Post[]): Promise<Post[]> => {

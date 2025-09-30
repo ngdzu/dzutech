@@ -1,22 +1,11 @@
 import cors from 'cors'
 import dotenv from 'dotenv'
 import express, { type Request, type Response } from 'express'
-import {
-  getContent,
-  resetContent,
-  saveExperiences,
-  savePosts,
-  saveProfile,
-  saveSections,
-  saveSite,
-  saveTutorials,
-  saveUsefulLinks,
-} from './repository.js'
+import { getContent, resetContent, saveExperiences, savePosts, saveProfile, saveSections, saveSite, saveTutorials } from './repository.js'
 import type {
   Experience,
   Post,
   Profile,
-  ResourceLink,
   SectionsContent,
   SiteLogo,
   SiteMeta,
@@ -169,13 +158,6 @@ const validateExperience = (experience: Experience, index: number): string | und
   if (!isNonEmptyString(experience.description)) return `experiences[${index}].description is required`
   if (!isStringArray(experience.achievements)) return `experiences[${index}].achievements must be an array of strings`
   if (!isStringArray(experience.stack)) return `experiences[${index}].stack must be an array of strings`
-  return undefined
-}
-
-const validateResourceLink = (link: ResourceLink, index: number): string | undefined => {
-  if (!isNonEmptyString(link.label)) return `usefulLinks[${index}].label is required`
-  if (!isNonEmptyString(link.href)) return `usefulLinks[${index}].href is required`
-  if (!isNonEmptyString(link.description)) return `usefulLinks[${index}].description is required`
   return undefined
 }
 
@@ -420,28 +402,6 @@ app.put('/api/experiences', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Failed to save experiences', error)
     res.status(500).json({ message: 'Failed to save experiences' })
-  }
-})
-
-app.put('/api/useful-links', async (req: Request, res: Response) => {
-  const payload = req.body as ResourceLink[]
-  if (!Array.isArray(payload)) {
-    return res.status(400).json({ message: 'Payload must be an array of links' })
-  }
-
-  for (let index = 0; index < payload.length; index += 1) {
-    const error = validateResourceLink(payload[index], index)
-    if (error) {
-      return res.status(422).json({ message: error })
-    }
-  }
-
-  try {
-    const saved = await saveUsefulLinks(payload)
-    res.json(saved)
-  } catch (error) {
-    console.error('Failed to save useful links', error)
-    res.status(500).json({ message: 'Failed to save useful links' })
   }
 })
 

@@ -37,12 +37,6 @@ export type Experience = {
   stack: string[]
 }
 
-export type ResourceLink = {
-  label: string
-  href: string
-  description: string
-}
-
 export type Post = {
   title: string
   content: string
@@ -80,7 +74,6 @@ export type ContentState = {
   site: SiteMeta
   profile: Profile
   experiences: Experience[]
-  usefulLinks: ResourceLink[]
   posts: Post[]
   tutorials: Tutorial[]
   sections: SectionsContent
@@ -161,23 +154,6 @@ export const defaultContent: ContentState = {
       stack: ['React Native', 'TypeScript', 'Node.js', 'PostgreSQL', 'Terraform'],
     },
   ],
-  usefulLinks: [
-    {
-      label: 'Engineering Playbook — How I lead teams',
-      href: 'https://example.com/engineering-playbook.pdf',
-      description: 'The rituals, principles, and frameworks I rely on to keep teams aligned and shipping.',
-    },
-    {
-      label: 'System Design Cheatsheets',
-      href: 'https://example.com/system-design.pdf',
-      description: 'A curated set of diagrams and heuristics I share with mentees preparing for interviews.',
-    },
-    {
-      label: 'Developer Tooling Starter Kit',
-      href: 'https://example.com/tooling-kit',
-      description: 'Opinionated starter configs for linters, CI, and quality gates to spin projects up fast.',
-    },
-  ],
   posts: [
     {
       title: 'Designing Guardrails for AI-Assisted Coding Teams',
@@ -225,7 +201,6 @@ export const defaultContent: ContentState = {
 
 export const profile = defaultContent.profile
 export const experiences = defaultContent.experiences
-export const usefulLinks = defaultContent.usefulLinks
 export const posts = defaultContent.posts
 export const tutorials = defaultContent.tutorials
 export const sections = defaultContent.sections

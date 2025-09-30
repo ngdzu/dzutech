@@ -1,12 +1,6 @@
 import { type ReactNode, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import {
-  FiArrowDownCircle,
-  FiExternalLink,
-  FiGithub,
-  FiLinkedin,
-  FiMail,
-} from 'react-icons/fi'
+import { FiArrowDownCircle, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi'
 import { Link, useLocation } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
 
@@ -112,29 +106,6 @@ const ExperienceCard = ({
   </motion.article>
 )
 
-const ResourceLink = ({
-  label,
-  href,
-  description,
-}: ReturnType<typeof useContent>['content']['usefulLinks'][number]) => (
-  <motion.a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="group flex flex-col gap-3 rounded-3xl border border-slate-800/60 bg-slate-900/40 p-6 transition hover:border-accent-500/60 hover:bg-night-800/70 hover:shadow-glow"
-    initial={{ opacity: 0, y: 24 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: '0px 0px -80px' }}
-    transition={{ duration: 0.5, ease: 'easeOut' }}
-  >
-    <div className="flex items-center gap-3">
-      <span className="text-lg font-semibold text-white">{label}</span>
-      <FiExternalLink className="text-accent-400 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-1" />
-    </div>
-    <p className="text-sm text-slate-300/90">{description}</p>
-  </motion.a>
-)
-
 const PostCard = ({
   post,
   index,
@@ -203,7 +174,6 @@ const TutorialChip = ({
 
 const navItems = [
   { href: '#experience', label: 'Experience' },
-  { href: '#resources', label: 'Useful links' },
   { href: '#blogs', label: 'Blogs' },
   { href: '#contact', label: 'Contact' },
 ]
@@ -211,7 +181,7 @@ const navItems = [
 export const LandingPage = () => {
   const location = useLocation()
   const { content } = useContent()
-  const { site, profile, experiences, usefulLinks, posts, tutorials, sections } = content
+  const { site, profile, experiences, posts, tutorials, sections } = content
   const firstName = profile.name.split(' ')[0] || profile.name
   const siteTitle = site.title.trim()
   const brandLabel = siteTitle ? siteTitle.toLowerCase() : firstName ? firstName.toLowerCase() : 'home'
@@ -389,14 +359,6 @@ export const LandingPage = () => {
           <div className="space-y-8">
             {experiences.map((experience) => (
               <ExperienceCard key={`${experience.company}-${experience.role}`} {...experience} />
-            ))}
-          </div>
-        </Section>
-
-        <Section id="resources" title="Useful links" eyebrow="Resources">
-          <div className="grid gap-6 md:grid-cols-2">
-            {usefulLinks.map((resource) => (
-              <ResourceLink key={resource.href} {...resource} />
             ))}
           </div>
         </Section>

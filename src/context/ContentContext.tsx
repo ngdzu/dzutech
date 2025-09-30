@@ -1,15 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import type {
-  ContentState,
-  Experience,
-  Post,
-  Profile,
-  ResourceLink,
-  SectionsContent,
-  SiteMeta,
-  Tutorial,
-} from '../content'
+import type { ContentState, Experience, Post, Profile, SectionsContent, SiteMeta, Tutorial } from '../content'
 import { defaultContent } from '../content'
 import {
   fetchContent as fetchContentFromApi,
@@ -20,7 +11,6 @@ import {
   updateSections as updateSectionsOnServer,
   updateSite as updateSiteOnServer,
   updateTutorials as updateTutorialsOnServer,
-  updateUsefulLinks as updateUsefulLinksOnServer,
 } from '../lib/api'
 
 type ContentContextValue = {
@@ -32,7 +22,6 @@ type ContentContextValue = {
   updateProfile: (updates: Partial<Profile>) => Promise<Profile>
   updatePosts: (posts: Post[]) => Promise<Post[]>
   updateExperiences: (experiences: Experience[]) => Promise<Experience[]>
-  updateUsefulLinks: (links: ResourceLink[]) => Promise<ResourceLink[]>
   updateTutorials: (tutorials: Tutorial[]) => Promise<Tutorial[]>
   updateSections: (sections: SectionsContent) => Promise<SectionsContent>
   resetContent: () => Promise<ContentState>
@@ -150,21 +139,6 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
-  const updateUsefulLinks = useCallback(async (links: ResourceLink[]) => {
-    try {
-      const saved = await updateUsefulLinksOnServer(links)
-      setContent((prev) => ({
-        ...prev,
-        usefulLinks: saved,
-      }))
-      setError(null)
-      return saved
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Failed to save links')
-      throw saveError
-    }
-  }, [])
-
   const updateTutorials = useCallback(async (tutorials: Tutorial[]) => {
     try {
       const saved = await updateTutorialsOnServer(tutorials)
@@ -217,7 +191,6 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       updateProfile,
       updatePosts,
       updateExperiences,
-      updateUsefulLinks,
       updateTutorials,
       updateSections,
       resetContent,
@@ -231,7 +204,6 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       updateProfile,
       updatePosts,
       updateExperiences,
-      updateUsefulLinks,
       updateTutorials,
       updateSections,
       resetContent,

@@ -37,12 +37,6 @@ export type Experience = {
   stack: string[]
 }
 
-export type ResourceLink = {
-  label: string
-  href: string
-  description: string
-}
-
 export type Post = {
   title: string
   content: string
@@ -80,7 +74,6 @@ export type ContentState = {
   site: SiteMeta
   profile: Profile
   experiences: Experience[]
-  usefulLinks: ResourceLink[]
   posts: Post[]
   tutorials: Tutorial[]
   sections: SectionsContent
