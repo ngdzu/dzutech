@@ -67,10 +67,10 @@ const BlogDetailPage = () => {
             Back
           </button>
           <Link
-            to="/#writing"
+            to="/#blogs"
             className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
           >
-            Writing
+            Blogs
           </Link>
         </div>
       </header>

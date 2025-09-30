@@ -204,7 +204,7 @@ const TutorialChip = ({
 const navItems = [
   { href: '#experience', label: 'Experience' },
   { href: '#resources', label: 'Useful links' },
-  { href: '#writing', label: 'Writing' },
+  { href: '#blogs', label: 'Blogs' },
   { href: '#contact', label: 'Contact' },
 ]
 
@@ -401,7 +401,7 @@ export const LandingPage = () => {
           </div>
         </Section>
 
-        <Section id="writing" title="Blogs & tutorials" eyebrow="Knowledge sharing">
+  <Section id="blogs" title="Blogs & tutorials" eyebrow="Knowledge sharing">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
             <div className="space-y-6">
               {posts.map((post, index) => (
