@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
+import { AdminSessionActions } from '../components/AdminSessionActions'
 import type { SiteLogo, SiteMeta } from '../content'
 
 const fieldStyle =
@@ -682,6 +683,9 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-night-900">
       <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-12">
         <header className="flex flex-col gap-4 border-b border-slate-800/80 pb-6">
+          <div className="flex justify-end">
+            <AdminSessionActions />
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-3xl font-semibold text-white">Admin dashboard</h1>
             <div className="flex flex-wrap gap-3">

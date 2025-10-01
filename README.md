@@ -67,6 +67,8 @@ Build and run the entire stack (database, API, frontend) with Docker Compose:
 docker compose up --build
 ```
 
+Before starting the stack, populate `.env` with the same admin credentials you configured for the API (at minimum `SESSION_SECRET`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD_HASH`). Docker Compose injects those values into the API container so session storage and authentication succeed.
+
 By default the site is served at <https://dzutech.com> with the API proxied at <https://dzutech.com/api>. Override the origins or point everything back to localhost for development by editing the `.env` file in the project root. PostgreSQL remains exposed on port 5432 inside Docker.
 
 To stop and clean up the container:
@@ -83,9 +85,13 @@ docker compose down
 - `src/pages/AdminBlogsPage.tsx` – blog management hub with list and quick actions
 - `src/pages/AdminBlogEditorPage.tsx` – form for creating or editing individual blog posts
 - `src/pages/AdminBlogsByTagPage.tsx` – filtered view showing posts that share a selected tag
+- `src/pages/LoginPage.tsx` – secure admin sign-in form backed by the session API
 - `src/context/ContentContext.tsx` – API-driven content provider with loading/error state
+- `src/context/AuthContext.tsx` – session-aware auth provider shared across routes
 - `src/content.ts` – default profile, experience, and blog data
 - `src/lib/api.ts` – thin client for calling the backend REST endpoints
+- `src/components/RequireAuth.tsx` – route guard that protects admin-only screens
+- `src/components/AdminSessionActions.tsx` – reusable admin header actions (signed-in badge, logout)
 - `src/index.css` – global Tailwind layer and base styling
 - `server/` – Express + TypeScript API wired to PostgreSQL (see `server/package.json` for scripts)
 - `Dockerfile` / `docker-compose.yml` – containerized runtime
@@ -100,13 +106,32 @@ docker compose down
 
 ## 🔐 Admin dashboard notes
 
- - Manage the site title, meta description, logo upload, and home button style from the **Site metadata** card to control tabs, SEO snippets, and branding
+- Manage the site title, meta description, logo upload, and home button style from the **Site metadata** card to control tabs, SEO snippets, and branding
 - Navigate to `https://dzutech.com/admin` (or `http://localhost:5173/admin` if you override the origin for local work) to edit core profile fields
 - Use the **Manage blogs** shortcut to review all posts, jump into edits, or create new entries
 - Blog tags render as clickable chips that route to a dedicated tag view, making it easy to audit related posts
 - Changes persist in PostgreSQL via the API and immediately update the public landing page
 - Use the **Restore defaults** button to repopulate the seeded profile data across the stack
 - When using the logo home button, supply meaningful alt text so the header stays accessible for screen readers
+
+## 🔑 Authentication setup
+
+- Configure the secure session cookies with `SESSION_SECRET`, `SESSION_NAME` (optional), and `SESSION_MAX_AGE_HOURS` in `server/.env`
+- Cookie behaviour can be tuned with `SESSION_COOKIE_SECURE` (`auto` \| `true` \| `false`, defaults to `auto`) and `SESSION_COOKIE_SAMESITE` (`strict` \| `lax` \| `none`)
+  - Keep `SESSION_COOKIE_SECURE=auto` for production and HTTPS deployments
+  - If you test the Docker bundle over plain HTTP (e.g., `http://localhost:4173`), set `SESSION_COOKIE_SECURE=false` so the browser retains the session cookie
+- Define a single administrator account by setting `ADMIN_EMAIL` and `ADMIN_PASSWORD_HASH`
+  - Generate a bcrypt hash locally with the helper script:
+
+    ```bash
+    cd server
+    npm run hash-password <your-password>
+    ```
+
+    Copy the resulting hash into `server/.env` (and optionally your production secrets manager)
+- The login form lives at `/login` and redirects back to the admin tool you originally requested once authenticated
+- Sessions are stored in PostgreSQL (`user_sessions` table) via `connect-pg-simple` and expire automatically after idle
+- Use the **Sign out** button in any admin view to terminate the current session immediately
 
 ## 📄 License
 

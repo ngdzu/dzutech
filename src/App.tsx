@@ -8,20 +8,66 @@ import { AdminBlogEditorPage } from './pages/AdminBlogEditorPage'
 import { AdminBlogsByTagPage } from './pages/AdminBlogsByTagPage'
 import { BlogDetailPage } from './pages/BlogDetailPage'
 import { BlogTagPage } from './pages/BlogTagPage'
+import { LoginPage } from './pages/LoginPage'
+import { RequireAuth } from './components/RequireAuth'
 
 function App() {
+
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-  <Route path="/blogs" element={<BlogListPage />} />
-  <Route path="/blogs/:blogId" element={<BlogDetailPage />} />
-  <Route path="/blogs/tags/:tagSlug" element={<BlogTagPage />} />
-  <Route path="/admin" element={<AdminDashboard />} />
-  <Route path="/admin/blogs" element={<AdminBlogsPage />} />
-  <Route path="/admin/blogs/new" element={<AdminBlogEditorPage />} />
-  <Route path="/admin/blogs/:blogId" element={<AdminBlogDetailPage />} />
-  <Route path="/admin/blogs/:blogId/edit" element={<AdminBlogEditorPage />} />
-  <Route path="/admin/blogs/tags/:tagSlug" element={<AdminBlogsByTagPage />} />
+      <Route path="/blogs" element={<BlogListPage />} />
+      <Route path="/blogs/:blogId" element={<BlogDetailPage />} />
+      <Route path="/blogs/tags/:tagSlug" element={<BlogTagPage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/admin"
+        element={
+          <RequireAuth>
+            <AdminDashboard />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/blogs"
+        element={
+          <RequireAuth>
+            <AdminBlogsPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/blogs/new"
+        element={
+          <RequireAuth>
+            <AdminBlogEditorPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/blogs/:blogId"
+        element={
+          <RequireAuth>
+            <AdminBlogDetailPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/blogs/:blogId/edit"
+        element={
+          <RequireAuth>
+            <AdminBlogEditorPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/blogs/tags/:tagSlug"
+        element={
+          <RequireAuth>
+            <AdminBlogsByTagPage />
+          </RequireAuth>
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

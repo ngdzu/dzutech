@@ -19,11 +19,16 @@ services:
     build:
       context: ./server
       dockerfile: Dockerfile
+    env_file:
+      - ./server/.env
     environment:
       NODE_ENV: production
-      PORT: 4000
+      PORT: ${PORT:-4000}
       DATABASE_URL: "postgresql://${DB_USER:-dzutech}:${DB_PASSWORD:?DB_PASSWORD must be set}@db:5432/${DB_NAME:-dzutech}"
-      ALLOWED_ORIGIN: "${ALLOWED_ORIGIN:-https://dzutech.com,https://www.dzutech.com}"
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN:-https://dzutech.com,https://www.dzutech.com}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL must be set}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?ADMIN_PASSWORD_HASH must be set}
     depends_on:
       db:
         condition: service_healthy

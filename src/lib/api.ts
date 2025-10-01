@@ -1,5 +1,10 @@
 import type { ContentState, Experience, Post, Profile, SectionsContent, SiteMeta, Tutorial } from '../content'
 
+export type AuthUser = {
+  email: string
+  loggedInAt?: string
+}
+
 const BASE_URL = import.meta.env.VITE_API_URL ?? ''
 
 const normalizeUrl = (path: string) => {
@@ -38,13 +43,19 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return response.json() as Promise<T>
 }
 
+const request = (path: string, init: RequestInit = {}) =>
+  fetch(normalizeUrl(path), {
+    credentials: 'include',
+    ...init,
+  })
+
 export const fetchContent = async (): Promise<ContentState> => {
-  const response = await fetch(normalizeUrl('/api/content'))
+  const response = await request('/api/content')
   return handleResponse<ContentState>(response)
 }
 
 export const updateProfile = async (payload: Partial<Profile>): Promise<Profile> => {
-  const response = await fetch(normalizeUrl('/api/profile'), {
+  const response = await request('/api/profile', {
     method: 'PUT',
     headers: jsonHeaders,
     body: JSON.stringify(payload),
@@ -53,7 +64,7 @@ export const updateProfile = async (payload: Partial<Profile>): Promise<Profile>
 }
 
 export const updateSite = async (payload: SiteMeta): Promise<SiteMeta> => {
-  const response = await fetch(normalizeUrl('/api/site'), {
+  const response = await request('/api/site', {
     method: 'PUT',
     headers: jsonHeaders,
     body: JSON.stringify(payload),
@@ -62,7 +73,7 @@ export const updateSite = async (payload: SiteMeta): Promise<SiteMeta> => {
 }
 
 export const updatePosts = async (payload: Post[]): Promise<Post[]> => {
-  const response = await fetch(normalizeUrl('/api/posts'), {
+  const response = await request('/api/posts', {
     method: 'PUT',
     headers: jsonHeaders,
     body: JSON.stringify(payload),
@@ -71,7 +82,7 @@ export const updatePosts = async (payload: Post[]): Promise<Post[]> => {
 }
 
 export const updateExperiences = async (payload: Experience[]): Promise<Experience[]> => {
-  const response = await fetch(normalizeUrl('/api/experiences'), {
+  const response = await request('/api/experiences', {
     method: 'PUT',
     headers: jsonHeaders,
     body: JSON.stringify(payload),
@@ -80,7 +91,7 @@ export const updateExperiences = async (payload: Experience[]): Promise<Experien
 }
 
 export const updateTutorials = async (payload: Tutorial[]): Promise<Tutorial[]> => {
-  const response = await fetch(normalizeUrl('/api/tutorials'), {
+  const response = await request('/api/tutorials', {
     method: 'PUT',
     headers: jsonHeaders,
     body: JSON.stringify(payload),
@@ -89,7 +100,7 @@ export const updateTutorials = async (payload: Tutorial[]): Promise<Tutorial[]> 
 }
 
 export const updateSections = async (payload: SectionsContent): Promise<SectionsContent> => {
-  const response = await fetch(normalizeUrl('/api/sections'), {
+  const response = await request('/api/sections', {
     method: 'PUT',
     headers: jsonHeaders,
     body: JSON.stringify(payload),
@@ -98,8 +109,29 @@ export const updateSections = async (payload: SectionsContent): Promise<Sections
 }
 
 export const resetContent = async (): Promise<ContentState> => {
-  const response = await fetch(normalizeUrl('/api/reset'), {
+  const response = await request('/api/reset', {
     method: 'POST',
   })
   return handleResponse<ContentState>(response)
+}
+
+export const login = async ({ email, password }: { email: string; password: string }): Promise<AuthUser> => {
+  const response = await request('/api/auth/login', {
+    method: 'POST',
+    headers: jsonHeaders,
+    body: JSON.stringify({ email, password }),
+  })
+  return handleResponse<AuthUser>(response)
+}
+
+export const logout = async (): Promise<void> => {
+  const response = await request('/api/auth/logout', {
+    method: 'POST',
+  })
+  await handleResponse<{ success: boolean }>(response)
+}
+
+export const fetchCurrentUser = async (): Promise<AuthUser> => {
+  const response = await request('/api/auth/me')
+  return handleResponse<AuthUser>(response)
 }

@@ -1,6 +1,7 @@
 import { FiArrowLeft } from 'react-icons/fi'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
+import { AdminSessionActions } from '../components/AdminSessionActions'
 
 const chipStyle =
   'inline-flex w-fit items-center gap-2 rounded-3xl border border-slate-800/70 bg-slate-900/60 px-6 py-4'
@@ -26,20 +27,25 @@ const AdminBlogsByTagPage = () => {
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
       <header className="border-b border-white/5 bg-night-900/80">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-white">{heading}</h1>
-            <p className="text-sm text-slate-400">
-              {matchingPosts.length} {matchingPosts.length === 1 ? 'blog post found' : 'blog posts found'} with this tag.
-            </p>
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
+          <div className="flex justify-end">
+            <AdminSessionActions />
           </div>
-          <Link
-            to="/admin/blogs"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-          >
-            <FiArrowLeft />
-            Back to blogs
-          </Link>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold text-white">{heading}</h1>
+              <p className="text-sm text-slate-400">
+                {matchingPosts.length} {matchingPosts.length === 1 ? 'blog post found' : 'blog posts found'} with this tag.
+              </p>
+            </div>
+            <Link
+              to="/admin/blogs"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+            >
+              <FiArrowLeft />
+              Back to blogs
+            </Link>
+          </div>
         </div>
       </header>
 

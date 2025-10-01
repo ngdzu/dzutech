@@ -9,6 +9,19 @@ const ensureSchema = async () => {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `)
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_sessions (
+      sid VARCHAR NOT NULL COLLATE "default",
+      sess JSON NOT NULL,
+      expire TIMESTAMPTZ NOT NULL,
+      PRIMARY KEY (sid)
+    )
+  `)
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS user_sessions_expire_idx ON user_sessions (expire)
+  `)
 }
 
 const ensureSeedData = async () => {

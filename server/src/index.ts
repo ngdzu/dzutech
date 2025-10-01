@@ -1,7 +1,20 @@
 import cors from 'cors'
 import dotenv from 'dotenv'
-import express, { type Request, type Response } from 'express'
-import { getContent, resetContent, saveExperiences, savePosts, saveProfile, saveSections, saveSite, saveTutorials } from './repository.js'
+import express, { type NextFunction, type Request, type Response } from 'express'
+import session from 'express-session'
+import connectPgSimple from 'connect-pg-simple'
+import rateLimit from 'express-rate-limit'
+import bcrypt from 'bcryptjs'
+import {
+  getContent,
+  resetContent,
+  saveExperiences,
+  savePosts,
+  saveProfile,
+  saveSections,
+  saveSite,
+  saveTutorials,
+} from './repository.js'
 import type {
   Experience,
   Post,
@@ -11,7 +24,7 @@ import type {
   SiteMeta,
   Tutorial,
 } from './types.js'
-import './db.js'
+import { pool } from './db.js'
 
 dotenv.config()
 
@@ -24,12 +37,159 @@ const rawAllowedOrigins = process.env.ALLOWED_ORIGIN
 
 const allowedOrigin = rawAllowedOrigins && rawAllowedOrigins.length > 0 ? rawAllowedOrigins : '*'
 
+const sessionSecret = process.env.SESSION_SECRET
+if (!sessionSecret) {
+  throw new Error('SESSION_SECRET is required to start the API server')
+}
+
+const adminEmail = process.env.ADMIN_EMAIL?.trim() ?? ''
+const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH?.trim()
+
+if (!adminEmail || !adminPasswordHash) {
+  throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD_HASH must be configured for admin access')
+}
+
+const sessionName = process.env.SESSION_NAME ?? 'dzutech.sid'
+const isProduction = process.env.NODE_ENV === 'production'
+const sessionMaxAgeHours = Number.parseInt(process.env.SESSION_MAX_AGE_HOURS ?? '12', 10)
+const sessionMaxAgeMs = Number.isFinite(sessionMaxAgeHours) && sessionMaxAgeHours > 0
+  ? sessionMaxAgeHours * 60 * 60 * 1000
+  : 12 * 60 * 60 * 1000
+
+const PgSessionStore = connectPgSimple(session)
+
+app.set('trust proxy', 1)
+
 app.use(express.json())
 app.use(
   cors({
     origin: allowedOrigin ?? '*',
+    credentials: true,
   }),
 )
+
+app.use(
+  session({
+    name: sessionName,
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+    rolling: true,
+    cookie: {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'strict' : 'lax',
+      maxAge: sessionMaxAgeMs,
+    },
+    store: new PgSessionStore({
+      pool,
+      tableName: 'user_sessions',
+    }),
+  }),
+)
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many login attempts. Please try again soon.' },
+})
+
+const normalizeEmail = (email: string) => email.trim().toLowerCase()
+
+const asyncHandler =
+  <Params, ResBody, ReqBody>(
+    handler: (req: Request<Params, ResBody, ReqBody>, res: Response<ResBody>, next: NextFunction) => Promise<void>,
+  ) =>
+  (req: Request<Params, ResBody, ReqBody>, res: Response<ResBody>, next: NextFunction) => {
+    handler(req, res, next).catch(next)
+  }
+
+const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+  if (req.session?.user) {
+    next()
+    return
+  }
+  res.status(401).json({ message: 'Authentication required' })
+}
+
+const regenerateSession = (req: Request): Promise<void> =>
+  new Promise((resolve, reject) => {
+    req.session.regenerate((error) => {
+      if (error) {
+        reject(error)
+        return
+      }
+      resolve()
+    })
+  })
+
+app.get('/api/auth/me', (req: Request, res: Response) => {
+  if (!req.session?.user) {
+    res.status(401).json({ message: 'Not authenticated' })
+    return
+  }
+  res.json(req.session.user)
+})
+
+app.post(
+  '/api/auth/login',
+  loginLimiter,
+  asyncHandler(async (req: Request, res: Response) => {
+    if (!req.body || typeof req.body !== 'object') {
+      res.status(400).json({ message: 'Email and password are required' })
+      return
+    }
+
+    const { email, password } = req.body as { email?: unknown; password?: unknown }
+
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      res.status(400).json({ message: 'Email and password are required' })
+      return
+    }
+
+    const normalizedEmail = normalizeEmail(email)
+    if (normalizedEmail !== normalizeEmail(adminEmail)) {
+      res.status(401).json({ message: 'Invalid credentials' })
+      return
+    }
+
+    const passwordMatches = await bcrypt.compare(password, adminPasswordHash ?? '')
+    if (!passwordMatches) {
+      res.status(401).json({ message: 'Invalid credentials' })
+      return
+    }
+
+    await regenerateSession(req)
+
+    req.session.user = {
+      email: adminEmail,
+      loggedInAt: new Date().toISOString(),
+    }
+
+    res.json({ email: adminEmail })
+  }),
+)
+
+app.post('/api/auth/logout', requireAuth, (req: Request, res: Response) => {
+  const clearCookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? ('strict' as const) : ('lax' as const),
+  }
+
+  req.session.destroy((error) => {
+    if (error) {
+      console.error('Failed to destroy session on logout', error)
+      res.status(500).json({ message: 'Failed to log out' })
+      return
+    }
+
+    res.clearCookie(sessionName, clearCookieOptions)
+    res.json({ success: true })
+  })
+})
 
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok' })
@@ -102,7 +262,7 @@ const sanitizeLogo = (input: unknown): SiteLogo | null => {
   }
 }
 
-app.put('/api/site', async (req: Request, res: Response) => {
+app.put('/api/site', requireAuth, async (req: Request, res: Response) => {
   const payload = req.body as Partial<SiteMeta> | undefined
 
   if (!payload || typeof payload !== 'object') {
@@ -192,7 +352,7 @@ const validateSections = (sections: SectionsContent): string | undefined => {
   return undefined
 }
 
-app.put('/api/profile', async (req: Request, res: Response) => {
+app.put('/api/profile', requireAuth, async (req: Request, res: Response) => {
   const payload = req.body as Partial<Profile>
   if (!payload) {
     return res.status(400).json({ message: 'Missing payload' })
@@ -326,7 +486,7 @@ app.put('/api/profile', async (req: Request, res: Response) => {
   }
 })
 
-app.put('/api/posts', async (req: Request, res: Response) => {
+app.put('/api/posts', requireAuth, async (req: Request, res: Response) => {
   const payload = req.body as Post[]
 
   if (!Array.isArray(payload)) {
@@ -349,7 +509,7 @@ app.put('/api/posts', async (req: Request, res: Response) => {
   }
 })
 
-app.put('/api/sections', async (req: Request, res: Response) => {
+app.put('/api/sections', requireAuth, async (req: Request, res: Response) => {
   const payload = req.body as Partial<SectionsContent> | undefined
 
   let currentSections: SectionsContent
@@ -383,7 +543,7 @@ app.put('/api/sections', async (req: Request, res: Response) => {
   }
 })
 
-app.put('/api/experiences', async (req: Request, res: Response) => {
+app.put('/api/experiences', requireAuth, async (req: Request, res: Response) => {
   const payload = req.body as Experience[]
   if (!Array.isArray(payload)) {
     return res.status(400).json({ message: 'Payload must be an array of experiences' })
@@ -405,7 +565,7 @@ app.put('/api/experiences', async (req: Request, res: Response) => {
   }
 })
 
-app.put('/api/tutorials', async (req: Request, res: Response) => {
+app.put('/api/tutorials', requireAuth, async (req: Request, res: Response) => {
   const payload = req.body as Tutorial[]
   if (!Array.isArray(payload)) {
     return res.status(400).json({ message: 'Payload must be an array of tutorials' })
@@ -427,7 +587,7 @@ app.put('/api/tutorials', async (req: Request, res: Response) => {
   }
 })
 
-app.post('/api/reset', async (_req: Request, res: Response) => {
+app.post('/api/reset', requireAuth, async (_req: Request, res: Response) => {
   try {
     const content = await resetContent()
     res.json(content)

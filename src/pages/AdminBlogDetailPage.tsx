@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { FiArrowLeft, FiEdit2 } from 'react-icons/fi'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
+import { AdminSessionActions } from '../components/AdminSessionActions'
 
 const AdminBlogDetailPage = () => {
   const { blogId = '' } = useParams<{ blogId: string }>()
@@ -43,25 +44,30 @@ const AdminBlogDetailPage = () => {
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
       <header className="border-b border-white/5 bg-night-900/80">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-4 px-6 py-6">
-          <div className="space-y-1">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-slate-300 transition hover:text-white"
-            >
-              <FiArrowLeft />
-              Back
-            </button>
-            <h1 className="text-2xl font-semibold text-white">{post.title}</h1>
+        <div className="mx-auto flex max-w-4xl flex-col gap-4 px-6 py-6">
+          <div className="flex justify-end">
+            <AdminSessionActions />
           </div>
-          <Link
-            to={`/admin/blogs/${postIndex}/edit`}
-            className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-          >
-            <FiEdit2 className="text-accent-300" />
-            Edit blog
-          </Link>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="space-y-1">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-slate-300 transition hover:text-white"
+              >
+                <FiArrowLeft />
+                Back
+              </button>
+              <h1 className="text-2xl font-semibold text-white">{post.title}</h1>
+            </div>
+            <Link
+              to={`/admin/blogs/${postIndex}/edit`}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+            >
+              <FiEdit2 className="text-accent-300" />
+              Edit blog
+            </Link>
+          </div>
         </div>
       </header>
 

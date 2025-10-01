@@ -2,6 +2,7 @@ import type { KeyboardEvent } from 'react'
 import { FiEdit2, FiPlus } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
+import { AdminSessionActions } from '../components/AdminSessionActions'
 
 const cardStyle =
   'space-y-3 rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 shadow-inner shadow-black/40'
@@ -25,27 +26,32 @@ const AdminBlogsPage = () => {
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
       <header className="border-b border-white/5 bg-night-900/80">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-6 py-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-white">Blog management</h1>
-            <p className="text-sm text-slate-400">
-              Review existing blog posts, edit content, or add new entries.
-            </p>
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-6">
+          <div className="flex justify-end">
+            <AdminSessionActions />
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              to="/admin/blogs/new"
-              className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400"
-            >
-              <FiPlus />
-              Create new blog
-            </Link>
-            <Link
-              to="/admin"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-            >
-              Back to dashboard
-            </Link>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold text-white">Blog management</h1>
+              <p className="text-sm text-slate-400">
+                Review existing blog posts, edit content, or add new entries.
+              </p>
+            </div>
+            <div className="flex flex-wrap justify-end gap-3">
+              <Link
+                to="/admin/blogs/new"
+                className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400"
+              >
+                <FiPlus />
+                Create new blog
+              </Link>
+              <Link
+                to="/admin"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+              >
+                Back to dashboard
+              </Link>
+            </div>
           </div>
         </div>
       </header>

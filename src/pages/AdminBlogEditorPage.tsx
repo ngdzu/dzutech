@@ -3,6 +3,7 @@ import type { ChangeEvent, FormEvent } from 'react'
 import { FiArrowLeft, FiSave } from 'react-icons/fi'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
+import { AdminSessionActions } from '../components/AdminSessionActions'
 
 const fieldStyle =
   'block w-full rounded-xl border border-slate-800/60 bg-night-800/80 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-accent-400 focus:outline-none focus:ring-2 focus:ring-accent-500/30'
@@ -145,18 +146,23 @@ const AdminBlogEditorPage = () => {
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
       <header className="border-b border-white/5 bg-night-900/80">
-        <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-4 px-6 py-6">
-          <div>
-            <h1 className="text-2xl font-semibold text-white">{title}</h1>
-            <p className="text-sm text-slate-400">{helper}</p>
+        <div className="mx-auto flex max-w-4xl flex-col gap-4 px-6 py-6">
+          <div className="flex justify-end">
+            <AdminSessionActions />
           </div>
-          <Link
-            to="/admin/blogs"
-            className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-          >
-            <FiArrowLeft />
-            Back to list
-          </Link>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold text-white">{title}</h1>
+              <p className="text-sm text-slate-400">{helper}</p>
+            </div>
+            <Link
+              to="/admin/blogs"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+            >
+              <FiArrowLeft />
+              Back to list
+            </Link>
+          </div>
         </div>
       </header>
 
