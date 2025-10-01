@@ -135,14 +135,20 @@ const PostCard = ({
           {previewText || 'Content coming soon.'}
         </p>
         <div className="mt-auto flex flex-wrap gap-2 text-xs text-slate-300/80">
-          {post.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1"
-            >
-              {tag}
-            </span>
-          ))}
+          {post.tags.map((tag) => {
+            const trimmed = typeof tag === 'string' ? tag.trim() : ''
+            if (!trimmed) return null
+            const encoded = encodeURIComponent(trimmed.toLowerCase())
+            return (
+              <Link
+                key={trimmed}
+                to={`/blogs/tags/${encoded}`}
+                className="rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1 transition hover:border-accent-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
+              >
+                {trimmed}
+              </Link>
+            )
+          })}
         </div>
       </Link>
     </motion.article>
