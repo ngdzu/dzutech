@@ -56,6 +56,25 @@ const sessionMaxAgeMs = Number.isFinite(sessionMaxAgeHours) && sessionMaxAgeHour
   ? sessionMaxAgeHours * 60 * 60 * 1000
   : 12 * 60 * 60 * 1000
 
+const resolveCookieSecure = () => {
+  const raw = process.env.SESSION_COOKIE_SECURE?.toLowerCase()
+  if (raw === 'true') return true
+  if (raw === 'false') return false
+  if (raw === 'auto') return 'auto'
+  return 'auto'
+}
+
+const parseSameSite = () => {
+  const raw = process.env.SESSION_COOKIE_SAMESITE?.toLowerCase()
+  if (raw === 'strict' || raw === 'lax' || raw === 'none') {
+    return raw
+  }
+  return isProduction ? 'strict' : 'lax'
+}
+
+const sessionCookieSecure = resolveCookieSecure()
+const sessionCookieSameSite = parseSameSite()
+
 const PgSessionStore = connectPgSimple(session)
 
 app.set('trust proxy', 1)
@@ -77,8 +96,8 @@ app.use(
     rolling: true,
     cookie: {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'strict' : 'lax',
+      secure: sessionCookieSecure,
+      sameSite: sessionCookieSameSite,
       maxAge: sessionMaxAgeMs,
     },
     store: new PgSessionStore({
