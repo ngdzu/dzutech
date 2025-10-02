@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { FiArrowLeft } from 'react-icons/fi'
 import { Link, useParams } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
+import { markdownExcerpt } from '../lib/markdown'
 
 const cardStyle =
   'group rounded-3xl border border-slate-800/80 bg-slate-900/40 p-6 transition hover:border-accent-500/40 hover:bg-night-800/70'
@@ -53,9 +54,7 @@ const BlogTagPage = () => {
         ) : (
           <div className="grid gap-5 md:grid-cols-2">
             {matching.map(({ post, index }) => {
-              const trimmedContent = (post.content ?? '').trim()
-              const previewText =
-                trimmedContent.length > 220 ? `${trimmedContent.slice(0, 220)}…` : trimmedContent
+              const previewText = markdownExcerpt(post.content ?? '', 220)
 
               return (
                 <article key={`${index}-${post.title}`} className={cardStyle}>
@@ -68,7 +67,7 @@ const BlogTagPage = () => {
                         {post.title}
                       </h2>
                     </Link>
-                    <p className="text-sm text-slate-300/90 whitespace-pre-line">
+                    <p className="text-sm text-slate-300/90">
                       {previewText || 'Content coming soon.'}
                     </p>
                     <div className="mt-auto flex flex-wrap gap-2 text-xs text-slate-300/80">

@@ -1,5 +1,6 @@
 import { readJson, writeJson } from './db.js'
 import { defaultContent } from './defaultContent.js'
+import { markdownToHtml } from './markdown.js'
 import type {
   ContentState,
   Experience,
@@ -154,51 +155,63 @@ const withExperienceDefaults = (value: unknown, defaults: Experience[]): Experie
   })
 }
 
-const withPostsDefaults = (value: unknown, defaults: Post[]): Post[] => {
-  if (!Array.isArray(value)) {
-    return defaults.map((item) => ({ ...item }))
-  }
+const ensureStringArray = (input: unknown, fallback: string[]): string[] =>
+  Array.isArray(input)
+    ? input
+        .filter((item): item is string => typeof item === 'string')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [...fallback]
 
-  const ensureString = (input: unknown, fallback: string): string => {
+const getPostFallback = (defaults: Post[], index: number): Post =>
+  defaults[index] ?? defaults[defaults.length - 1] ?? { title: '', content: '', contentHtml: '', tags: [] }
+
+const normalizePost = (candidate: Partial<Post> & Record<string, unknown>, fallback: Post): Post => {
+  const ensureString = (input: unknown, fallbackValue: string): string => {
     if (typeof input === 'string') {
       const trimmed = input.trim()
       if (trimmed.length > 0) {
         return trimmed
       }
     }
-    return fallback
+    return fallbackValue
   }
 
-  const ensureStringArray = (input: unknown, fallback: string[]): string[] =>
-    Array.isArray(input)
-      ? input
-          .filter((item): item is string => typeof item === 'string')
-          .map((item) => item.trim())
-          .filter(Boolean)
-      : [...fallback]
+  const title = ensureString(candidate.title, fallback.title)
 
-  const getFallback = (idx: number): Post =>
-    defaults[idx] ?? defaults[defaults.length - 1] ?? { title: '', content: '', tags: [] }
+  const contentSource = typeof candidate.content === 'string' ? candidate.content : undefined
+  const fallbackSummary = typeof candidate.summary === 'string' ? candidate.summary : undefined
+  const content = ensureString(contentSource ?? fallbackSummary, fallback.content)
+
+  const extras: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(candidate)) {
+    if (['title', 'content', 'contentHtml', 'tags', 'summary', 'href'].includes(key)) continue
+    extras[key] = value
+  }
+
+  return {
+    ...extras,
+    title,
+    content,
+    tags: ensureStringArray(candidate.tags, fallback.tags),
+    contentHtml: markdownToHtml(content),
+  }
+}
+
+const withPostsDefaults = (value: unknown, defaults: Post[]): Post[] => {
+  if (!Array.isArray(value)) {
+    return defaults.map((item) => ({ ...item }))
+  }
 
   return value.map((entry, index) => {
     if (!entry || typeof entry !== 'object') {
-      const fallback = getFallback(index)
+      const fallback = getPostFallback(defaults, index)
       return { ...fallback }
     }
 
-    const candidate = entry as Partial<Post> & { summary?: unknown; href?: unknown }
-    const fallback = getFallback(index)
-    const title = ensureString(candidate.title, fallback.title)
-
-    const contentSource = typeof candidate.content === 'string' ? candidate.content : undefined
-    const fallbackSummary = typeof candidate.summary === 'string' ? candidate.summary : undefined
-    const content = ensureString(contentSource ?? fallbackSummary, fallback.content)
-
-    return {
-      title,
-      content,
-      tags: ensureStringArray(candidate.tags, fallback.tags),
-    }
+    const candidate = entry as Partial<Post> & Record<string, unknown>
+    const fallback = getPostFallback(defaults, index)
+    return normalizePost(candidate, fallback)
   })
 }
 
@@ -281,8 +294,11 @@ export const saveExperiences = async (experiences: Experience[]): Promise<Experi
 }
 
 export const savePosts = async (posts: Post[]): Promise<Post[]> => {
-  await writeJson('posts', posts)
-  return posts
+  const normalized = posts.map((post) =>
+    normalizePost({ ...post }, { title: '', content: '', contentHtml: '', tags: [] }),
+  )
+  await writeJson('posts', normalized)
+  return normalized
 }
 
 export const saveTutorials = async (tutorials: Tutorial[]): Promise<Tutorial[]> => {

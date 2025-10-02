@@ -1,3 +1,4 @@
+import { markdownToHtml } from './markdown.js'
 import type { ContentState } from './types.js'
 
 export const defaultContent: ContentState = {
@@ -79,22 +80,25 @@ export const defaultContent: ContentState = {
     {
       title: 'Designing Guardrails for AI-Assisted Coding Teams',
       content:
-        'Shipping with AI copilots requires clear human guardrails. This post walks through the guiding principles, review rituals, and partnership agreements I use with product and design to keep code reviews fast without sacrificing trust.\n\nYou will learn how to set confidence thresholds, build lightweight audit trails, and coach teams on when to lean on automation versus deep architectural thinking.',
+        '# Trust, Automation, and Guardrails\n\nShipping with AI copilots requires clear human guardrails. This post walks through the guiding principles, review rituals, and partnership agreements I use with product and design to keep code reviews fast without sacrificing trust.\n\n## What you will learn\n\n- Setting confidence thresholds that keep reviewers focused on critical diffs\n- Lightweight audit trails that satisfy compliance without slowing delivery\n- Coaching teams on when to lean on automation versus deep architectural thinking',
       tags: ['AI', 'Productivity', 'Leadership'],
     },
     {
       title: 'Modern Observability in a Polyglot Stack',
       content:
-        'Unifying telemetry across Node.js services, Rust workers, and serverless glue code can feel like herding cats. I share the dashboards, sampling strategies, and alerting heuristics that kept our operators confident while latency stayed predictable.\n\nFrom tracing and structured logging to incident retros, the article breaks down the practical steps your team can adopt this quarter.',
+        '# Unifying Telemetry without Losing Your Mind\n\nUnifying telemetry across Node.js services, Rust workers, and serverless glue code can feel like herding cats. I share the dashboards, sampling strategies, and alerting heuristics that kept our operators confident while latency stayed predictable.\n\n> Great observability is less about the tools you buy and more about the habits you reinforce.\n\n### Highlights\n\n1. Tracing and structured logging for hybrid workloads\n2. Alerting heuristics that reduce noisy incidents\n3. Incident retro templates teams can adopt this quarter',
       tags: ['Observability', 'DevOps'],
     },
     {
       title: 'Scaling Frontend Platforms with Micro-Frontends',
       content:
-        'When design systems and product squads both need to ship quickly, micro-frontends can help—if you invest in tooling and guardrails. I cover the architectural patterns, CI safeguards, and DX improvements that let us scale to dozens of teams without fracturing the user experience.\n\nExpect deployment pipelines, shared contract testing, and a few lessons learned the hard way.',
+        '# Micro-Frontends That Don\'t Fracture the UX\n\nWhen design systems and product squads both need to ship quickly, micro-frontends can help—if you invest in tooling and guardrails. I cover the architectural patterns, CI safeguards, and DX improvements that let us scale to dozens of teams without fracturing the user experience.\n\n```sh\npnpm dlx turbo run lint test build --filter="web..."\n```\n\nExpect deployment pipelines, shared contract testing, and a few lessons learned the hard way.',
       tags: ['Frontend', 'Architecture'],
     },
-  ],
+  ].map((post) => ({
+    ...post,
+    contentHtml: markdownToHtml(post.content),
+  })),
   tutorials: [
     {
       title: 'Getting Started with Event-Driven React Apps',

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { FiArrowDownCircle, FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi'
 import { Link, useLocation } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
+import { markdownExcerpt } from '../lib/markdown'
 
 const formatSocialDisplay = (url: string) => {
   try {
@@ -113,8 +114,7 @@ const PostCard = ({
   post: ReturnType<typeof useContent>['content']['posts'][number]
   index: number
 }) => {
-  const trimmedContent = (post.content ?? '').trim()
-  const previewText = trimmedContent.length > 220 ? `${trimmedContent.slice(0, 220)}…` : trimmedContent
+  const previewText = markdownExcerpt(post.content ?? '', 220)
 
   return (
     <motion.article
@@ -131,7 +131,7 @@ const PostCard = ({
         <h3 className="text-xl font-semibold text-white transition-colors group-hover:text-accent-200">
           {post.title}
         </h3>
-        <p className="text-sm text-slate-300/80 whitespace-pre-line">
+        <p className="text-sm text-slate-300/80">
           {previewText || 'Content coming soon.'}
         </p>
         <div className="mt-auto flex flex-wrap gap-2 text-xs text-slate-300/80">

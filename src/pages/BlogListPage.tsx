@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { FiArrowLeft } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
+import { markdownExcerpt } from '../lib/markdown'
 
 const BlogListPage = () => {
   const navigate = useNavigate()
@@ -83,9 +84,7 @@ const BlogListPage = () => {
         ) : (
           <div className="grid gap-6">
             {sortedPosts.map(({ post, index }) => {
-              const trimmedContent = (post.content ?? '').trim()
-              const previewText =
-                trimmedContent.length > 220 ? `${trimmedContent.slice(0, 220)}…` : trimmedContent
+              const previewText = markdownExcerpt(post.content ?? '', 220)
 
               const tags = Array.isArray(post.tags)
                 ? post.tags.filter((tag): tag is string => Boolean(tag?.trim()))
@@ -105,7 +104,7 @@ const BlogListPage = () => {
                         {post.title}
                       </Link>
                     </h2>
-                    <p className="text-base text-slate-300/85 whitespace-pre-line">
+                    <p className="text-base text-slate-300/85">
                       {previewText || 'Content coming soon.'}
                     </p>
                     {tags.length > 0 && (

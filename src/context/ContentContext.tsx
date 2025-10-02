@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from 'react'
 import type { ContentState, Experience, Post, Profile, SectionsContent, SiteMeta, Tutorial } from '../content'
 import { defaultContent } from '../content'
+import { renderMarkdown } from '../lib/markdown'
 import {
   fetchContent as fetchContentFromApi,
   resetContent as resetContentOnServer,
@@ -29,7 +30,22 @@ type ContentContextValue = {
 
 const ContentContext = createContext<ContentContextValue | undefined>(undefined)
 
-const cloneContent = (): ContentState => JSON.parse(JSON.stringify(defaultContent))
+const computePostHtml = (posts: Post[] | undefined): Post[] =>
+  Array.isArray(posts)
+    ? posts.map((post) => ({
+        ...post,
+        contentHtml:
+          typeof post.contentHtml === 'string' && post.contentHtml.trim().length > 0
+            ? post.contentHtml
+            : renderMarkdown(post.content ?? ''),
+      }))
+    : []
+
+const cloneContent = (): ContentState => {
+  const snapshot = JSON.parse(JSON.stringify(defaultContent)) as ContentState
+  snapshot.posts = computePostHtml(snapshot.posts)
+  return snapshot
+}
 
 export const ContentProvider = ({ children }: { children: ReactNode }) => {
   const [content, setContent] = useState<ContentState>(() => cloneContent())
@@ -40,7 +56,10 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true)
     try {
       const data = await fetchContentFromApi()
-      setContent(data)
+      setContent({
+        ...data,
+        posts: computePostHtml(data.posts),
+      })
       setError(null)
     } catch (refreshError) {
       console.error('Failed to load content from API', refreshError)
@@ -114,7 +133,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       const saved = await updatePostsOnServer(posts)
       setContent((prev) => ({
         ...prev,
-        posts: saved,
+        posts: computePostHtml(saved),
       }))
       setError(null)
       return saved

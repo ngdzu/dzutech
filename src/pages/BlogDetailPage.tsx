@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { FiArrowLeft } from 'react-icons/fi'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
+import { renderMarkdown } from '../lib/markdown'
 
 const BlogDetailPage = () => {
   const { blogId = '' } = useParams<{ blogId: string }>()
@@ -15,6 +16,13 @@ const BlogDetailPage = () => {
   }, [blogId])
 
   const post = postIndex >= 0 && postIndex < posts.length ? posts[postIndex] : null
+  const contentHtml = useMemo(() => {
+    if (!post) return ''
+    if (typeof post.contentHtml === 'string' && post.contentHtml.trim().length > 0) {
+      return post.contentHtml
+    }
+    return renderMarkdown(post.content ?? '')
+  }, [post])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -98,7 +106,10 @@ const BlogDetailPage = () => {
         </div>
 
         <article className="rounded-3xl border border-slate-800/80 bg-slate-900/50 p-8 shadow-inner shadow-black/40">
-          <div className="whitespace-pre-line text-base leading-relaxed text-slate-200">{post.content}</div>
+          <div
+            className="prose prose-invert max-w-none text-base leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: contentHtml }}
+          />
         </article>
       </main>
     </div>

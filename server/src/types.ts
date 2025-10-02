@@ -40,6 +40,7 @@ export type Experience = {
 export type Post = {
   title: string
   content: string
+  contentHtml?: string
   tags: string[]
 }
 
