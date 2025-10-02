@@ -29,15 +29,17 @@ const AdminSessionActions = () => {
 
   return (
     <div className="flex flex-col items-end gap-2 text-right">
-      {user && (
-        <p className="text-xs font-medium uppercase tracking-[0.3em] text-slate-400">
-          Signed in as <span className="ml-1 text-slate-100">{user.email}</span>
-        </p>
-      )}
-      <button type="button" onClick={handleLogout} className={actionButtonStyle} disabled={pending}>
-        <FiLogOut />
-        {pending ? 'Signing out…' : 'Sign out'}
-      </button>
+      <div className="flex flex-wrap items-center justify-end gap-3">
+        {user && (
+          <p className="whitespace-nowrap text-xs font-medium uppercase tracking-[0.3em] text-slate-400">
+            Signed in as <span className="ml-1 text-slate-100">{user.email}</span>
+          </p>
+        )}
+        <button type="button" onClick={handleLogout} className={actionButtonStyle} disabled={pending}>
+          <FiLogOut />
+          {pending ? 'Signing out…' : 'Sign out'}
+        </button>
+      </div>
       {error && <p className="max-w-[16rem] text-xs text-rose-300">{error}</p>}
     </div>
   )

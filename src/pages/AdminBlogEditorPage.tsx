@@ -146,7 +146,7 @@ const AdminBlogEditorPage = () => {
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
       <header className="border-b border-white/5 bg-night-900/80">
-        <div className="mx-auto flex max-w-4xl flex-col gap-4 px-6 py-6">
+        <div className="mx-auto flex max-w-4xl flex-col gap-4 px-6 pt-3 pb-6">
           <div className="flex justify-end">
             <AdminSessionActions />
           </div>

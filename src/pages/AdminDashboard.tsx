@@ -681,7 +681,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-night-900">
-      <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 py-12">
+      <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 pt-4 pb-12">
         <header className="flex flex-col gap-4 border-b border-slate-800/80 pb-6">
           <div className="flex justify-end">
             <AdminSessionActions />
