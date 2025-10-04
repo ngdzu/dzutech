@@ -30,16 +30,25 @@ dotenv.config()
 
 const app = express()
 const port = Number(process.env.PORT ?? 4000)
+const nodeEnv = process.env.NODE_ENV ?? 'development'
 const rawAllowedOrigins = process.env.ALLOWED_ORIGIN
   ?.split(',')
   .map((origin) => origin.trim())
   .filter((origin) => origin.length > 0)
+
+if ((!rawAllowedOrigins || rawAllowedOrigins.length === 0) && nodeEnv === 'production') {
+  throw new Error('ALLOWED_ORIGIN must be configured with at least one domain in production')
+}
 
 const allowedOrigin = rawAllowedOrigins && rawAllowedOrigins.length > 0 ? rawAllowedOrigins : '*'
 
 const sessionSecret = process.env.SESSION_SECRET
 if (!sessionSecret) {
   throw new Error('SESSION_SECRET is required to start the API server')
+}
+
+if (nodeEnv === 'production' && sessionSecret.length < 32) {
+  throw new Error('SESSION_SECRET must be at least 32 characters in production environments')
 }
 
 const adminEmail = process.env.ADMIN_EMAIL?.trim() ?? ''

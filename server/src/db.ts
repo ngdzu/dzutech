@@ -2,15 +2,35 @@ import { Pool } from 'pg'
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
 
-const databaseUrl =
-  process.env.DATABASE_URL ??
-  `postgresql://${process.env.DB_USER ?? 'postgres'}:${process.env.DB_PASSWORD ?? 'postgres'}@${process.env.DB_HOST ?? 'db'}:${process.env.DB_PORT ?? '5432'}/${process.env.DB_NAME ?? 'dzutech'}`
+const nodeEnv = process.env.NODE_ENV ?? 'development'
+const hasCustomDatabaseUrl = typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.trim().length > 0
 
-const sslMode = process.env.DB_SSL === 'true'
+if (!hasCustomDatabaseUrl && nodeEnv === 'production') {
+  throw new Error('DATABASE_URL must be provided in production environments')
+}
+
+const fallbackConnectionString = `postgresql://${process.env.DB_USER ?? 'postgres'}:${process.env.DB_PASSWORD ?? 'postgres'}@${process.env.DB_HOST ?? 'db'}:${process.env.DB_PORT ?? '5432'}/${process.env.DB_NAME ?? 'dzutech'}`
+
+const databaseUrl = hasCustomDatabaseUrl ? (process.env.DATABASE_URL as string).trim() : fallbackConnectionString
+
+const sslEnabled = (process.env.DB_SSL ?? '').toLowerCase() === 'true'
+const sslRejectUnauthorized = (process.env.DB_SSL_REJECT_UNAUTHORIZED ?? 'true').toLowerCase() !== 'false'
+const sslCertificate = process.env.DB_SSL_CA?.replace(/\\n/g, '\n')
+
+if (nodeEnv === 'production' && !sslEnabled) {
+  console.warn('DB_SSL is not enabled; enable TLS between the API and database for production deployments.')
+}
+
+const sslOptions = sslEnabled
+  ? {
+      rejectUnauthorized: sslRejectUnauthorized,
+      ...(sslCertificate ? { ca: sslCertificate } : {}),
+    }
+  : undefined
 
 export const pool = new Pool({
   connectionString: databaseUrl,
-  ssl: sslMode ? { rejectUnauthorized: false } : undefined,
+  ssl: sslOptions,
 })
 
 pool.on('error', (error) => {

@@ -28,6 +28,13 @@ cp .env.example .env
 cp server/.env.example server/.env
 ```
 
+### Security-critical environment variables
+
+- `DATABASE_URL` **must** be supplied in production with a strong password; the code now refuses to boot in production without it.
+- `DB_SSL=true` is recommended for any remote database. You can also provide `DB_SSL_CA` (PEM content) and toggle `DB_SSL_REJECT_UNAUTHORIZED` when working with managed certificates.
+- `SESSION_SECRET` has to be at least 32 characters in production. Generate one with `openssl rand -hex 32` or your secret manager of choice.
+- `ALLOWED_ORIGIN` needs to list every domain that will reach the API (comma separated). In production the server will abort if this variable is missing to avoid falling back to a permissive wildcard configuration.
+
 For local development make the following edits before starting the services:
 
 - In `.env`, set `VITE_API_URL=http://localhost:4000` so the Vite dev server talks to the locally running API.
