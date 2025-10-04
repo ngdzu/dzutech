@@ -38,10 +38,14 @@ export type Experience = {
 }
 
 export type Post = {
+  id: string
   title: string
   content: string
   contentHtml?: string
   tags: string[]
+  hidden: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type Tutorial = {

@@ -14,6 +14,8 @@ import {
   saveSections,
   saveSite,
   saveTutorials,
+  removePostById,
+  setPostHidden,
 } from './repository.js'
 import type {
   Experience,
@@ -356,7 +358,15 @@ const validateTutorial = (tutorial: Tutorial, index: number): string | undefined
   return undefined
 }
 
-const validatePost = (post: Post, index: number): string | undefined => {
+const validatePost = (post: Partial<Post> & Record<string, unknown>, index: number): string | undefined => {
+  if ('id' in post && typeof post.id !== 'string') {
+    return `posts[${index}].id must be a string`
+  }
+
+  if ('hidden' in post && typeof post.hidden !== 'boolean') {
+    return `posts[${index}].hidden must be a boolean`
+  }
+
   if (!isNonEmptyString(post.title)) {
     return `posts[${index}].title is required`
   }
@@ -515,27 +525,83 @@ app.put('/api/profile', requireAuth, async (req: Request, res: Response) => {
 })
 
 app.put('/api/posts', requireAuth, async (req: Request, res: Response) => {
-  const payload = req.body as Post[]
+  const payload = req.body as unknown
 
   if (!Array.isArray(payload)) {
     return res.status(400).json({ message: 'Payload must be an array of posts' })
   }
 
+  const postsPayload = payload as Array<Partial<Post> & Record<string, unknown>>
+
   for (let index = 0; index < payload.length; index += 1) {
-    const error = validatePost(payload[index], index)
+    const error = validatePost(postsPayload[index], index)
     if (error) {
       return res.status(422).json({ message: error })
     }
   }
 
   try {
-    const saved = await savePosts(payload)
+    const saved = await savePosts(postsPayload)
     res.json(saved)
   } catch (error) {
     console.error('Failed to save posts', error)
     res.status(500).json({ message: 'Failed to save posts' })
   }
 })
+
+app.delete(
+  '/api/posts/:postId',
+  requireAuth,
+  asyncHandler(async (req: Request<{ postId: string }>, res: Response) => {
+    const postId = req.params.postId?.trim()
+
+    if (!postId) {
+      res.status(400).json({ message: 'Post identifier is required' })
+      return
+    }
+
+    try {
+      const posts = await removePostById(postId)
+      res.json(posts)
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && (error as { code?: string }).code === 'POST_NOT_FOUND') {
+        res.status(404).json({ message: 'Post not found' })
+        return
+      }
+      throw error
+    }
+  }),
+)
+
+app.patch(
+  '/api/posts/:postId/visibility',
+  requireAuth,
+  asyncHandler(async (req: Request<{ postId: string }, Post[], { hidden?: unknown }>, res: Response) => {
+    const postId = req.params.postId?.trim()
+
+    if (!postId) {
+      res.status(400).json({ message: 'Post identifier is required' })
+      return
+    }
+
+    const hiddenValue = req.body?.hidden
+    if (typeof hiddenValue !== 'boolean') {
+      res.status(400).json({ message: 'Hidden flag must be provided as a boolean' })
+      return
+    }
+
+    try {
+      const posts = await setPostHidden(postId, hiddenValue)
+      res.json(posts)
+    } catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && (error as { code?: string }).code === 'POST_NOT_FOUND') {
+        res.status(404).json({ message: 'Post not found' })
+        return
+      }
+      throw error
+    }
+  }),
+)
 
 app.put('/api/sections', requireAuth, async (req: Request, res: Response) => {
   const payload = req.body as Partial<SectionsContent> | undefined

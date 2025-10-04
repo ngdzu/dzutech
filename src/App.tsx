@@ -17,8 +17,8 @@ function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/blogs" element={<BlogListPage />} />
-      <Route path="/blogs/:blogId" element={<BlogDetailPage />} />
-      <Route path="/blogs/tags/:tagSlug" element={<BlogTagPage />} />
+  <Route path="/blogs/:postId" element={<BlogDetailPage />} />
+  <Route path="/blogs/tags/:tagSlug" element={<BlogTagPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route
         path="/admin"
@@ -45,7 +45,7 @@ function App() {
         }
       />
       <Route
-        path="/admin/blogs/:blogId"
+        path="/admin/blogs/:postId"
         element={
           <RequireAuth>
             <AdminBlogDetailPage />
@@ -53,7 +53,7 @@ function App() {
         }
       />
       <Route
-        path="/admin/blogs/:blogId/edit"
+        path="/admin/blogs/:postId/edit"
         element={
           <RequireAuth>
             <AdminBlogEditorPage />

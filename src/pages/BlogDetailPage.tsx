@@ -5,17 +5,29 @@ import { useContent } from '../context/ContentContext'
 import { renderMarkdown } from '../lib/markdown'
 
 const BlogDetailPage = () => {
-  const { blogId = '' } = useParams<{ blogId: string }>()
+  const { postId = '' } = useParams<{ postId: string }>()
   const navigate = useNavigate()
   const { content, loading } = useContent()
-  const posts = content.posts ?? []
+  const posts = useMemo(() => (Array.isArray(content.posts) ? content.posts : []), [content.posts])
 
-  const postIndex = useMemo(() => {
-    const parsed = Number.parseInt(blogId, 10)
-    return Number.isNaN(parsed) ? -1 : parsed
-  }, [blogId])
+  const normalizedId = useMemo(() => decodeURIComponent(postId).trim(), [postId])
 
-  const post = postIndex >= 0 && postIndex < posts.length ? posts[postIndex] : null
+  const post = useMemo(() => {
+    if (normalizedId.length === 0) return null
+    const byId = posts.find((entry) => entry.id === normalizedId)
+    if (byId) {
+      return byId.hidden ? null : byId
+    }
+
+    const parsedIndex = Number.parseInt(normalizedId, 10)
+    if (!Number.isNaN(parsedIndex) && parsedIndex >= 0 && parsedIndex < posts.length) {
+      const candidate = posts[parsedIndex]
+      if (!candidate) return null
+      return candidate.hidden ? null : candidate
+    }
+
+    return null
+  }, [normalizedId, posts])
   const contentHtml = useMemo(() => {
     if (!post) return ''
     if (typeof post.contentHtml === 'string' && post.contentHtml.trim().length > 0) {
@@ -28,7 +40,7 @@ const BlogDetailPage = () => {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
-  }, [postIndex])
+  }, [post?.id])
 
   if (loading && !post) {
     return (

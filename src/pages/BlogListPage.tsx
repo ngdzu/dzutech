@@ -8,6 +8,10 @@ const BlogListPage = () => {
   const navigate = useNavigate()
   const { content, loading } = useContent()
   const posts = useMemo(() => content.posts ?? [], [content.posts])
+  const visiblePosts = useMemo(
+    () => posts.filter((post) => post && post.hidden !== true),
+    [posts],
+  )
 
   const sortedPosts = useMemo(() => {
     const parseTimestamp = (value: string | undefined): number | null => {
@@ -16,7 +20,7 @@ const BlogListPage = () => {
       return Number.isNaN(parsed) ? null : parsed
     }
 
-    return posts
+    return visiblePosts
       .map((post, index) => {
         const datedPost = post as typeof post & { updatedAt?: string; createdAt?: string }
         const updatedAt = parseTimestamp(datedPost.updatedAt)
@@ -32,7 +36,7 @@ const BlogListPage = () => {
         if (b.timestamp == null) return -1
         return b.timestamp - a.timestamp
       })
-  }, [posts])
+  }, [visiblePosts])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -85,6 +89,7 @@ const BlogListPage = () => {
           <div className="grid gap-6">
             {sortedPosts.map(({ post, index }) => {
               const previewText = markdownExcerpt(post.content ?? '', 220)
+              const slug = encodeURIComponent((post.id ?? '').trim() || String(index))
 
               const tags = Array.isArray(post.tags)
                 ? post.tags.filter((tag): tag is string => Boolean(tag?.trim()))
@@ -92,13 +97,13 @@ const BlogListPage = () => {
 
               return (
                 <article
-                  key={`${post.title}-${index}`}
+                  key={post.id ?? `${post.title}-${index}`}
                   className="group rounded-3xl border border-slate-800/60 bg-slate-900/40 p-8 transition hover:border-accent-500/40 hover:bg-night-800/80"
                 >
                   <div className="flex flex-col gap-4">
                     <h2 className="text-2xl font-semibold text-white transition group-hover:text-accent-200">
                       <Link
-                        to={`/blogs/${index}`}
+                        to={`/blogs/${slug}`}
                         className="focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
                       >
                         {post.title}
@@ -126,7 +131,7 @@ const BlogListPage = () => {
                     )}
                     <div className="flex justify-end">
                       <Link
-                        to={`/blogs/${index}`}
+                        to={`/blogs/${slug}`}
                         className="text-sm font-semibold text-accent-200 transition hover:text-accent-100"
                       >
                         Read post →

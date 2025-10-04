@@ -13,7 +13,10 @@ const BlogTagPage = () => {
   const normalizedTag = decodedTag.trim().toLowerCase()
 
   const { content } = useContent()
-  const posts = content.posts ?? []
+  const posts = useMemo(
+    () => (content.posts ?? []).filter((post) => post && post.hidden !== true),
+    [content.posts],
+  )
 
   const matching = posts
     .map((post, index) => ({ post, index }))
@@ -55,12 +58,13 @@ const BlogTagPage = () => {
           <div className="grid gap-5 md:grid-cols-2">
             {matching.map(({ post, index }) => {
               const previewText = markdownExcerpt(post.content ?? '', 220)
+              const slug = encodeURIComponent((post.id ?? '').trim() || String(index))
 
               return (
-                <article key={`${index}-${post.title}`} className={cardStyle}>
+                <article key={post.id ?? `${index}-${post.title}`} className={cardStyle}>
                   <div className="flex h-full flex-col gap-4">
                     <Link
-                      to={`/blogs/${index}`}
+                      to={`/blogs/${slug}`}
                       className="text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
                     >
                       <h2 className="text-lg font-semibold text-white transition-colors group-hover:text-accent-200">

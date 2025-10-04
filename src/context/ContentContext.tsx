@@ -5,9 +5,11 @@ import { defaultContent } from '../content'
 import { renderMarkdown } from '../lib/markdown'
 import {
   fetchContent as fetchContentFromApi,
+  deletePost as deletePostOnServer,
   resetContent as resetContentOnServer,
   updateExperiences as updateExperiencesOnServer,
   updatePosts as updatePostsOnServer,
+  updatePostVisibility as updatePostVisibilityOnServer,
   updateProfile as updateProfileOnServer,
   updateSections as updateSectionsOnServer,
   updateSite as updateSiteOnServer,
@@ -22,6 +24,8 @@ type ContentContextValue = {
   updateSite: (site: SiteMeta) => Promise<SiteMeta>
   updateProfile: (updates: Partial<Profile>) => Promise<Profile>
   updatePosts: (posts: Post[]) => Promise<Post[]>
+  deletePost: (postId: string) => Promise<Post[]>
+  setPostVisibility: (postId: string, hidden: boolean) => Promise<Post[]>
   updateExperiences: (experiences: Experience[]) => Promise<Experience[]>
   updateTutorials: (tutorials: Tutorial[]) => Promise<Tutorial[]>
   updateSections: (sections: SectionsContent) => Promise<SectionsContent>
@@ -143,6 +147,36 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
+  const deletePost = useCallback(async (postId: string) => {
+    try {
+      const saved = await deletePostOnServer(postId)
+      setContent((prev) => ({
+        ...prev,
+        posts: computePostHtml(saved),
+      }))
+      setError(null)
+      return saved
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : 'Failed to delete post')
+      throw deleteError
+    }
+  }, [])
+
+  const setPostVisibility = useCallback(async (postId: string, hidden: boolean) => {
+    try {
+      const saved = await updatePostVisibilityOnServer(postId, hidden)
+      setContent((prev) => ({
+        ...prev,
+        posts: computePostHtml(saved),
+      }))
+      setError(null)
+      return saved
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : 'Failed to update post visibility')
+      throw updateError
+    }
+  }, [])
+
   const updateExperiences = useCallback(async (experiences: Experience[]) => {
     try {
       const saved = await updateExperiencesOnServer(experiences)
@@ -209,6 +243,8 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       updateSite,
       updateProfile,
       updatePosts,
+      deletePost,
+      setPostVisibility,
       updateExperiences,
       updateTutorials,
       updateSections,
@@ -222,6 +258,8 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       updateSite,
       updateProfile,
       updatePosts,
+      deletePost,
+      setPostVisibility,
       updateExperiences,
       updateTutorials,
       updateSections,

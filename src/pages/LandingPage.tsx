@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { FiArrowDownCircle, FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi'
 import { Link, useLocation } from 'react-router-dom'
@@ -115,6 +115,7 @@ const PostCard = ({
   index: number
 }) => {
   const previewText = markdownExcerpt(post.content ?? '', 220)
+  const slug = encodeURIComponent((post.id ?? '').trim() || String(index))
 
   return (
     <motion.article
@@ -125,7 +126,7 @@ const PostCard = ({
       transition={{ duration: 0.45, ease: 'easeOut' }}
     >
       <Link
-        to={`/blogs/${index}`}
+        to={`/blogs/${slug}`}
         className="flex h-full flex-col gap-4 rounded-3xl px-6 py-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
       >
         <h3 className="text-xl font-semibold text-white transition-colors group-hover:text-accent-200">
@@ -188,6 +189,10 @@ export const LandingPage = () => {
   const location = useLocation()
   const { content } = useContent()
   const { site, profile, experiences, posts, tutorials, sections } = content
+  const visiblePosts = useMemo(
+    () => (posts ?? []).filter((post) => post && post.hidden !== true),
+    [posts],
+  )
   const firstName = profile.name.split(' ')[0] || profile.name
   const siteTitle = site.title.trim()
   const brandLabel = siteTitle ? siteTitle.toLowerCase() : firstName ? firstName.toLowerCase() : 'home'
@@ -222,7 +227,7 @@ export const LandingPage = () => {
     return Number.isNaN(parsed) ? null : parsed
   }
 
-  const postsWithIndex = posts
+  const postsWithIndex = visiblePosts
     .map((post, index) => {
       const datedPost = post as typeof post & { updatedAt?: string; createdAt?: string }
       const updatedAt = parseTimestamp(datedPost.updatedAt)
@@ -240,7 +245,7 @@ export const LandingPage = () => {
     })
 
   const recentPosts = postsWithIndex.slice(0, 3)
-  const hasMorePosts = posts.length > recentPosts.length
+  const hasMorePosts = visiblePosts.length > recentPosts.length
 
   useEffect(() => {
     if (typeof document === 'undefined') return

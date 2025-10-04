@@ -78,22 +78,28 @@ export const defaultContent: ContentState = {
   ],
   posts: [
     {
+      id: 'post-designing-guardrails',
       title: 'Designing Guardrails for AI-Assisted Coding Teams',
       content:
         '# Trust, Automation, and Guardrails\n\nShipping with AI copilots requires clear human guardrails. This post walks through the guiding principles, review rituals, and partnership agreements I use with product and design to keep code reviews fast without sacrificing trust.\n\n## What you will learn\n\n- Setting confidence thresholds that keep reviewers focused on critical diffs\n- Lightweight audit trails that satisfy compliance without slowing delivery\n- Coaching teams on when to lean on automation versus deep architectural thinking',
       tags: ['AI', 'Productivity', 'Leadership'],
+      hidden: false,
     },
     {
+      id: 'post-modern-observability',
       title: 'Modern Observability in a Polyglot Stack',
       content:
         '# Unifying Telemetry without Losing Your Mind\n\nUnifying telemetry across Node.js services, Rust workers, and serverless glue code can feel like herding cats. I share the dashboards, sampling strategies, and alerting heuristics that kept our operators confident while latency stayed predictable.\n\n> Great observability is less about the tools you buy and more about the habits you reinforce.\n\n### Highlights\n\n1. Tracing and structured logging for hybrid workloads\n2. Alerting heuristics that reduce noisy incidents\n3. Incident retro templates teams can adopt this quarter',
       tags: ['Observability', 'DevOps'],
+      hidden: false,
     },
     {
+      id: 'post-scaling-frontend-platforms',
       title: 'Scaling Frontend Platforms with Micro-Frontends',
       content:
         '# Micro-Frontends That Don\'t Fracture the UX\n\nWhen design systems and product squads both need to ship quickly, micro-frontends can help—if you invest in tooling and guardrails. I cover the architectural patterns, CI safeguards, and DX improvements that let us scale to dozens of teams without fracturing the user experience.\n\n```sh\npnpm dlx turbo run lint test build --filter="web..."\n```\n\nExpect deployment pipelines, shared contract testing, and a few lessons learned the hard way.',
       tags: ['Frontend', 'Architecture'],
+      hidden: false,
     },
   ].map((post) => ({
     ...post,

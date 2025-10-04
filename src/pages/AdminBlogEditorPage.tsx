@@ -14,12 +14,14 @@ type BlogFormState = {
   title: string
   content: string
   tags: string
+  hidden: boolean
 }
 
 const EMPTY_POST: BlogFormState = {
   title: '',
   content: '',
   tags: '',
+  hidden: false,
 }
 
 const normalizeTags = (input: string) =>
@@ -28,14 +30,16 @@ const normalizeTags = (input: string) =>
     .map((item) => item.trim())
     .filter(Boolean)
 
+const generatePostId = () => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return `post-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
+}
+
 const AdminBlogEditorPage = () => {
-  const { blogId } = useParams<{ blogId: string }>()
-  const isCreateMode = !blogId
-  const index = useMemo(() => {
-    if (!blogId) return null
-    const parsed = Number.parseInt(blogId, 10)
-    return Number.isNaN(parsed) ? null : parsed
-  }, [blogId])
+  const { postId } = useParams<{ postId: string }>()
+  const isCreateMode = !postId
 
   const navigate = useNavigate()
   const { content, updatePosts, loading } = useContent()
@@ -45,10 +49,9 @@ const AdminBlogEditorPage = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const currentPost = useMemo(() => {
-    if (isCreateMode) return null
-    if (index === null || index < 0 || index >= posts.length) return null
-    return posts[index]
-  }, [isCreateMode, index, posts])
+    if (!postId) return null
+    return posts.find((post) => post.id === postId) ?? null
+  }, [postId, posts])
 
   useEffect(() => {
     if (isCreateMode) {
@@ -65,6 +68,7 @@ const AdminBlogEditorPage = () => {
       title: currentPost.title ?? '',
       content: currentPost.content ?? '',
       tags: Array.isArray(currentPost.tags) ? currentPost.tags.join(', ') : '',
+      hidden: currentPost.hidden ?? false,
     })
   }, [isCreateMode, currentPost])
 
@@ -81,6 +85,11 @@ const AdminBlogEditorPage = () => {
       setForm((prev) => ({ ...prev, [field]: value }))
     }
 
+  const handleHiddenToggle = (event: ChangeEvent<HTMLInputElement>) => {
+    const { checked } = event.target
+    setForm((prev) => ({ ...prev, hidden: checked }))
+  }
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setStatus('saving')
@@ -96,15 +105,22 @@ const AdminBlogEditorPage = () => {
       return
     }
 
+    const baseId = currentPost?.id ?? generatePostId()
+    const createdAt = currentPost?.createdAt ?? new Date().toISOString()
     const nextPost = {
+      ...currentPost,
+      id: baseId,
       title: trimmedTitle,
       content: trimmedContent,
       tags,
+      hidden: form.hidden,
+      createdAt,
+      updatedAt: new Date().toISOString(),
     }
 
     const nextPosts = isCreateMode
       ? [...posts, nextPost]
-      : posts.map((post, idx) => (idx === index ? nextPost : post))
+      : posts.map((post) => (post.id === baseId ? { ...post, ...nextPost } : post))
 
     try {
       await updatePosts(nextPosts)
@@ -168,7 +184,7 @@ const AdminBlogEditorPage = () => {
 
       <main className="mx-auto w-full max-w-4xl px-6 py-10">
         <form onSubmit={handleSubmit} className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6">
-          <div className="space-y-2">
+            <div className="space-y-2">
             <label className="flex flex-col gap-2">
               <span className={labelStyle}>Title</span>
               <input
@@ -201,6 +217,20 @@ const AdminBlogEditorPage = () => {
               <span className="text-xs text-slate-500">
                 Separate tags with commas. Tags appear as chips on the blog list and power the tag filter page.
               </span>
+            </label>
+            <label className="flex items-center gap-2 rounded-2xl border border-slate-800/60 bg-slate-900/40 px-4 py-3">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-slate-600 bg-night-900 text-accent-400 focus:ring-accent-400"
+                checked={form.hidden}
+                onChange={handleHiddenToggle}
+              />
+              <div className="space-y-1 text-xs">
+                <span className="font-semibold text-slate-200">Hide from public website</span>
+                <p className="text-slate-500">
+                  When enabled, this post stays visible to admins but is removed from all public listings.
+                </p>
+              </div>
             </label>
           </div>
 

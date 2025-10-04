@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { readJson, writeJson } from './db.js'
 import { defaultContent } from './defaultContent.js'
 import { markdownToHtml } from './markdown.js'
@@ -163,8 +164,33 @@ const ensureStringArray = (input: unknown, fallback: string[]): string[] =>
         .filter(Boolean)
     : [...fallback]
 
-const getPostFallback = (defaults: Post[], index: number): Post =>
-  defaults[index] ?? defaults[defaults.length - 1] ?? { title: '', content: '', contentHtml: '', tags: [] }
+const getPostFallback = (defaults: Post[], index: number): Post => {
+  const fallback = defaults[index] ?? defaults[defaults.length - 1]
+  if (fallback) {
+    return { ...fallback }
+  }
+  return {
+    id: randomUUID(),
+    title: '',
+    content: '',
+    contentHtml: '',
+    tags: [],
+    hidden: false,
+  }
+}
+
+const ensureBoolean = (input: unknown, fallback: boolean): boolean =>
+  typeof input === 'boolean' ? input : fallback
+
+const ensureId = (input: unknown, fallback: string): string => {
+  if (typeof input === 'string') {
+    const trimmed = input.trim()
+    if (trimmed.length > 0) {
+      return trimmed
+    }
+  }
+  return fallback
+}
 
 const normalizePost = (candidate: Partial<Post> & Record<string, unknown>, fallback: Post): Post => {
   const ensureString = (input: unknown, fallbackValue: string): string => {
@@ -185,16 +211,18 @@ const normalizePost = (candidate: Partial<Post> & Record<string, unknown>, fallb
 
   const extras: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(candidate)) {
-    if (['title', 'content', 'contentHtml', 'tags', 'summary', 'href'].includes(key)) continue
+    if (['id', 'hidden', 'title', 'content', 'contentHtml', 'tags', 'summary', 'href'].includes(key)) continue
     extras[key] = value
   }
 
   return {
     ...extras,
+    id: ensureId(candidate.id, fallback.id),
     title,
     content,
     tags: ensureStringArray(candidate.tags, fallback.tags),
     contentHtml: markdownToHtml(content),
+    hidden: ensureBoolean(candidate.hidden, fallback.hidden),
   }
 }
 
@@ -293,12 +321,54 @@ export const saveExperiences = async (experiences: Experience[]): Promise<Experi
   return experiences
 }
 
-export const savePosts = async (posts: Post[]): Promise<Post[]> => {
-  const normalized = posts.map((post) =>
-    normalizePost({ ...post }, { title: '', content: '', contentHtml: '', tags: [] }),
-  )
+export const savePosts = async (posts: Array<Partial<Post> & Record<string, unknown>>): Promise<Post[]> => {
+  const normalized = posts.map((post) => {
+    const fallback: Post = {
+      id: ensureId(post.id, randomUUID()),
+      title: '',
+      content: '',
+      contentHtml: '',
+      tags: [],
+      hidden: ensureBoolean(post.hidden, false),
+      ...(typeof post.createdAt === 'string' ? { createdAt: post.createdAt } : {}),
+      ...(typeof post.updatedAt === 'string' ? { updatedAt: post.updatedAt } : {}),
+    }
+    return normalizePost({ ...post }, fallback)
+  })
   await writeJson('posts', normalized)
   return normalized
+}
+
+const createNotFoundError = (message: string) => {
+  const error = new Error(message)
+  Object.assign(error, { code: 'POST_NOT_FOUND' as const })
+  return error
+}
+
+export const removePostById = async (postId: string): Promise<Post[]> => {
+  const content = await getContent()
+  const exists = content.posts.some((post) => post.id === postId)
+
+  if (!exists) {
+    throw createNotFoundError('Post not found')
+  }
+
+  const filtered = content.posts.filter((post) => post.id !== postId)
+  return savePosts(filtered)
+}
+
+export const setPostHidden = async (postId: string, hidden: boolean): Promise<Post[]> => {
+  const content = await getContent()
+  const exists = content.posts.some((post) => post.id === postId)
+
+  if (!exists) {
+    throw createNotFoundError('Post not found')
+  }
+
+  const updated = content.posts.map((post) =>
+    post.id === postId ? { ...post, hidden } : post,
+  )
+  return savePosts(updated)
 }
 
 export const saveTutorials = async (tutorials: Tutorial[]): Promise<Tutorial[]> => {

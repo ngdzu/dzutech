@@ -81,6 +81,22 @@ export const updatePosts = async (payload: Post[]): Promise<Post[]> => {
   return handleResponse<Post[]>(response)
 }
 
+export const deletePost = async (postId: string): Promise<Post[]> => {
+  const response = await request(`/api/posts/${encodeURIComponent(postId)}`, {
+    method: 'DELETE',
+  })
+  return handleResponse<Post[]>(response)
+}
+
+export const updatePostVisibility = async (postId: string, hidden: boolean): Promise<Post[]> => {
+  const response = await request(`/api/posts/${encodeURIComponent(postId)}/visibility`, {
+    method: 'PATCH',
+    headers: jsonHeaders,
+    body: JSON.stringify({ hidden }),
+  })
+  return handleResponse<Post[]>(response)
+}
+
 export const updateExperiences = async (payload: Experience[]): Promise<Experience[]> => {
   const response = await request('/api/experiences', {
     method: 'PUT',
