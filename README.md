@@ -71,6 +71,16 @@ npm run preview
 - Run `npm run lint` to execute ESLint across the project.
 - Run `npm run test` for the client/shared Vitest suite and `npm run test:server` for the API; `npm run test:all` wraps both.
 
+Use `npm run verify:env` to make sure all security-critical environment variables are populated before deploying. This command enforces:
+
+- Strong, non-default `DATABASE_URL` credentials
+- `SESSION_SECRET` length (>= 32 chars) and non-placeholder values
+- Explicit `ALLOWED_ORIGIN` domains (no wildcards)
+- Populated `ADMIN_EMAIL` and `ADMIN_PASSWORD_HASH`
+- `DB_SSL=true` for any non-local database
+
+Locally, export `FORCE_ENV_CHECK=true` if you want to run the verification outside of `NODE_ENV=production`/CI.
+
 > The repo includes a Husky-powered pre-commit hook (`.husky/pre-commit`). Whenever you commit, it automatically:
 >
 > 1. Runs `npx lint-staged` so only the staged TypeScript/JavaScript files get linted first.
@@ -82,6 +92,20 @@ npm run preview
 1. Stage your changes (`git add …` or use your editor UI).
 2. Optionally run `npm run lint` and `npm run test:all` yourself for faster feedback.
 3. Commit as usual. If any step fails, Husky will abort the commit and surface the error output so you can fix issues before retrying.
+
+## 🧪 Continuous integration
+
+GitHub Actions workflow `.github/workflows/ci.yml` installs dependencies, verifies the deployment environment, and runs lint/tests on every push and pull request. To enable it:
+
+1. Add the following repository secrets so the environment check can confirm production readiness:
+  - `DATABASE_URL`
+  - `SESSION_SECRET`
+  - `ALLOWED_ORIGIN`
+  - `ADMIN_EMAIL`
+  - `ADMIN_PASSWORD_HASH`
+  - `DB_SSL` (set to `true` for remote databases)
+2. Optionally provide `DB_SSL_CA` or other secrets if your infrastructure requires them; the workflow will pass through anything you add.
+3. Monitor the Actions tab—deployments should only proceed once the environment check, lint, and test jobs finish successfully.
 
 ## 🐳 Docker
 
