@@ -18,5 +18,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  website_node_modules:
-  website_vite_cache:
+  website_node_modules: null
+  website_vite_cache: null

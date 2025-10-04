@@ -4,40 +4,71 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 import jsonc from 'eslint-plugin-jsonc'
+import markdown from '@eslint/markdown'
+import yml from 'eslint-plugin-yml'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
-const packageJsonConfigs = jsonc.configs['flat/recommended-with-json'].map((config) => {
-  if (!config.files) {
-    return config
-  }
+const [jsoncBaseConfig, ...jsoncFileConfigs] = jsonc.configs['flat/recommended-with-json']
 
-  return {
-    ...config,
-    files: ['**/package.json'],
-    rules: {
-      ...config.rules,
-      'jsonc/indent': ['error', 2],      // enforce 2-space indentation
-      'jsonc/sort-keys': [
-        'error',
-        {
-          pathPattern: '^$\\.',
-          order: [
-            'name',
-            'version',
-            'private',
-            'type',
-            'description',
-            'scripts',
-            'dependencies',
-            'devDependencies',
-            'peerDependencies',
-            'lint-staged',
-          ],
-        },
-      ],
-    },
-  }
-})
+const jsonFileGlobs = [
+  '*.json',
+  '**/*.json',
+  '*.json5',
+  '**/*.json5',
+  '*.jsonc',
+  '**/*.jsonc',
+]
+
+const packageJsonConfigs = jsoncFileConfigs.map((config) => ({
+  ...config,
+  files: ['**/package.json'],
+  rules: {
+    ...config.rules,
+    'jsonc/indent': ['error', 2],
+    'jsonc/sort-keys': [
+      'error',
+      {
+        pathPattern: '^$\.',
+        order: [
+          'name',
+          'version',
+          'private',
+          'type',
+          'description',
+          'scripts',
+          'dependencies',
+          'devDependencies',
+          'peerDependencies',
+          'lint-staged',
+        ],
+      },
+    ],
+  },
+}))
+
+const jsonConfigFiles = jsoncFileConfigs.map((config) => ({
+  ...config,
+  files: jsonFileGlobs,
+  ignores: [...(config.ignores ?? []), '**/package.json'],
+  rules: {
+    ...config.rules,
+    'jsonc/indent': ['error', 2],
+    'jsonc/no-comments': 'off',
+  },
+}))
+
+const ymlConfigs = (() => {
+  const [ymlBaseConfig, ...ymlFileConfigs] = yml.configs['flat/recommended']
+  return [
+    ymlBaseConfig,
+    ...ymlFileConfigs.map((config) => ({
+      ...config,
+      files: ['**/*.{yml,yaml}'],
+    })),
+  ]
+})()
+
+const markdownConfig = markdown.configs.recommended
 
 export default defineConfig([
   globalIgnores(['dist']),
@@ -54,5 +85,9 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  jsoncBaseConfig,
+  ...jsonConfigFiles,
   ...packageJsonConfigs,
+  ...ymlConfigs,
+  ...markdownConfig,
 ])
