@@ -59,6 +59,23 @@ Preview the production build locally:
 npm run preview
 ```
 
+## ✅ Quality checks & Git hooks
+
+- Run `npm run lint` to execute ESLint across the project.
+- Run `npm run test` for the client/shared Vitest suite and `npm run test:server` for the API; `npm run test:all` wraps both.
+
+> The repo includes a Husky-powered pre-commit hook (`.husky/pre-commit`). Whenever you commit, it automatically:
+>
+> 1. Runs `npx lint-staged` so only the staged TypeScript/JavaScript files get linted first.
+> 2. Runs the full `npm run lint` command.
+> 3. Runs `npm run test:all` to ensure client and server tests pass.
+
+### Before you commit
+
+1. Stage your changes (`git add …` or use your editor UI).
+2. Optionally run `npm run lint` and `npm run test:all` yourself for faster feedback.
+3. Commit as usual. If any step fails, Husky will abort the commit and surface the error output so you can fix issues before retrying.
+
 ## 🐳 Docker
 
 Build and run the entire stack (database, API, frontend) with Docker Compose:

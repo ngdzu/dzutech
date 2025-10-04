@@ -8,14 +8,16 @@
     "build": "tsc --project tsconfig.json",
     "start": "node dist/src/index.js",
     "prepare-db": "tsx scripts/prepare-db.ts",
-    "hash-password": "tsx scripts/hash-password.ts"
+    "hash-password": "tsx scripts/hash-password.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "connect-pg-simple": "^10.0.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
     "dompurify": "^3.1.7",
+    "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "express-rate-limit": "^8.1.0",
     "express-session": "^1.18.2",
@@ -32,6 +34,7 @@
     "@types/node": "^22.10.1",
     "@types/pg": "^8.10.9",
     "tsx": "^4.19.1",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   }
 }
