@@ -39,7 +39,7 @@ const AdminBlogEditorPage = () => {
 
   const navigate = useNavigate()
   const { content, updatePosts, loading } = useContent()
-  const posts = content.posts ?? []
+  const posts = useMemo(() => content.posts ?? [], [content.posts])
   const [form, setForm] = useState<BlogFormState>(() => ({ ...EMPTY_POST }))
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)

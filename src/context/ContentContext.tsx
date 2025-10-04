@@ -232,6 +232,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
   return <ContentContext.Provider value={value}>{children}</ContentContext.Provider>
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useContent = () => {
   const context = useContext(ContentContext)
   if (!context) {

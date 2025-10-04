@@ -7,7 +7,7 @@ import { markdownExcerpt } from '../lib/markdown'
 const BlogListPage = () => {
   const navigate = useNavigate()
   const { content, loading } = useContent()
-  const posts = content.posts ?? []
+  const posts = useMemo(() => content.posts ?? [], [content.posts])
 
   const sortedPosts = useMemo(() => {
     const parseTimestamp = (value: string | undefined): number | null => {

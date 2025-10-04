@@ -11,7 +11,7 @@ const formatSocialDisplay = (url: string) => {
     const hostname = parsed.hostname.replace(/^www\./, '')
     const normalizedPath = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/$/, '')
     return normalizedPath ? `${hostname}${normalizedPath}` : hostname
-  } catch (error) {
+  } catch {
     if (url.startsWith('mailto:')) {
       return url.replace('mailto:', '')
     }
