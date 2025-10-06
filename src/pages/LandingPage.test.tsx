@@ -71,7 +71,8 @@ describe('LandingPage', () => {
     expect(postHeadings.length).toBeGreaterThan(0)
     expect(postHeadings[0]).toHaveTextContent('Designing Guardrails for AI-Assisted Coding Teams')
 
-    expect(screen.queryByText('View all blogs')).not.toBeInTheDocument()
+    // Ensure the View all blogs link is present inside the blogs section
+    expect(within(postsSection!).getByText('View all blogs')).toBeInTheDocument()
 
     if (postsSection) {
       const [aiTagLink] = within(postsSection).getAllByRole('link', { name: 'AI' })

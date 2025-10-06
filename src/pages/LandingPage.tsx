@@ -222,8 +222,7 @@ export const LandingPage = () => {
       return b.timestamp - a.timestamp
     })
 
-  const recentPosts = postsWithIndex.slice(0, 3)
-  const hasMorePosts = visiblePosts.length > recentPosts.length
+  const recentPosts = postsWithIndex.slice(0, 6)
 
   useEffect(() => {
     if (typeof document === 'undefined') return
@@ -379,32 +378,27 @@ export const LandingPage = () => {
         </Section>
 
         <Section id="blogs" title="Blogs" eyebrow="Knowledge sharing">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
-            <div className="space-y-6">
-              {recentPosts.length > 0 ? (
-                recentPosts.map(({ post, index: postIndex }) => (
+          <div className="grid gap-10">
+            {recentPosts.length > 0 ? (
+              <div className="grid gap-6 md:grid-cols-2">
+                {recentPosts.map(({ post, index: postIndex }) => (
                   <PostCard key={`${post.title}-${postIndex}`} post={post} index={postIndex} />
-                ))
-              ) : (
-                <p className="rounded-2xl border border-slate-800/60 bg-slate-900/40 px-6 py-8 text-center text-sm text-slate-300/80">
-                  Blog posts are on the way. Check back soon.
-                </p>
-              )}
-              {hasMorePosts && (
-                <div className="flex justify-end">
-                  <Link
-                    to="/blogs"
-                    className="inline-flex items-center gap-2 text-sm font-semibold text-accent-200 transition hover:text-accent-100"
-                  >
-                    View all blogs
-                    <FiArrowRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              )}
-            </div>
-            <div className="space-y-3 rounded-3xl border border-slate-800/70 bg-slate-900/40 p-6">
-              <h3 className="text-sm uppercase tracking-[0.35em] text-slate-400">About</h3>
-              <p className="text-sm text-slate-300/80">Thoughtful writing and hands-on guides will appear here in time.</p>
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-2xl border border-slate-800/60 bg-slate-900/40 px-6 py-8 text-center text-sm text-slate-300/80">
+                Blog posts are on the way. Check back soon.
+              </p>
+            )}
+
+            <div className="flex justify-end">
+              <Link
+                to="/blogs"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-accent-200 transition hover:text-accent-100"
+              >
+                View all blogs
+                <FiArrowRight className="h-4 w-4" />
+              </Link>
             </div>
           </div>
         </Section>
