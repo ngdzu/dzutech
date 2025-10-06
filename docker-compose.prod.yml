@@ -42,8 +42,8 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     environment:
-      CADDY_EMAIL: ${CADDY_EMAIL:-admin@dzutech.com}
-      CADDY_DOMAINS: ${CADDY_DOMAINS:-dzutech.com,www.dzutech.com}
+      CADDY_EMAIL: ${CADDY_EMAIL}
+      CADDY_DOMAINS: ${CADDY_DOMAINS}
     ports:
       - "80:80"
       - "443:443"
