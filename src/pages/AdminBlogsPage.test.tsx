@@ -23,7 +23,6 @@ const mockContextValue = {
   deletePost: mockDeletePost,
   setPostVisibility: mockSetPostVisibility,
   updateExperiences: vi.fn(),
-  updateTutorials: vi.fn(),
   updateSections: vi.fn(),
   resetContent: vi.fn(),
 }
@@ -54,7 +53,7 @@ describe('AdminBlogsPage', () => {
       ],
     }
 
-    const deferred: { resolve: () => void } = { resolve: () => {} }
+    const deferred: { resolve: () => void } = { resolve: () => { } }
 
     mockSetPostVisibility.mockImplementationOnce(
       () =>
@@ -71,8 +70,8 @@ describe('AdminBlogsPage', () => {
 
     expect(screen.queryByRole('link', { name: 'Edit' })).toBeNull()
 
-  const headings = screen.getAllByRole('heading', { name: 'First Post' })
-  const postCard = headings.at(-1)?.closest('article')
+    const headings = screen.getAllByRole('heading', { name: 'First Post' })
+    const postCard = headings.at(-1)?.closest('article')
     expect(postCard).not.toBeNull()
     const toggleButton = within(postCard!).getByRole('button', { name: 'Hide' })
 
@@ -102,7 +101,7 @@ describe('AdminBlogsPage', () => {
       ],
     }
 
-    const deferred: { resolve: () => void } = { resolve: () => {} }
+    const deferred: { resolve: () => void } = { resolve: () => { } }
 
     mockDeletePost.mockImplementationOnce(
       () =>
@@ -121,8 +120,8 @@ describe('AdminBlogsPage', () => {
 
     expect(screen.queryByRole('link', { name: 'Edit' })).toBeNull()
 
-  const headings = screen.getAllByRole('heading', { name: 'First Post' })
-  const postCard = headings.at(-1)?.closest('article')
+    const headings = screen.getAllByRole('heading', { name: 'First Post' })
+    const postCard = headings.at(-1)?.closest('article')
     expect(postCard).not.toBeNull()
     const deleteButton = within(postCard!).getByRole('button', { name: 'Delete' })
 

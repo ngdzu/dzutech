@@ -1,4 +1,4 @@
-import type { ContentState, Experience, Post, Profile, SectionsContent, SiteMeta, Tutorial } from '../content'
+import type { ContentState, Experience, Post, Profile, SectionsContent, SiteMeta } from '../content'
 
 export type AuthUser = {
   email: string
@@ -106,14 +106,7 @@ export const updateExperiences = async (payload: Experience[]): Promise<Experien
   return handleResponse<Experience[]>(response)
 }
 
-export const updateTutorials = async (payload: Tutorial[]): Promise<Tutorial[]> => {
-  const response = await request('/api/tutorials', {
-    method: 'PUT',
-    headers: jsonHeaders,
-    body: JSON.stringify(payload),
-  })
-  return handleResponse<Tutorial[]>(response)
-}
+// Tutorials removed: no client API
 
 export const updateSections = async (payload: SectionsContent): Promise<SectionsContent> => {
   const response = await request('/api/sections', {

@@ -10,7 +10,6 @@ import type {
   SectionsContent,
   SiteLogo,
   SiteMeta,
-  Tutorial,
 } from './types.js'
 
 const CONTENT_KEYS: (keyof ContentState)[] = [
@@ -18,7 +17,6 @@ const CONTENT_KEYS: (keyof ContentState)[] = [
   'profile',
   'experiences',
   'posts',
-  'tutorials',
   'sections',
 ]
 
@@ -159,9 +157,9 @@ const withExperienceDefaults = (value: unknown, defaults: Experience[]): Experie
 const ensureStringArray = (input: unknown, fallback: string[]): string[] =>
   Array.isArray(input)
     ? input
-        .filter((item): item is string => typeof item === 'string')
-        .map((item) => item.trim())
-        .filter(Boolean)
+      .filter((item): item is string => typeof item === 'string')
+      .map((item) => item.trim())
+      .filter(Boolean)
     : [...fallback]
 
 const getPostFallback = (defaults: Post[], index: number): Post => {
@@ -294,9 +292,7 @@ export const getContent = async (): Promise<ContentState> => {
         case 'posts':
           content.posts = withPostsDefaults(value, content.posts)
           break
-        case 'tutorials':
-          content.tutorials = value as ContentState['tutorials']
-          break
+
         case 'sections':
           content.sections = withSectionsDefaults(value, content.sections)
           break
@@ -371,10 +367,7 @@ export const setPostHidden = async (postId: string, hidden: boolean): Promise<Po
   return savePosts(updated)
 }
 
-export const saveTutorials = async (tutorials: Tutorial[]): Promise<Tutorial[]> => {
-  await writeJson('tutorials', tutorials)
-  return tutorials
-}
+
 
 export const saveSections = async (sections: SectionsContent): Promise<SectionsContent> => {
   await writeJson('sections', sections)

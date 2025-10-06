@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { ContentState, Experience, Post, Profile, SectionsContent, SiteMeta, Tutorial } from '../content'
+import type { ContentState, Experience, Post, Profile, SectionsContent, SiteMeta } from '../content'
 import { defaultContent } from '../content'
 import { renderMarkdown } from '../lib/markdown'
 import {
@@ -13,7 +13,6 @@ import {
   updateProfile as updateProfileOnServer,
   updateSections as updateSectionsOnServer,
   updateSite as updateSiteOnServer,
-  updateTutorials as updateTutorialsOnServer,
 } from '../lib/api'
 
 type ContentContextValue = {
@@ -27,7 +26,6 @@ type ContentContextValue = {
   deletePost: (postId: string) => Promise<Post[]>
   setPostVisibility: (postId: string, hidden: boolean) => Promise<Post[]>
   updateExperiences: (experiences: Experience[]) => Promise<Experience[]>
-  updateTutorials: (tutorials: Tutorial[]) => Promise<Tutorial[]>
   updateSections: (sections: SectionsContent) => Promise<SectionsContent>
   resetContent: () => Promise<ContentState>
 }
@@ -37,12 +35,12 @@ const ContentContext = createContext<ContentContextValue | undefined>(undefined)
 const computePostHtml = (posts: Post[] | undefined): Post[] =>
   Array.isArray(posts)
     ? posts.map((post) => ({
-        ...post,
-        contentHtml:
-          typeof post.contentHtml === 'string' && post.contentHtml.trim().length > 0
-            ? post.contentHtml
-            : renderMarkdown(post.content ?? ''),
-      }))
+      ...post,
+      contentHtml:
+        typeof post.contentHtml === 'string' && post.contentHtml.trim().length > 0
+          ? post.contentHtml
+          : renderMarkdown(post.content ?? ''),
+    }))
     : []
 
 const cloneContent = (): ContentState => {
@@ -105,7 +103,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
   const updateProfile = useCallback(async (updates: Partial<Profile>) => {
     try {
       const saved = await updateProfileOnServer(updates)
-      setContent((prev) => ({
+      setContent((prev: ContentState) => ({
         ...prev,
         profile: saved,
       }))
@@ -120,7 +118,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
   const updateSite = useCallback(async (siteMeta: SiteMeta) => {
     try {
       const saved = await updateSiteOnServer(siteMeta)
-      setContent((prev) => ({
+      setContent((prev: ContentState) => ({
         ...prev,
         site: saved,
       }))
@@ -135,7 +133,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
   const updatePosts = useCallback(async (posts: Post[]) => {
     try {
       const saved = await updatePostsOnServer(posts)
-      setContent((prev) => ({
+      setContent((prev: ContentState) => ({
         ...prev,
         posts: computePostHtml(saved),
       }))
@@ -150,7 +148,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
   const deletePost = useCallback(async (postId: string) => {
     try {
       const saved = await deletePostOnServer(postId)
-      setContent((prev) => ({
+      setContent((prev: ContentState) => ({
         ...prev,
         posts: computePostHtml(saved),
       }))
@@ -165,7 +163,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
   const setPostVisibility = useCallback(async (postId: string, hidden: boolean) => {
     try {
       const saved = await updatePostVisibilityOnServer(postId, hidden)
-      setContent((prev) => ({
+      setContent((prev: ContentState) => ({
         ...prev,
         posts: computePostHtml(saved),
       }))
@@ -180,7 +178,7 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
   const updateExperiences = useCallback(async (experiences: Experience[]) => {
     try {
       const saved = await updateExperiencesOnServer(experiences)
-      setContent((prev) => ({
+      setContent((prev: ContentState) => ({
         ...prev,
         experiences: saved,
       }))
@@ -192,25 +190,10 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [])
 
-  const updateTutorials = useCallback(async (tutorials: Tutorial[]) => {
-    try {
-      const saved = await updateTutorialsOnServer(tutorials)
-      setContent((prev) => ({
-        ...prev,
-        tutorials: saved,
-      }))
-      setError(null)
-      return saved
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Failed to save tutorials')
-      throw saveError
-    }
-  }, [])
-
   const updateSections = useCallback(async (sections: SectionsContent) => {
     try {
       const saved = await updateSectionsOnServer(sections)
-      setContent((prev) => ({
+      setContent((prev: ContentState) => ({
         ...prev,
         sections: saved,
       }))
@@ -246,7 +229,6 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       deletePost,
       setPostVisibility,
       updateExperiences,
-      updateTutorials,
       updateSections,
       resetContent,
     }),
@@ -261,7 +243,6 @@ export const ContentProvider = ({ children }: { children: ReactNode }) => {
       deletePost,
       setPostVisibility,
       updateExperiences,
-      updateTutorials,
       updateSections,
       resetContent,
     ],

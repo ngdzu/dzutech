@@ -12,21 +12,14 @@ import {
   savePosts,
   saveProfile,
   saveSections,
-  saveSite,
-  saveTutorials,
   removePostById,
   setPostHidden,
 } from './repository.js'
-import type {
-  Experience,
-  Post,
-  Profile,
-  SectionsContent,
-  SiteLogo,
-  SiteMeta,
-  Tutorial,
-} from './types.js'
+import type { Experience, Post, Profile, SectionsContent } from './types.js'
+import { validateExperience, validatePost, validateSections } from './validators.js'
 import { pool } from './db.js'
+
+const validEmail = (email: string) => /.+@.+\..+/.test(email)
 
 dotenv.config()
 
@@ -132,9 +125,9 @@ const asyncHandler =
   <Params, ResBody, ReqBody>(
     handler: (req: Request<Params, ResBody, ReqBody>, res: Response<ResBody>, next: NextFunction) => Promise<void>,
   ) =>
-  (req: Request<Params, ResBody, ReqBody>, res: Response<ResBody>, next: NextFunction) => {
-    handler(req, res, next).catch(next)
-  }
+    (req: Request<Params, ResBody, ReqBody>, res: Response<ResBody>, next: NextFunction) => {
+      handler(req, res, next).catch(next)
+    }
 
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   if (req.session?.user) {
@@ -234,161 +227,6 @@ app.get('/api/content', async (_req: Request, res: Response) => {
     res.status(500).json({ message: 'Failed to load content' })
   }
 })
-
-const MAX_LOGO_BYTES = 512 * 1024
-const allowedLogoTypes = new Set(['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp'])
-
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null
-
-const sanitizeLogo = (input: unknown): SiteLogo | null => {
-  if (input == null) return null
-  if (!isObject(input)) {
-    throw new Error('Logo payload must be an object')
-  }
-
-  const { data, type, alt } = input as {
-    data?: unknown
-    type?: unknown
-    alt?: unknown
-  }
-
-  if (typeof data !== 'string' || typeof type !== 'string') {
-    throw new Error('Logo requires base64 data and image type')
-  }
-
-  if (!allowedLogoTypes.has(type)) {
-    throw new Error('Unsupported logo format. Use PNG, SVG, JPEG, or WEBP')
-  }
-
-  const expectedPrefix = `data:${type};base64,`
-  if (!data.startsWith(expectedPrefix)) {
-    throw new Error('Logo data must be a base64 data URL')
-  }
-
-  const base64Payload = data.slice(expectedPrefix.length)
-  let decodedLength = 0
-  try {
-    decodedLength = Buffer.from(base64Payload, 'base64').length
-  } catch (error) {
-    console.error('Failed to decode logo payload', error)
-    throw new Error('Logo data must be valid base64')
-  }
-
-  if (!Number.isFinite(decodedLength) || Number.isNaN(decodedLength)) {
-    throw new Error('Logo data must be valid base64')
-  }
-
-  if (decodedLength > MAX_LOGO_BYTES) {
-    throw new Error('Logo file is too large. Keep it under 512KB')
-  }
-
-  const sanitizedAlt = typeof alt === 'string' ? alt.trim() : undefined
-
-  return {
-    data,
-    type,
-    ...(sanitizedAlt ? { alt: sanitizedAlt } : {}),
-  }
-}
-
-app.put('/api/site', requireAuth, async (req: Request, res: Response) => {
-  const payload = req.body as Partial<SiteMeta> | undefined
-
-  if (!payload || typeof payload !== 'object') {
-    return res.status(400).json({ message: 'Site metadata is required' })
-  }
-
-  const title = typeof payload.title === 'string' ? payload.title.trim() : ''
-  const description = typeof payload.description === 'string' ? payload.description.trim() : ''
-  const homeButtonMode: SiteMeta['homeButtonMode'] = payload.homeButtonMode === 'logo' ? 'logo' : 'text'
-
-  if (!title || !description) {
-    return res.status(422).json({ message: 'Site title and description are required' })
-  }
-
-  let logo: SiteLogo | null
-  try {
-    logo = sanitizeLogo('logo' in payload ? payload.logo : undefined)
-  } catch (validationError) {
-    const message =
-      validationError instanceof Error ? validationError.message : 'Invalid logo provided'
-    return res.status(422).json({ message })
-  }
-
-  if (homeButtonMode === 'logo' && !logo) {
-    return res.status(422).json({ message: 'Provide a logo before enabling the logo home button' })
-  }
-
-  const nextSite: SiteMeta = {
-    title,
-    description,
-    homeButtonMode,
-    logo,
-  }
-
-  try {
-    const saved = await saveSite(nextSite)
-    res.json(saved)
-  } catch (error) {
-    console.error('Failed to save site metadata', error)
-    res.status(500).json({ message: 'Failed to save site metadata' })
-  }
-})
-
-const validEmail = (email: string) => /.+@.+\..+/.test(email)
-const isNonEmptyString = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0
-const isStringArray = (value: unknown): value is string[] =>
-  Array.isArray(value) && value.every((item) => typeof item === 'string')
-
-const validateExperience = (experience: Experience, index: number): string | undefined => {
-  if (!isNonEmptyString(experience.role)) return `experiences[${index}].role is required`
-  if (!isNonEmptyString(experience.company)) return `experiences[${index}].company is required`
-  if (!isNonEmptyString(experience.year)) return `experiences[${index}].year is required`
-  if (!isNonEmptyString(experience.description)) return `experiences[${index}].description is required`
-  if (!isStringArray(experience.achievements)) return `experiences[${index}].achievements must be an array of strings`
-  if (!isStringArray(experience.stack)) return `experiences[${index}].stack must be an array of strings`
-  return undefined
-}
-
-const validateTutorial = (tutorial: Tutorial, index: number): string | undefined => {
-  if (!isNonEmptyString(tutorial.title)) return `tutorials[${index}].title is required`
-  if (!isNonEmptyString(tutorial.href)) return `tutorials[${index}].href is required`
-  if (!isNonEmptyString(tutorial.duration)) return `tutorials[${index}].duration is required`
-  return undefined
-}
-
-const validatePost = (post: Partial<Post> & Record<string, unknown>, index: number): string | undefined => {
-  if ('id' in post && typeof post.id !== 'string') {
-    return `posts[${index}].id must be a string`
-  }
-
-  if ('hidden' in post && typeof post.hidden !== 'boolean') {
-    return `posts[${index}].hidden must be a boolean`
-  }
-
-  if (!isNonEmptyString(post.title)) {
-    return `posts[${index}].title is required`
-  }
-
-  if (!isNonEmptyString(post.content)) {
-    return `posts[${index}].content is required`
-  }
-
-  if (!isStringArray(post.tags)) {
-    return `posts[${index}].tags must be an array of strings`
-  }
-
-  return undefined
-}
-
-const validateSections = (sections: SectionsContent): string | undefined => {
-  if (!isNonEmptyString(sections.contact.description)) {
-    return 'sections.contact.description is required'
-  }
-
-  return undefined
-}
 
 app.put('/api/profile', requireAuth, async (req: Request, res: Response) => {
   const payload = req.body as Partial<Profile>
@@ -659,27 +497,7 @@ app.put('/api/experiences', requireAuth, async (req: Request, res: Response) => 
   }
 })
 
-app.put('/api/tutorials', requireAuth, async (req: Request, res: Response) => {
-  const payload = req.body as Tutorial[]
-  if (!Array.isArray(payload)) {
-    return res.status(400).json({ message: 'Payload must be an array of tutorials' })
-  }
-
-  for (let index = 0; index < payload.length; index += 1) {
-    const error = validateTutorial(payload[index], index)
-    if (error) {
-      return res.status(422).json({ message: error })
-    }
-  }
-
-  try {
-    const saved = await saveTutorials(payload)
-    res.json(saved)
-  } catch (error) {
-    console.error('Failed to save tutorials', error)
-    res.status(500).json({ message: 'Failed to save tutorials' })
-  }
-})
+// Tutorials removed
 
 app.post('/api/reset', requireAuth, async (_req: Request, res: Response) => {
   try {

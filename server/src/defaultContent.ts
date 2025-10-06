@@ -105,23 +105,7 @@ export const defaultContent: ContentState = {
     ...post,
     contentHtml: markdownToHtml(post.content),
   })),
-  tutorials: [
-    {
-      title: 'Getting Started with Event-Driven React Apps',
-      href: 'https://learn.example.com/event-driven-react',
-      duration: '30 min video',
-    },
-    {
-      title: 'Terraform Modules That Scale with Teams',
-      href: 'https://learn.example.com/terraform-modules',
-      duration: 'Crash course',
-    },
-    {
-      title: 'Observability 101 for Product Engineers',
-      href: 'https://learn.example.com/observability-basics',
-      duration: 'Hands-on lab',
-    },
-  ],
+
   sections: {
     contact: {
       description:

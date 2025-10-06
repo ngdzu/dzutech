@@ -50,11 +50,6 @@ export type Post = {
   updatedAt?: string
 }
 
-export type Tutorial = {
-  title: string
-  href: string
-  duration: string
-}
 
 export type SectionDetails = {
   description: string
@@ -82,7 +77,6 @@ export type ContentState = {
   profile: Profile
   experiences: Experience[]
   posts: Post[]
-  tutorials: Tutorial[]
   sections: SectionsContent
 }
 
@@ -190,23 +184,7 @@ export const defaultContent: ContentState = {
     ...post,
     contentHtml: renderMarkdown(post.content),
   })),
-  tutorials: [
-    {
-      title: 'Getting Started with Event-Driven React Apps',
-      href: 'https://learn.example.com/event-driven-react',
-      duration: '30 min video',
-    },
-    {
-      title: 'Terraform Modules That Scale with Teams',
-      href: 'https://learn.example.com/terraform-modules',
-      duration: 'Crash course',
-    },
-    {
-      title: 'Observability 101 for Product Engineers',
-      href: 'https://learn.example.com/observability-basics',
-      duration: 'Hands-on lab',
-    },
-  ],
+
   sections: {
     contact: {
       description:
@@ -218,5 +196,4 @@ export const defaultContent: ContentState = {
 export const profile = defaultContent.profile
 export const experiences = defaultContent.experiences
 export const posts = defaultContent.posts
-export const tutorials = defaultContent.tutorials
 export const sections = defaultContent.sections

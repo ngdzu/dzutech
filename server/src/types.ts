@@ -48,11 +48,6 @@ export type Post = {
   updatedAt?: string
 }
 
-export type Tutorial = {
-  title: string
-  href: string
-  duration: string
-}
 
 export type SectionDetails = {
   description: string
@@ -80,6 +75,5 @@ export type ContentState = {
   profile: Profile
   experiences: Experience[]
   posts: Post[]
-  tutorials: Tutorial[]
   sections: SectionsContent
 }

@@ -1,0 +1,8 @@
+
+
+alias docker_dev_build="docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build -d"
+alias docker_dev_up="docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d"
+alias docker_down="docker compose down"
+alias docker_prod_build="docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d"
+alias docker_prod_up="docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d"
+

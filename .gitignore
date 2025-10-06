@@ -25,3 +25,6 @@ dist-ssr
 .env.local
 server/.env
 .env
+
+# Coverage reports
+coverage

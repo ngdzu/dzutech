@@ -15,7 +15,6 @@ const mockContextValue = {
   deletePost: vi.fn(),
   setPostVisibility: vi.fn(),
   updateExperiences: vi.fn(),
-  updateTutorials: vi.fn(),
   updateSections: vi.fn(),
   resetContent: vi.fn(),
 }

@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { FiArrowDownCircle, FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi'
+import { FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi'
 import { Link, useLocation } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
 import { markdownExcerpt } from '../lib/markdown'
@@ -156,28 +156,6 @@ const PostCard = ({
   )
 }
 
-const TutorialChip = ({
-  title,
-  href,
-  duration,
-}: ReturnType<typeof useContent>['content']['tutorials'][number]) => (
-  <motion.a
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="flex items-center justify-between gap-4 rounded-2xl border border-slate-800/60 bg-slate-900/50 px-4 py-3 transition hover:border-accent-400/60 hover:bg-night-800/80"
-    initial={{ opacity: 0, y: 16 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: '0px 0px -80px' }}
-    transition={{ duration: 0.4, ease: 'easeOut' }}
-  >
-    <div>
-      <p className="text-sm font-medium text-white">{title}</p>
-      <span className="text-xs text-slate-400">{duration}</span>
-    </div>
-    <FiArrowDownCircle className="text-accent-400" />
-  </motion.a>
-)
 
 const navItems = [
   { href: '#experience', label: 'Experience' },
@@ -188,7 +166,7 @@ const navItems = [
 export const LandingPage = () => {
   const location = useLocation()
   const { content } = useContent()
-  const { site, profile, experiences, posts, tutorials, sections } = content
+  const { site, profile, experiences, posts, sections } = content
   const visiblePosts = useMemo(
     () => (posts ?? []).filter((post) => post && post.hidden !== true),
     [posts],
@@ -400,7 +378,7 @@ export const LandingPage = () => {
           </div>
         </Section>
 
-        <Section id="blogs" title="Blogs & tutorials" eyebrow="Knowledge sharing">
+        <Section id="blogs" title="Blogs" eyebrow="Knowledge sharing">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
             <div className="space-y-6">
               {recentPosts.length > 0 ? (
@@ -425,12 +403,8 @@ export const LandingPage = () => {
               )}
             </div>
             <div className="space-y-3 rounded-3xl border border-slate-800/70 bg-slate-900/40 p-6">
-              <h3 className="text-sm uppercase tracking-[0.35em] text-slate-400">Hands-on tutorials</h3>
-              <div className="space-y-3">
-                {tutorials.map((tutorial) => (
-                  <TutorialChip key={tutorial.href} {...tutorial} />
-                ))}
-              </div>
+              <h3 className="text-sm uppercase tracking-[0.35em] text-slate-400">About</h3>
+              <p className="text-sm text-slate-300/80">Thoughtful writing and hands-on guides will appear here in time.</p>
             </div>
           </div>
         </Section>

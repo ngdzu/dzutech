@@ -33,7 +33,6 @@ const mockContextValue = {
   deletePost: mockDeletePost,
   setPostVisibility: mockSetPostVisibility,
   updateExperiences: vi.fn(),
-  updateTutorials: vi.fn(),
   updateSections: vi.fn(),
   resetContent: vi.fn(),
 }
@@ -103,15 +102,15 @@ describe('AdminBlogDetailPage', () => {
       </MemoryRouter>,
     )
 
-  const deleteButtons = screen.getAllByRole('button', { name: 'Delete' })
-  const deleteButton = deleteButtons[deleteButtons.length - 1]!
+    const deleteButtons = screen.getAllByRole('button', { name: 'Delete' })
+    const deleteButton = deleteButtons[deleteButtons.length - 1]!
     const user = userEvent.setup()
     await user.click(deleteButton)
 
-  expect(confirmSpy).toHaveBeenCalled()
-  expect(mockDeletePost).toHaveBeenCalledWith('post-77')
-  await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/admin/blogs'))
+    expect(confirmSpy).toHaveBeenCalled()
+    expect(mockDeletePost).toHaveBeenCalledWith('post-77')
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/admin/blogs'))
 
-  confirmSpy.mockRestore()
+    confirmSpy.mockRestore()
   })
 })

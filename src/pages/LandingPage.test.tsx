@@ -29,7 +29,6 @@ const mockContextValue = {
   updateProfile: vi.fn(),
   updatePosts: vi.fn(),
   updateExperiences: vi.fn(),
-  updateTutorials: vi.fn(),
   updateSections: vi.fn(),
   resetContent: vi.fn(),
 }
@@ -65,7 +64,7 @@ describe('LandingPage', () => {
       </MemoryRouter>,
     )
 
-    const [postsHeading] = screen.getAllByRole('heading', { name: /Blogs & tutorials/i })
+    const [postsHeading] = screen.getAllByRole('heading', { name: /Blogs/i })
     const postsSection = postsHeading?.closest('section')
     expect(postsSection).not.toBeNull()
     const postHeadings = within(postsSection!).getAllByRole('heading', { level: 3 })
