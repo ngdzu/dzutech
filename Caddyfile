@@ -1,0 +1,15 @@
+{
+    email {$CADDY_EMAIL}
+}
+
+{$CADDY_DOMAINS} {
+    encode gzip
+
+    handle /api* {
+        reverse_proxy api:4000
+    }
+
+    handle {
+        reverse_proxy website:4173
+    }
+}

@@ -1,0 +1,57 @@
+services:
+  db:
+    # remove host port mapping in production so Postgres isn't exposed publicly
+    ports: []
+    # keep the same volume as the base compose
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    # ensure the API is not published to the host (only reachable via Docker network / reverse proxy)
+    ports: []
+    # keep production envs coming from env file / environment (no secrets in the compose file)
+    env_file:
+      - ./server/.env
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-4000}
+      DATABASE_URL: ${DATABASE_URL}
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN}
+      SESSION_SECRET: ${SESSION_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
+    restart: unless-stopped
+
+  website:
+    # keep the website internal; it will be served by the reverse-proxy
+    ports: []
+    expose:
+      - "4173"
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+      website:
+        condition: service_started
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      CADDY_EMAIL: ${CADDY_EMAIL:-admin@dzutech.com}
+      CADDY_DOMAINS: ${CADDY_DOMAINS:-dzutech.com,www.dzutech.com}
+    ports:
+      - "80:80"
+      - "443:443"
+
+volumes:
+  postgres_data:
+    external: false
+  caddy_data:
+    external: false
+  caddy_config:
+    external: false
