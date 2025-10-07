@@ -132,6 +132,7 @@ const withExperienceDefaults = (value: unknown, defaults: Experience[]): Experie
       description: '',
       achievements: [],
       stack: [],
+      location: '',
     }
 
   return value.map((entry, index) => {
@@ -150,6 +151,7 @@ const withExperienceDefaults = (value: unknown, defaults: Experience[]): Experie
       description: ensureString(candidate.description, fallback.description),
       achievements: ensureStringArray(candidate.achievements, fallback.achievements),
       stack: ensureStringArray(candidate.stack, fallback.stack),
+      location: ensureString(candidate.location, (fallback.location ?? '') as string),
     }
   })
 }

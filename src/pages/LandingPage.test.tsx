@@ -44,6 +44,14 @@ beforeEach(() => {
 
 describe('LandingPage', () => {
   it('renders profile headline and contact link', () => {
+    // ensure an experience includes a location so the UI shows it
+    mockContextValue.content = cloneContent()
+    // set location on the first experience in the cloned default content
+    mockContextValue.content.experiences[0] = {
+      ...mockContextValue.content.experiences[0],
+      location: 'Seattle, WA',
+    }
+
     render(
       <MemoryRouter>
         <LandingPage />
@@ -55,6 +63,12 @@ describe('LandingPage', () => {
 
     const contactLink = screen.getByRole('link', { name: /Contact me/i })
     expect(contactLink).toHaveAttribute('href', expect.stringContaining('mailto:'))
+
+    // Verify the experience location is rendered inline with the experience header
+    const expHeading = screen.getByRole('heading', { name: /Experience/i })
+    const expSection = expHeading.closest('section')
+    expect(expSection).not.toBeNull()
+    expect(within(expSection!).getByText(/Seattle,\s*WA/)).toBeInTheDocument()
   })
 
   it('shows recent posts with navigation', () => {

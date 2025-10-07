@@ -48,6 +48,7 @@ export const defaultContent: ContentState = {
         'Mentored engineers and established guilds focused on frontend craft and platform stability.',
       ],
       stack: ['TypeScript', 'React', 'GraphQL', 'Node.js', 'AWS', 'Kubernetes'],
+      location: 'Seattle, WA',
     },
     {
       role: 'Staff Software Engineer',
@@ -61,6 +62,7 @@ export const defaultContent: ContentState = {
         'Partnered with product and design to align quarterly roadmaps and KPIs.',
       ],
       stack: ['React', 'Node.js', 'Rust', 'gRPC', 'Azure'],
+      location: 'San Francisco, CA',
     },
     {
       role: 'Senior Software Engineer',
@@ -74,6 +76,7 @@ export const defaultContent: ContentState = {
         'Established automated quality gates and observability practices adopted across the engineering org.',
       ],
       stack: ['React Native', 'TypeScript', 'Node.js', 'PostgreSQL', 'Terraform'],
+      location: 'Remote',
     },
   ],
   posts: [

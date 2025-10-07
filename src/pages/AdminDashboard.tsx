@@ -59,6 +59,7 @@ type ExperienceFormEntry = {
   description: string
   achievementsInput: string
   stackInput: string
+  location?: string | undefined
 }
 
 const AVAILABILITY_MAX_LENGTH = 50
@@ -163,6 +164,7 @@ const AdminDashboard = () => {
     description: '',
     achievementsInput: '',
     stackInput: '',
+    location: undefined,
   })
 
   const experiencesInitialForm = useMemo<ExperienceFormEntry[]>(() => {
@@ -177,6 +179,7 @@ const AdminDashboard = () => {
       description: experience.description,
       achievementsInput: experience.achievements.join('\n'),
       stackInput: experience.stack.join(', '),
+      location: experience.location ?? '',
     }))
   }, [experiences])
 
@@ -341,7 +344,7 @@ const AdminDashboard = () => {
 
   const handleExperienceTextChange = (
     index: number,
-    field: 'role' | 'company' | 'year' | 'description',
+    field: 'role' | 'company' | 'year' | 'description' | 'location',
   ) =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const value = event.target.value
@@ -477,6 +480,7 @@ const AdminDashboard = () => {
       role: experience.role.trim(),
       company: experience.company.trim(),
       year: experience.year.trim(),
+      location: (experience.location ?? '').trim(),
       description: experience.description.trim(),
       achievements: experience.achievementsInput
         .split('\n')
@@ -525,6 +529,7 @@ const AdminDashboard = () => {
           description: experience.description,
           achievementsInput: experience.achievements.join('\n'),
           stackInput: experience.stack.join(', '),
+          location: experience.location ?? '',
         })),
       )
       setExperiencesStatus({ state: 'saved' })
@@ -541,12 +546,12 @@ const AdminDashboard = () => {
     const trimmedDescription = siteForm.description.trim()
     const sanitizedLogo: SiteLogo | null = siteForm.logo
       ? {
-          data: siteForm.logo.data,
-          type: siteForm.logo.type,
-          ...(siteForm.logo.alt && siteForm.logo.alt.trim().length > 0
-            ? { alt: siteForm.logo.alt.trim() }
-            : {}),
-        }
+        data: siteForm.logo.data,
+        type: siteForm.logo.type,
+        ...(siteForm.logo.alt && siteForm.logo.alt.trim().length > 0
+          ? { alt: siteForm.logo.alt.trim() }
+          : {}),
+      }
       : null
 
     if (!trimmedTitle || !trimmedDescription) {
@@ -712,11 +717,10 @@ const AdminDashboard = () => {
               {statusMessages.map(({ message, tone }, index) => (
                 <div
                   key={`${tone}-${index}-${message}`}
-                  className={`inline-flex w-fit items-center gap-2 rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${
-                    tone === 'error'
+                  className={`inline-flex w-fit items-center gap-2 rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${tone === 'error'
                       ? 'border-red-500/40 bg-red-500/10 text-red-300'
                       : 'border-slate-700/60 bg-slate-900/60 text-slate-300'
-                  }`}
+                    }`}
                 >
                   {message}
                 </div>
@@ -736,18 +740,16 @@ const AdminDashboard = () => {
                     <li key={id}>
                       <a
                         href={`#${id}`}
-                        className={`group flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                          isActive
+                        className={`group flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium transition ${isActive
                             ? 'bg-accent-500/15 text-accent-200 shadow-glow'
                             : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
-                        }`}
+                          }`}
                         aria-current={isActive ? 'true' : undefined}
                       >
                         <span>{label}</span>
                         <span
-                          className={`h-2 w-2 rounded-full transition ${
-                            isActive ? 'bg-accent-400' : 'bg-slate-700/80 group-hover:bg-slate-500'
-                          }`}
+                          className={`h-2 w-2 rounded-full transition ${isActive ? 'bg-accent-400' : 'bg-slate-700/80 group-hover:bg-slate-500'
+                            }`}
                           aria-hidden
                         />
                       </a>
@@ -759,594 +761,602 @@ const AdminDashboard = () => {
           </nav>
 
           <div className="flex-1 space-y-10">
-          <form
-            id="site-metadata"
-            onSubmit={handleSiteSubmit}
-            className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
-          >
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold text-white">Site metadata</h2>
-              <p className="text-sm text-slate-400">
-                Control how the site identifies itself in browser tabs and search results. These values
-                drive the document title and meta description.
-              </p>
-            </div>
-            <div className="space-y-6">
-              <label className="flex flex-col gap-2">
-                <span className={labelStyle}>Site title</span>
-                <input
-                  className={fieldStyle}
-                  value={siteForm.title}
-                  onChange={handleSiteTextChange('title')}
-                  disabled={siteBusy}
-                />
-                <span className="text-xs text-slate-500">
-                  Appears in the browser tab and social previews.
-                </span>
-              </label>
-              <label className="flex flex-col gap-2">
-                <span className={labelStyle}>Meta description</span>
-                <textarea
-                  className={`${fieldStyle} min-h-[120px]`}
-                  value={siteForm.description}
-                  onChange={handleSiteTextChange('description')}
-                  maxLength={300}
-                  disabled={siteBusy}
-                />
-                <span className="text-xs text-slate-500">
-                  Summarize what visitors can expect. Ideal length is under 160 characters.
-                </span>
-              </label>
-              <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/40 p-4">
-                <div className="space-y-1">
-                  <span className={labelStyle}>Home button</span>
-                  <p className="text-xs text-slate-500">
-                    Choose how the header links back to the hero section.
-                  </p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${
-                    siteForm.homeButtonMode === 'text'
-                      ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
-                      : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
-                  }`}>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="homeButtonMode"
-                        value="text"
-                        checked={siteForm.homeButtonMode === 'text'}
-                        onChange={handleHomeButtonModeChange}
-                        disabled={siteBusy}
-                        className="h-4 w-4 rounded-full border-slate-600 bg-night-900 text-accent-500 focus:ring-accent-400"
-                      />
-                      <span className="font-semibold">Text label</span>
+            <form
+              id="site-metadata"
+              onSubmit={handleSiteSubmit}
+              className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
+            >
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-white">Site metadata</h2>
+                <p className="text-sm text-slate-400">
+                  Control how the site identifies itself in browser tabs and search results. These values
+                  drive the document title and meta description.
+                </p>
+              </div>
+              <div className="space-y-6">
+                <label className="flex flex-col gap-2">
+                  <span className={labelStyle}>Site title</span>
+                  <input
+                    className={fieldStyle}
+                    value={siteForm.title}
+                    onChange={handleSiteTextChange('title')}
+                    disabled={siteBusy}
+                  />
+                  <span className="text-xs text-slate-500">
+                    Appears in the browser tab and social previews.
+                  </span>
+                </label>
+                <label className="flex flex-col gap-2">
+                  <span className={labelStyle}>Meta description</span>
+                  <textarea
+                    className={`${fieldStyle} min-h-[120px]`}
+                    value={siteForm.description}
+                    onChange={handleSiteTextChange('description')}
+                    maxLength={300}
+                    disabled={siteBusy}
+                  />
+                  <span className="text-xs text-slate-500">
+                    Summarize what visitors can expect. Ideal length is under 160 characters.
+                  </span>
+                </label>
+                <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/40 p-4">
+                  <div className="space-y-1">
+                    <span className={labelStyle}>Home button</span>
+                    <p className="text-xs text-slate-500">
+                      Choose how the header links back to the hero section.
+                    </p>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${siteForm.homeButtonMode === 'text'
+                        ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
+                        : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
+                      }`}>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="homeButtonMode"
+                          value="text"
+                          checked={siteForm.homeButtonMode === 'text'}
+                          onChange={handleHomeButtonModeChange}
+                          disabled={siteBusy}
+                          className="h-4 w-4 rounded-full border-slate-600 bg-night-900 text-accent-500 focus:ring-accent-400"
+                        />
+                        <span className="font-semibold">Text label</span>
+                      </div>
+                      <span className="text-xs text-slate-500">
+                        Uses the site title for the header link.
+                      </span>
+                    </label>
+                    <label className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${siteForm.homeButtonMode === 'logo'
+                        ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
+                        : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
+                      }`}>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          name="homeButtonMode"
+                          value="logo"
+                          checked={siteForm.homeButtonMode === 'logo'}
+                          onChange={handleHomeButtonModeChange}
+                          disabled={siteBusy || !siteForm.logo}
+                          className="h-4 w-4 rounded-full border-slate-600 bg-night-900 text-accent-500 focus:ring-accent-400"
+                        />
+                        <span className="font-semibold">Logo button</span>
+                      </div>
+                      <span className="text-xs text-slate-500">
+                        Displays your uploaded logo instead of text.
+                      </span>
+                    </label>
+                  </div>
+                  <div className="space-y-3 rounded-2xl border border-dashed border-slate-700/60 bg-night-900/60 p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-slate-200">Logo</p>
+                        <p className="text-xs text-slate-500">
+                          Upload an SVG, PNG, JPG, or WEBP file up to 512KB. Transparent backgrounds work best.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-700/60 bg-night-900/80 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-accent-100">
+                          <input
+                            type="file"
+                            accept="image/png,image/svg+xml,image/jpeg,image/webp"
+                            onChange={handleLogoUpload}
+                            disabled={siteBusy}
+                            className="sr-only"
+                          />
+                          <span>Upload logo</span>
+                        </label>
+                        {siteForm.logo && (
+                          <button
+                            type="button"
+                            onClick={handleLogoClear}
+                            className="inline-flex items-center gap-2 rounded-full border border-slate-700/60 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:border-red-400/60 hover:text-red-200"
+                            disabled={siteBusy}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-xs text-slate-500">
-                      Uses the site title for the header link.
-                    </span>
+                    {siteForm.logo ? (
+                      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
+                        <div className="flex items-center gap-4">
+                          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-slate-800/70 bg-night-900/80">
+                            <img
+                              src={siteForm.logo.data}
+                              alt={siteForm.logo.alt ?? 'Site logo preview'}
+                              className="max-h-14 max-w-14 object-contain"
+                            />
+                          </div>
+                          <div className="text-xs text-slate-400">
+                            <p className="font-medium text-slate-300">Current logo</p>
+                            <p>{siteForm.logo.type.replace('image/', '').toUpperCase()}</p>
+                          </div>
+                        </div>
+                        <label className="flex w-full flex-col gap-2 lg:max-w-xs">
+                          <span className={labelStyle}>Logo alt text</span>
+                          <input
+                            className={fieldStyle}
+                            value={siteForm.logo.alt ?? ''}
+                            onChange={handleLogoAltChange}
+                            placeholder="Describe the logo for screen readers"
+                            maxLength={80}
+                            disabled={siteBusy}
+                          />
+                          <span className="text-xs text-slate-500">
+                            Required for accessibility when the logo is displayed.
+                          </span>
+                        </label>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-500">
+                        Upload a logo to unlock the logo home button option.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-3 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-xs text-slate-500">
+                  Updates apply instantly to the live site once saved.
+                </div>
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={siteBusy}
+                >
+                  Save site metadata
+                </button>
+              </div>
+            </form>
+
+            <form onSubmit={handleSubmit} className="grid gap-8">
+              <section
+                id="profile-identity"
+                className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
+              >
+                <h2 className="text-lg font-semibold text-white">Identity</h2>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <label className="flex flex-col gap-2">
+                    <span className={labelStyle}>Name</span>
+                    <input
+                      className={fieldStyle}
+                      value={form.name}
+                      onChange={handleChange('name')}
+                      disabled={profileBusy}
+                    />
                   </label>
-                  <label className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${
-                    siteForm.homeButtonMode === 'logo'
-                      ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
-                      : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
-                  }`}>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="radio"
-                        name="homeButtonMode"
-                        value="logo"
-                        checked={siteForm.homeButtonMode === 'logo'}
-                        onChange={handleHomeButtonModeChange}
-                        disabled={siteBusy || !siteForm.logo}
-                        className="h-4 w-4 rounded-full border-slate-600 bg-night-900 text-accent-500 focus:ring-accent-400"
-                      />
-                      <span className="font-semibold">Logo button</span>
-                    </div>
-                    <span className="text-xs text-slate-500">
-                      Displays your uploaded logo instead of text.
-                    </span>
+                  <label className="flex flex-col gap-2">
+                    <span className={labelStyle}>Title</span>
+                    <input
+                      className={fieldStyle}
+                      value={form.title}
+                      onChange={handleChange('title')}
+                      disabled={profileBusy}
+                    />
                   </label>
                 </div>
-                <div className="space-y-3 rounded-2xl border border-dashed border-slate-700/60 bg-night-900/60 p-4">
+                <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/50 p-4">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="space-y-1">
-                      <p className="text-sm font-medium text-slate-200">Logo</p>
+                      <span className={labelStyle}>Highlight group</span>
                       <p className="text-xs text-slate-500">
-                        Upload an SVG, PNG, JPG, or WEBP file up to 512KB. Transparent backgrounds work best.
+                        Control the quick facts (location, availability, focus areas) that appear beside your hero copy.
                       </p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-slate-700/60 bg-night-900/80 px-4 py-2 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-accent-100">
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
+                        checked={form.highlightsEnabled}
+                        onChange={handleHighlightsToggle}
+                        disabled={profileBusy}
+                      />
+                      <span>{form.highlightsEnabled ? 'Visible' : 'Hidden'}</span>
+                    </label>
+                  </div>
+                  <div className={`space-y-4 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4 transition ${form.highlightsEnabled ? '' : 'opacity-50'}`}>
+                    <label className="flex flex-col gap-2">
+                      <span className={labelStyle}>Location</span>
+                      <input
+                        className={fieldStyle}
+                        value={form.location}
+                        onChange={handleChange('location')}
+                        placeholder="Where you're based"
+                        disabled={profileBusy || !form.highlightsEnabled}
+                      />
+                    </label>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      <div className="space-y-3">
+                        <span className="text-sm font-semibold text-white">Availability</span>
                         <input
-                          type="file"
-                          accept="image/png,image/svg+xml,image/jpeg,image/webp"
-                          onChange={handleLogoUpload}
-                          disabled={siteBusy}
-                          className="sr-only"
+                          className={fieldStyle}
+                          value={form.availabilityValue}
+                          onChange={handleChange('availabilityValue')}
+                          maxLength={AVAILABILITY_MAX_LENGTH}
+                          placeholder="Availability status"
+                          disabled={profileBusy || !form.highlightsEnabled}
                         />
-                        <span>Upload logo</span>
+                        <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                          <span>Max {AVAILABILITY_MAX_LENGTH} chars</span>
+                          <span>{form.availabilityValue.trim().length}/{AVAILABILITY_MAX_LENGTH}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <span className="text-sm font-semibold text-white">Focus areas</span>
+                        <input
+                          className={fieldStyle}
+                          value={form.focusAreasValue}
+                          onChange={handleChange('focusAreasValue')}
+                          maxLength={FOCUS_AREAS_MAX_LENGTH}
+                          placeholder="Key focus areas"
+                          disabled={profileBusy || !form.highlightsEnabled}
+                        />
+                        <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
+                          <span>Max {FOCUS_AREAS_MAX_LENGTH} chars</span>
+                          <span>{form.focusAreasValue.trim().length}/{FOCUS_AREAS_MAX_LENGTH}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                id="profile-narrative"
+                className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
+              >
+                <h2 className="text-lg font-semibold text-white">Narrative</h2>
+                <label className="flex flex-col gap-2">
+                  <span className={labelStyle}>Tagline</span>
+                  <input
+                    className={fieldStyle}
+                    value={form.tagline}
+                    onChange={handleChange('tagline')}
+                    maxLength={160}
+                    disabled={profileBusy}
+                  />
+                  <span className="text-xs text-slate-500">Use a concise statement up to 160 characters.</span>
+                </label>
+                <label className="flex flex-col gap-2">
+                  <span className={labelStyle}>Summary</span>
+                  <textarea
+                    className={`${fieldStyle} min-h-[140px]`}
+                    value={form.summary}
+                    onChange={handleChange('summary')}
+                    disabled={profileBusy}
+                  />
+                </label>
+              </section>
+
+              <section
+                id="profile-contact"
+                className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
+              >
+                <h2 className="text-lg font-semibold text-white">Contact</h2>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-night-900/60 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white">Email</p>
+                        <p className="text-xs text-slate-500">Used for direct contact buttons across the site.</p>
+                      </div>
+                      <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
+                          checked={form.showEmail}
+                          onChange={handleContactToggle('showEmail')}
+                          disabled={profileBusy}
+                        />
+                        <span>{form.showEmail ? 'Visible' : 'Hidden'}</span>
                       </label>
-                      {siteForm.logo && (
+                    </div>
+                    <input
+                      type="email"
+                      className={fieldStyle}
+                      value={form.email}
+                      onChange={handleChange('email')}
+                      disabled={profileBusy}
+                    />
+                  </div>
+                  <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-night-900/60 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white">LinkedIn</p>
+                        <p className="text-xs text-slate-500">Appears as a social link when visible.</p>
+                      </div>
+                      <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
+                          checked={form.showLinkedin}
+                          onChange={handleContactToggle('showLinkedin')}
+                          disabled={profileBusy}
+                        />
+                        <span>{form.showLinkedin ? 'Visible' : 'Hidden'}</span>
+                      </label>
+                    </div>
+                    <input
+                      className={fieldStyle}
+                      value={form.linkedin}
+                      onChange={handleChange('linkedin')}
+                      disabled={profileBusy || !form.showLinkedin}
+                      placeholder="https://www.linkedin.com/in/your-profile"
+                    />
+                  </div>
+                  <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-night-900/60 p-4 md:col-span-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-semibold text-white">GitHub</p>
+                        <p className="text-xs text-slate-500">Shown wherever your developer presence is highlighted.</p>
+                      </div>
+                      <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
+                          checked={form.showGithub}
+                          onChange={handleContactToggle('showGithub')}
+                          disabled={profileBusy}
+                        />
+                        <span>{form.showGithub ? 'Visible' : 'Hidden'}</span>
+                      </label>
+                    </div>
+                    <input
+                      className={fieldStyle}
+                      value={form.github}
+                      onChange={handleChange('github')}
+                      disabled={profileBusy || !form.showGithub}
+                      placeholder="https://github.com/your-handle"
+                    />
+                  </div>
+                </div>
+              </section>
+
+              <div className="flex flex-col gap-3 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-xs text-slate-500">
+                  Changes are stored on the server. Use restore defaults to repopulate the original profile content.
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="inline-flex items-center justify-center rounded-full border border-slate-700/70 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={profileBusy}
+                  >
+                    Restore defaults
+                  </button>
+                  <button
+                    type="submit"
+                    className="inline-flex items-center justify-center rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={profileBusy}
+                  >
+                    Save changes
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <form
+              onSubmit={handleExperiencesSubmit}
+              id="experiences"
+              className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
+            >
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-white">Experiences</h2>
+                <p className="text-sm text-slate-400">
+                  Control the experience cards shown on the landing page. Each entry needs a year, title,
+                  company, description, and the skill chips you want to highlight.
+                </p>
+              </div>
+              <div className="space-y-6">
+                {experiencesForm.map((experience, index) => {
+                  const stackItems = experience.stackInput
+                    .split(',')
+                    .map((item) => item.trim())
+                    .filter((item) => item.length > 0)
+
+                  return (
+                    <div
+                      key={`experience-${index}`}
+                      className="space-y-5 rounded-2xl border border-slate-800/70 bg-night-900/50 p-5"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="space-y-1">
+                          <h3 className="text-base font-semibold text-white">Experience {index + 1}</h3>
+                          <p className="text-xs text-slate-500">
+                            Showcase a role and the stack you led or contributed to during that time.
+                          </p>
+                        </div>
                         <button
                           type="button"
-                          onClick={handleLogoClear}
-                          className="inline-flex items-center gap-2 rounded-full border border-slate-700/60 px-4 py-2 text-xs font-semibold text-slate-300 transition hover:border-red-400/60 hover:text-red-200"
-                          disabled={siteBusy}
+                          onClick={() => handleRemoveExperience(index)}
+                          className="inline-flex items-center justify-center rounded-full border border-slate-700/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300 transition hover:border-red-400/60 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={experiencesBusy}
                         >
                           Remove
                         </button>
-                      )}
-                    </div>
-                  </div>
-                  {siteForm.logo ? (
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-6">
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-slate-800/70 bg-night-900/80">
-                          <img
-                            src={siteForm.logo.data}
-                            alt={siteForm.logo.alt ?? 'Site logo preview'}
-                            className="max-h-14 max-w-14 object-contain"
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <label className="flex flex-col gap-2 md:col-span-1">
+                          <span className={labelStyle}>Year</span>
+                          <input
+                            className={fieldStyle}
+                            value={experience.year}
+                            onChange={handleExperienceTextChange(index, 'year')}
+                            placeholder="2023 — Present"
+                            disabled={experiencesBusy}
                           />
-                        </div>
-                        <div className="text-xs text-slate-400">
-                          <p className="font-medium text-slate-300">Current logo</p>
-                          <p>{siteForm.logo.type.replace('image/', '').toUpperCase()}</p>
-                        </div>
+                        </label>
+                        <label className="flex flex-col gap-2 md:col-span-1">
+                          <span className={labelStyle}>Title</span>
+                          <input
+                            className={fieldStyle}
+                            value={experience.role}
+                            onChange={handleExperienceTextChange(index, 'role')}
+                            placeholder="Principal Software Engineer"
+                            disabled={experiencesBusy}
+                          />
+                        </label>
+                        <label className="flex flex-col gap-2 md:col-span-1">
+                          <span className={labelStyle}>Company</span>
+                          <input
+                            className={fieldStyle}
+                            value={experience.company}
+                            onChange={handleExperienceTextChange(index, 'company')}
+                            placeholder="Aurora Labs"
+                            disabled={experiencesBusy}
+                          />
+                        </label>
+                        <label className="flex flex-col gap-2 md:col-span-1">
+                          <span className={labelStyle}>Location</span>
+                          <input
+                            className={fieldStyle}
+                            value={experience.location ?? ''}
+                            onChange={handleExperienceTextChange(index, 'location')}
+                            placeholder="Seattle, WA"
+                            disabled={experiencesBusy}
+                          />
+                        </label>
                       </div>
-                      <label className="flex w-full flex-col gap-2 lg:max-w-xs">
-                        <span className={labelStyle}>Logo alt text</span>
-                        <input
-                          className={fieldStyle}
-                          value={siteForm.logo.alt ?? ''}
-                          onChange={handleLogoAltChange}
-                          placeholder="Describe the logo for screen readers"
-                          maxLength={80}
-                          disabled={siteBusy}
+                      <label className="flex flex-col gap-2">
+                        <span className={labelStyle}>Description</span>
+                        <textarea
+                          className={`${fieldStyle} min-h-[120px]`}
+                          value={experience.description}
+                          onChange={handleExperienceTextChange(index, 'description')}
+                          placeholder="What did you lead or deliver in this role?"
+                          disabled={experiencesBusy}
                         />
-                        <span className="text-xs text-slate-500">
-                          Required for accessibility when the logo is displayed.
-                        </span>
                       </label>
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-500">
-                      Upload a logo to unlock the logo home button option.
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-xs text-slate-500">
-                Updates apply instantly to the live site once saved.
-              </div>
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={siteBusy}
-              >
-                Save site metadata
-              </button>
-            </div>
-          </form>
-
-          <form onSubmit={handleSubmit} className="grid gap-8">
-            <section
-              id="profile-identity"
-              className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
-            >
-              <h2 className="text-lg font-semibold text-white">Identity</h2>
-              <div className="grid gap-6 md:grid-cols-2">
-                <label className="flex flex-col gap-2">
-                  <span className={labelStyle}>Name</span>
-                  <input
-                    className={fieldStyle}
-                    value={form.name}
-                    onChange={handleChange('name')}
-                    disabled={profileBusy}
-                  />
-                </label>
-                <label className="flex flex-col gap-2">
-                  <span className={labelStyle}>Title</span>
-                  <input
-                    className={fieldStyle}
-                    value={form.title}
-                    onChange={handleChange('title')}
-                    disabled={profileBusy}
-                  />
-                </label>
-              </div>
-              <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/50 p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="space-y-1">
-                    <span className={labelStyle}>Highlight group</span>
-                    <p className="text-xs text-slate-500">
-                      Control the quick facts (location, availability, focus areas) that appear beside your hero copy.
-                    </p>
-                  </div>
-                  <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
-                      checked={form.highlightsEnabled}
-                      onChange={handleHighlightsToggle}
-                      disabled={profileBusy}
-                    />
-                    <span>{form.highlightsEnabled ? 'Visible' : 'Hidden'}</span>
-                  </label>
-                </div>
-                <div className={`space-y-4 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4 transition ${form.highlightsEnabled ? '' : 'opacity-50'}`}>
-                  <label className="flex flex-col gap-2">
-                    <span className={labelStyle}>Location</span>
-                    <input
-                      className={fieldStyle}
-                      value={form.location}
-                      onChange={handleChange('location')}
-                      placeholder="Where you're based"
-                      disabled={profileBusy || !form.highlightsEnabled}
-                    />
-                  </label>
-                  <div className="grid gap-4 lg:grid-cols-2">
-                    <div className="space-y-3">
-                      <span className="text-sm font-semibold text-white">Availability</span>
-                      <input
-                        className={fieldStyle}
-                        value={form.availabilityValue}
-                        onChange={handleChange('availabilityValue')}
-                        maxLength={AVAILABILITY_MAX_LENGTH}
-                        placeholder="Availability status"
-                        disabled={profileBusy || !form.highlightsEnabled}
-                      />
-                      <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                        <span>Max {AVAILABILITY_MAX_LENGTH} chars</span>
-                        <span>{form.availabilityValue.trim().length}/{AVAILABILITY_MAX_LENGTH}</span>
+                      <div className="grid gap-4 lg:grid-cols-2">
+                        <label className="flex flex-col gap-2">
+                          <span className={labelStyle}>Achievements</span>
+                          <textarea
+                            className={`${fieldStyle} min-h-[110px]`}
+                            value={experience.achievementsInput}
+                            onChange={handleExperienceAchievementsChange(index)}
+                            placeholder={`One achievement per line\nScaled platform reliability\nMentored team to ship faster`}
+                            disabled={experiencesBusy}
+                          />
+                          <span className="text-[10px] uppercase tracking-[0.25em] text-slate-500">
+                            Appears as bullet points on the landing page
+                          </span>
+                        </label>
+                        <div className="space-y-3">
+                          <label className="flex flex-col gap-2">
+                            <span className={labelStyle}>Skill chips</span>
+                            <input
+                              className={fieldStyle}
+                              value={experience.stackInput}
+                              onChange={handleExperienceStackChange(index)}
+                              placeholder="TypeScript, React, Node.js"
+                              disabled={experiencesBusy}
+                            />
+                            <span className="text-[10px] uppercase tracking-[0.25em] text-slate-500">
+                              Separate items with commas
+                            </span>
+                          </label>
+                          <div className="space-y-2 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-3">
+                            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                              Chip preview
+                            </span>
+                            <ul className="flex flex-wrap gap-2 text-xs text-slate-300">
+                              {stackItems.length > 0 ? (
+                                stackItems.map((item) => (
+                                  <li
+                                    key={`${item}-${index}`}
+                                    className="rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1"
+                                  >
+                                    {item}
+                                  </li>
+                                ))
+                              ) : (
+                                <li className="text-xs text-slate-500">Add skills to preview chips</li>
+                              )}
+                            </ul>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="space-y-3">
-                      <span className="text-sm font-semibold text-white">Focus areas</span>
-                      <input
-                        className={fieldStyle}
-                        value={form.focusAreasValue}
-                        onChange={handleChange('focusAreasValue')}
-                        maxLength={FOCUS_AREAS_MAX_LENGTH}
-                        placeholder="Key focus areas"
-                        disabled={profileBusy || !form.highlightsEnabled}
-                      />
-                      <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                        <span>Max {FOCUS_AREAS_MAX_LENGTH} chars</span>
-                        <span>{form.focusAreasValue.trim().length}/{FOCUS_AREAS_MAX_LENGTH}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                  )
+                })}
               </div>
-            </section>
-
-            <section
-              id="profile-narrative"
-              className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
-            >
-              <h2 className="text-lg font-semibold text-white">Narrative</h2>
-              <label className="flex flex-col gap-2">
-                <span className={labelStyle}>Tagline</span>
-                <input
-                  className={fieldStyle}
-                  value={form.tagline}
-                  onChange={handleChange('tagline')}
-                  maxLength={160}
-                  disabled={profileBusy}
-                />
-                <span className="text-xs text-slate-500">Use a concise statement up to 160 characters.</span>
-              </label>
-              <label className="flex flex-col gap-2">
-                <span className={labelStyle}>Summary</span>
-                <textarea
-                  className={`${fieldStyle} min-h-[140px]`}
-                  value={form.summary}
-                  onChange={handleChange('summary')}
-                  disabled={profileBusy}
-                />
-              </label>
-            </section>
-
-            <section
-              id="profile-contact"
-              className="space-y-4 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
-            >
-              <h2 className="text-lg font-semibold text-white">Contact</h2>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-night-900/60 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-white">Email</p>
-                      <p className="text-xs text-slate-500">Used for direct contact buttons across the site.</p>
-                    </div>
-                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
-                        checked={form.showEmail}
-                        onChange={handleContactToggle('showEmail')}
-                        disabled={profileBusy}
-                      />
-                      <span>{form.showEmail ? 'Visible' : 'Hidden'}</span>
-                    </label>
-                  </div>
-                  <input
-                    type="email"
-                    className={fieldStyle}
-                    value={form.email}
-                    onChange={handleChange('email')}
-                    disabled={profileBusy}
-                  />
-                </div>
-                <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-night-900/60 p-4">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-white">LinkedIn</p>
-                      <p className="text-xs text-slate-500">Appears as a social link when visible.</p>
-                    </div>
-                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
-                        checked={form.showLinkedin}
-                        onChange={handleContactToggle('showLinkedin')}
-                        disabled={profileBusy}
-                      />
-                      <span>{form.showLinkedin ? 'Visible' : 'Hidden'}</span>
-                    </label>
-                  </div>
-                  <input
-                    className={fieldStyle}
-                    value={form.linkedin}
-                    onChange={handleChange('linkedin')}
-                    disabled={profileBusy || !form.showLinkedin}
-                    placeholder="https://www.linkedin.com/in/your-profile"
-                  />
-                </div>
-                <div className="space-y-3 rounded-2xl border border-slate-800/70 bg-night-900/60 p-4 md:col-span-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-white">GitHub</p>
-                      <p className="text-xs text-slate-500">Shown wherever your developer presence is highlighted.</p>
-                    </div>
-                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-slate-700 bg-night-900 text-accent-500 focus:ring-accent-400"
-                        checked={form.showGithub}
-                        onChange={handleContactToggle('showGithub')}
-                        disabled={profileBusy}
-                      />
-                      <span>{form.showGithub ? 'Visible' : 'Hidden'}</span>
-                    </label>
-                  </div>
-                  <input
-                    className={fieldStyle}
-                    value={form.github}
-                    onChange={handleChange('github')}
-                    disabled={profileBusy || !form.showGithub}
-                    placeholder="https://github.com/your-handle"
-                  />
-                </div>
-              </div>
-            </section>
-
-            <div className="flex flex-col gap-3 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-xs text-slate-500">
-                Changes are stored on the server. Use restore defaults to repopulate the original profile content.
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="flex flex-col gap-4 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
                 <button
                   type="button"
-                  onClick={handleReset}
+                  onClick={handleAddExperience}
                   className="inline-flex items-center justify-center rounded-full border border-slate-700/70 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={profileBusy}
+                  disabled={experiencesBusy}
                 >
-                  Restore defaults
+                  Add experience
                 </button>
                 <button
                   type="submit"
                   className="inline-flex items-center justify-center rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={profileBusy}
+                  disabled={experiencesBusy}
                 >
-                  Save changes
+                  Save experiences
                 </button>
               </div>
-            </div>
-          </form>
+            </form>
 
-          <form
-            onSubmit={handleExperiencesSubmit}
-            id="experiences"
-            className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
-          >
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold text-white">Experiences</h2>
-              <p className="text-sm text-slate-400">
-                Control the experience cards shown on the landing page. Each entry needs a year, title,
-                company, description, and the skill chips you want to highlight.
-              </p>
-            </div>
-            <div className="space-y-6">
-              {experiencesForm.map((experience, index) => {
-                const stackItems = experience.stackInput
-                  .split(',')
-                  .map((item) => item.trim())
-                  .filter((item) => item.length > 0)
-
-                return (
-                  <div
-                    key={`experience-${index}`}
-                    className="space-y-5 rounded-2xl border border-slate-800/70 bg-night-900/50 p-5"
-                  >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="space-y-1">
-                      <h3 className="text-base font-semibold text-white">Experience {index + 1}</h3>
-                      <p className="text-xs text-slate-500">
-                        Showcase a role and the stack you led or contributed to during that time.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveExperience(index)}
-                      className="inline-flex items-center justify-center rounded-full border border-slate-700/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300 transition hover:border-red-400/60 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-60"
-                      disabled={experiencesBusy}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <label className="flex flex-col gap-2 md:col-span-1">
-                      <span className={labelStyle}>Year</span>
-                      <input
-                        className={fieldStyle}
-                        value={experience.year}
-                        onChange={handleExperienceTextChange(index, 'year')}
-                        placeholder="2023 — Present"
-                        disabled={experiencesBusy}
-                      />
-                    </label>
-                    <label className="flex flex-col gap-2 md:col-span-1">
-                      <span className={labelStyle}>Title</span>
-                      <input
-                        className={fieldStyle}
-                        value={experience.role}
-                        onChange={handleExperienceTextChange(index, 'role')}
-                        placeholder="Principal Software Engineer"
-                        disabled={experiencesBusy}
-                      />
-                    </label>
-                    <label className="flex flex-col gap-2 md:col-span-1">
-                      <span className={labelStyle}>Company</span>
-                      <input
-                        className={fieldStyle}
-                        value={experience.company}
-                        onChange={handleExperienceTextChange(index, 'company')}
-                        placeholder="Aurora Labs"
-                        disabled={experiencesBusy}
-                      />
-                    </label>
-                  </div>
-                  <label className="flex flex-col gap-2">
-                    <span className={labelStyle}>Description</span>
-                    <textarea
-                      className={`${fieldStyle} min-h-[120px]`}
-                      value={experience.description}
-                      onChange={handleExperienceTextChange(index, 'description')}
-                      placeholder="What did you lead or deliver in this role?"
-                      disabled={experiencesBusy}
-                    />
-                  </label>
-                  <div className="grid gap-4 lg:grid-cols-2">
-                    <label className="flex flex-col gap-2">
-                      <span className={labelStyle}>Achievements</span>
-                      <textarea
-                        className={`${fieldStyle} min-h-[110px]`}
-                        value={experience.achievementsInput}
-                        onChange={handleExperienceAchievementsChange(index)}
-                        placeholder={`One achievement per line\nScaled platform reliability\nMentored team to ship faster`}
-                        disabled={experiencesBusy}
-                      />
-                      <span className="text-[10px] uppercase tracking-[0.25em] text-slate-500">
-                        Appears as bullet points on the landing page
-                      </span>
-                    </label>
-                    <div className="space-y-3">
-                      <label className="flex flex-col gap-2">
-                        <span className={labelStyle}>Skill chips</span>
-                        <input
-                          className={fieldStyle}
-                          value={experience.stackInput}
-                          onChange={handleExperienceStackChange(index)}
-                          placeholder="TypeScript, React, Node.js"
-                          disabled={experiencesBusy}
-                        />
-                        <span className="text-[10px] uppercase tracking-[0.25em] text-slate-500">
-                          Separate items with commas
-                        </span>
-                      </label>
-                      <div className="space-y-2 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-3">
-                        <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                          Chip preview
-                        </span>
-                        <ul className="flex flex-wrap gap-2 text-xs text-slate-300">
-                          {stackItems.length > 0 ? (
-                            stackItems.map((item) => (
-                              <li
-                                key={`${item}-${index}`}
-                                className="rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1"
-                              >
-                                {item}
-                              </li>
-                            ))
-                          ) : (
-                            <li className="text-xs text-slate-500">Add skills to preview chips</li>
-                          )}
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                )
-              })}
-            </div>
-            <div className="flex flex-col gap-4 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <button
-                type="button"
-                onClick={handleAddExperience}
-                className="inline-flex items-center justify-center rounded-full border border-slate-700/70 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={experiencesBusy}
-              >
-                Add experience
-              </button>
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={experiencesBusy}
-              >
-                Save experiences
-              </button>
-            </div>
-          </form>
-
-          <form
-            onSubmit={handleSectionsSubmit}
-            id="site-sections"
-            className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
-          >
-            <div className="space-y-2">
-              <h2 className="text-lg font-semibold text-white">Site sections</h2>
-              <p className="text-sm text-slate-400">
-                Update the descriptive copy for the Contact section on the landing page.
-              </p>
-            </div>
-            <div className="space-y-6">
-              <label className="flex flex-col gap-2">
-                <span className={labelStyle}>Contact section description</span>
-                <textarea
-                  className={`${fieldStyle} min-h-[140px]`}
-                  value={sectionsForm.contactDescription}
-                  onChange={handleSectionsChange('contactDescription')}
-                  disabled={sectionsBusy}
-                />
-              </label>
-            </div>
-            <div className="flex flex-col gap-3 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-xs text-slate-500">
-                Changes are saved to the server and immediately reflected on the live site.
+            <form
+              onSubmit={handleSectionsSubmit}
+              id="site-sections"
+              className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
+            >
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-white">Site sections</h2>
+                <p className="text-sm text-slate-400">
+                  Update the descriptive copy for the Contact section on the landing page.
+                </p>
               </div>
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
-                disabled={sectionsBusy}
-              >
-                Save section copy
-              </button>
-            </div>
-          </form>
+              <div className="space-y-6">
+                <label className="flex flex-col gap-2">
+                  <span className={labelStyle}>Contact section description</span>
+                  <textarea
+                    className={`${fieldStyle} min-h-[140px]`}
+                    value={sectionsForm.contactDescription}
+                    onChange={handleSectionsChange('contactDescription')}
+                    disabled={sectionsBusy}
+                  />
+                </label>
+              </div>
+              <div className="flex flex-col gap-3 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-xs text-slate-500">
+                  Changes are saved to the server and immediately reflected on the live site.
+                </div>
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={sectionsBusy}
+                >
+                  Save section copy
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>

@@ -59,7 +59,8 @@ const ExperienceCard = ({
   description,
   achievements,
   stack,
-}: ReturnType<typeof useContent>['content']['experiences'][number]) => (
+  location,
+}: (ReturnType<typeof useContent>['content']['experiences'][number] & { location?: string })) => (
   <motion.article
     initial={{ opacity: 0, y: 24 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -69,7 +70,12 @@ const ExperienceCard = ({
   >
     <div className="space-y-4">
       <div>
-        <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{year}</p>
+        <div className="flex items-baseline justify-between gap-4">
+          <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{year}</p>
+          {location ? (
+            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{location}</p>
+          ) : null}
+        </div>
         <h3 className="mt-2 text-2xl font-semibold text-white">
           {role} · <span className="text-accent-400">{company}</span>
         </h3>

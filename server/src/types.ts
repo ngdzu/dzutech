@@ -35,6 +35,7 @@ export type Experience = {
   description: string
   achievements: string[]
   stack: string[]
+  location?: string
 }
 
 export type Post = {
