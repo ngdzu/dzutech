@@ -56,6 +56,11 @@ export type SectionDetails = {
 
 export type SectionsContent = {
   contact: SectionDetails
+  experiencesPage?: { visible: boolean }
+  educations?: { visible: boolean; items: { institution: string; degree?: string; year?: string; description?: string }[] }
+  programmingLanguages?: { visible: boolean; items: string[] }
+  languagesSpoken?: { visible: boolean; items: string[] }
+  achievements?: { visible: boolean; items: string[] }
 }
 
 export type SiteLogo = {

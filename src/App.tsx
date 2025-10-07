@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { LandingPage } from './pages/LandingPage'
+import ExperiencesPage from './pages/ExperiencesPage'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { AdminBlogsPage } from './pages/AdminBlogsPage'
 import { BlogListPage } from './pages/BlogListPage'
@@ -17,8 +18,9 @@ function App() {
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/blogs" element={<BlogListPage />} />
-  <Route path="/blogs/:postId" element={<BlogDetailPage />} />
-  <Route path="/blogs/tags/:tagSlug" element={<BlogTagPage />} />
+      <Route path="/blogs/:postId" element={<BlogDetailPage />} />
+      <Route path="/blogs/tags/:tagSlug" element={<BlogTagPage />} />
+      <Route path="/experiences" element={<ExperiencesPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route
         path="/admin"

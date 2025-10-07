@@ -152,11 +152,33 @@ const AdminDashboard = () => {
   const sectionsInitialForm = useMemo(
     () => ({
       contactDescription: sections.contact?.description ?? '',
+      experiencesVisible: sections.experiencesPage?.visible ?? true,
+      educationsVisible: sections.educations?.visible ?? true,
+      educationsItems: (sections.educations?.items ?? []).map((e) => ({ ...e })),
+      programmingLanguagesVisible: sections.programmingLanguages?.visible ?? true,
+      programmingLanguagesItems: (sections.programmingLanguages?.items ?? []).slice(),
+      languagesSpokenVisible: sections.languagesSpoken?.visible ?? true,
+      languagesSpokenItems: (sections.languagesSpoken?.items ?? []).slice(),
+      achievementsVisible: sections.achievements?.visible ?? true,
+      achievementsItems: (sections.achievements?.items ?? []).slice(),
     }),
     [sections],
   )
 
-  const [sectionsForm, setSectionsForm] = useState(sectionsInitialForm)
+  type SectionsFormState = {
+    contactDescription: string
+    experiencesVisible: boolean
+    educationsVisible: boolean
+    educationsItems: { institution: string; degree?: string; year?: string; description?: string }[]
+    programmingLanguagesVisible: boolean
+    programmingLanguagesItems: string[]
+    languagesSpokenVisible: boolean
+    languagesSpokenItems: string[]
+    achievementsVisible: boolean
+    achievementsItems: string[]
+  }
+
+  const [sectionsForm, setSectionsForm] = useState<SectionsFormState>(sectionsInitialForm as unknown as SectionsFormState)
   const createEmptyExperience = (): ExperienceFormEntry => ({
     role: '',
     company: '',
@@ -337,10 +359,82 @@ const AdminDashboard = () => {
     setSiteStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev))
   }
 
-  const handleSectionsChange = (field: keyof typeof sectionsForm) =>
+  // Only contactDescription is edited via textarea handler in this form
+  const handleSectionsChange = (field: 'contactDescription') =>
     (event: ChangeEvent<HTMLTextAreaElement>) => {
       setSectionsForm((prev) => ({ ...prev, [field]: event.target.value }))
     }
+
+  type ToggleField =
+    | 'experiencesVisible'
+    | 'educationsVisible'
+    | 'programmingLanguagesVisible'
+    | 'languagesSpokenVisible'
+    | 'achievementsVisible'
+
+  const updateSectionsFormField = <T extends keyof SectionsFormState>(prev: SectionsFormState, field: T, value: SectionsFormState[T]): SectionsFormState => {
+    return { ...prev, [field]: value } as SectionsFormState
+  }
+
+  const handleToggle = (field: ToggleField) => (event: ChangeEvent<HTMLInputElement>) => {
+    setSectionsForm((prev) => updateSectionsFormField(prev, field, event.target.checked as unknown as SectionsFormState[typeof field]))
+  }
+
+  type StringArrayField = 'programmingLanguagesItems' | 'languagesSpokenItems' | 'achievementsItems'
+
+  const handleEditArrayItem = (field: StringArrayField, index: number) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setSectionsForm((prev) => {
+      const arr = (prev[field] ?? []) as string[]
+      const next = arr.slice()
+      next[index] = event.target.value
+
+      if (field === 'programmingLanguagesItems') {
+        return updateSectionsFormField(prev, 'programmingLanguagesItems', next as SectionsFormState['programmingLanguagesItems'])
+      }
+      if (field === 'languagesSpokenItems') {
+        return updateSectionsFormField(prev, 'languagesSpokenItems', next as SectionsFormState['languagesSpokenItems'])
+      }
+      // achievementsItems
+      return updateSectionsFormField(prev, 'achievementsItems', next as SectionsFormState['achievementsItems'])
+    })
+  }
+
+  const handleEditEducation = (index: number, key: keyof (SectionsFormState['educationsItems'][number])) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setSectionsForm((prev) => {
+      const copy = { ...prev }
+      const items = copy.educationsItems.slice()
+      items[index] = { ...items[index], [key]: event.target.value }
+      copy.educationsItems = items
+      return copy
+    })
+  }
+
+  type EducationItem = SectionsFormState['educationsItems'][number]
+
+  const handleAddArrayItem = (field: StringArrayField | 'educationsItems', initial: EducationItem | string = '') => () => {
+    setSectionsForm((prev) => {
+      if (field === 'educationsItems') {
+        const items = ((prev.educationsItems ?? []) as SectionsFormState['educationsItems']).slice()
+        items.push(initial as EducationItem)
+        return updateSectionsFormField(prev, 'educationsItems', items as SectionsFormState['educationsItems'])
+      }
+      const arr = (prev[field as StringArrayField] ?? []) as string[]
+      return updateSectionsFormField(prev, field as StringArrayField, [...arr, initial as string] as SectionsFormState[typeof field])
+    })
+  }
+
+  const handleRemoveArrayItem = (field: StringArrayField | 'educationsItems', index: number) => () => {
+    setSectionsForm((prev) => {
+      if (field === 'educationsItems') {
+        const items = ((prev.educationsItems ?? []) as SectionsFormState['educationsItems']).slice()
+        items.splice(index, 1)
+        return updateSectionsFormField(prev, 'educationsItems', items as SectionsFormState['educationsItems'])
+      }
+      const arr = ((prev[field as StringArrayField] ?? []) as string[]).slice()
+      arr.splice(index, 1)
+      return updateSectionsFormField(prev, field as StringArrayField, arr as SectionsFormState[typeof field])
+    })
+  }
 
   const handleExperienceTextChange = (
     index: number,
@@ -593,6 +687,28 @@ const AdminDashboard = () => {
       contact: {
         description: sectionsForm.contactDescription.trim(),
       },
+      experiencesPage: { visible: Boolean(sectionsForm.experiencesVisible) },
+      educations: {
+        visible: Boolean(sectionsForm.educationsVisible),
+        items: (sectionsForm.educationsItems ?? []).map((e) => ({
+          institution: (e.institution ?? '').trim(),
+          degree: (e.degree ?? '').trim(),
+          year: (e.year ?? '').trim(),
+          description: (e.description ?? '').trim(),
+        })),
+      },
+      programmingLanguages: {
+        visible: Boolean(sectionsForm.programmingLanguagesVisible),
+        items: (sectionsForm.programmingLanguagesItems ?? []).map((s) => (s ?? '').trim()).filter(Boolean),
+      },
+      languagesSpoken: {
+        visible: Boolean(sectionsForm.languagesSpokenVisible),
+        items: (sectionsForm.languagesSpokenItems ?? []).map((s) => (s ?? '').trim()).filter(Boolean),
+      },
+      achievements: {
+        visible: Boolean(sectionsForm.achievementsVisible),
+        items: (sectionsForm.achievementsItems ?? []).map((s) => (s ?? '').trim()).filter(Boolean),
+      },
     }
 
     try {
@@ -718,8 +834,8 @@ const AdminDashboard = () => {
                 <div
                   key={`${tone}-${index}-${message}`}
                   className={`inline-flex w-fit items-center gap-2 rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${tone === 'error'
-                      ? 'border-red-500/40 bg-red-500/10 text-red-300'
-                      : 'border-slate-700/60 bg-slate-900/60 text-slate-300'
+                    ? 'border-red-500/40 bg-red-500/10 text-red-300'
+                    : 'border-slate-700/60 bg-slate-900/60 text-slate-300'
                     }`}
                 >
                   {message}
@@ -741,8 +857,8 @@ const AdminDashboard = () => {
                       <a
                         href={`#${id}`}
                         className={`group flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium transition ${isActive
-                            ? 'bg-accent-500/15 text-accent-200 shadow-glow'
-                            : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                          ? 'bg-accent-500/15 text-accent-200 shadow-glow'
+                          : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
                           }`}
                         aria-current={isActive ? 'true' : undefined}
                       >
@@ -808,8 +924,8 @@ const AdminDashboard = () => {
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <label className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${siteForm.homeButtonMode === 'text'
-                        ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
-                        : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
+                      ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
+                      : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
                       }`}>
                       <div className="flex items-center gap-2">
                         <input
@@ -828,8 +944,8 @@ const AdminDashboard = () => {
                       </span>
                     </label>
                     <label className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${siteForm.homeButtonMode === 'logo'
-                        ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
-                        : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
+                      ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
+                      : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
                       }`}>
                       <div className="flex items-center gap-2">
                         <input
@@ -1343,6 +1459,117 @@ const AdminDashboard = () => {
                     disabled={sectionsBusy}
                   />
                 </label>
+
+                <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-white">Experiences page</p>
+                      <p className="text-xs text-slate-500">Show or hide the dedicated experiences page</p>
+                    </div>
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                      <input type="checkbox" className="h-4 w-4" checked={sectionsForm.experiencesVisible} onChange={handleToggle('experiencesVisible')} disabled={sectionsBusy} />
+                      <span>{sectionsForm.experiencesVisible ? 'Visible' : 'Hidden'}</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-white">Education</p>
+                      <p className="text-xs text-slate-500">List of degrees or certificates to show on experiences page</p>
+                    </div>
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                      <input type="checkbox" className="h-4 w-4" checked={sectionsForm.educationsVisible} onChange={handleToggle('educationsVisible')} disabled={sectionsBusy} />
+                      <span>{sectionsForm.educationsVisible ? 'Visible' : 'Hidden'}</span>
+                    </label>
+                  </div>
+                  <div className="space-y-3">
+                    {(sectionsForm.educationsItems ?? []).map((edu, idx: number) => (
+                      <div key={`edu-${idx}`} className="grid gap-2 md:grid-cols-4">
+                        <input className={fieldStyle} value={edu.institution ?? ''} onChange={handleEditEducation(idx, 'institution')} placeholder="Institution" />
+                        <input className={fieldStyle} value={edu.degree ?? ''} onChange={handleEditEducation(idx, 'degree')} placeholder="Degree" />
+                        <input className={fieldStyle} value={edu.year ?? ''} onChange={handleEditEducation(idx, 'year')} placeholder="Year" />
+                        <input className={fieldStyle} value={edu.description ?? ''} onChange={handleEditEducation(idx, 'description')} placeholder="Description" />
+                      </div>
+                    ))}
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => handleAddArrayItem('educationsItems', { institution: '', degree: '', year: '', description: '' })()} className="rounded-full border px-3 py-1 text-sm">Add education</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-white">Programming languages</p>
+                      <p className="text-xs text-slate-500">Languages & runtimes to display</p>
+                    </div>
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                      <input type="checkbox" className="h-4 w-4" checked={sectionsForm.programmingLanguagesVisible} onChange={handleToggle('programmingLanguagesVisible')} disabled={sectionsBusy} />
+                      <span>{sectionsForm.programmingLanguagesVisible ? 'Visible' : 'Hidden'}</span>
+                    </label>
+                  </div>
+                  <div className="space-y-2">
+                    {(sectionsForm.programmingLanguagesItems ?? []).map((lang: string, idx: number) => (
+                      <div key={`pl-${idx}`} className="flex gap-2">
+                        <input className={fieldStyle} value={lang} onChange={handleEditArrayItem('programmingLanguagesItems', idx)} />
+                        <button type="button" onClick={() => handleRemoveArrayItem('programmingLanguagesItems', idx)()} className="rounded-full border px-3 py-1 text-sm">Remove</button>
+                      </div>
+                    ))}
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => handleAddArrayItem('programmingLanguagesItems', '')()} className="rounded-full border px-3 py-1 text-sm">Add language</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-white">Languages spoken</p>
+                      <p className="text-xs text-slate-500">Human languages to display</p>
+                    </div>
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                      <input type="checkbox" className="h-4 w-4" checked={sectionsForm.languagesSpokenVisible} onChange={handleToggle('languagesSpokenVisible')} disabled={sectionsBusy} />
+                      <span>{sectionsForm.languagesSpokenVisible ? 'Visible' : 'Hidden'}</span>
+                    </label>
+                  </div>
+                  <div className="space-y-2">
+                    {(sectionsForm.languagesSpokenItems ?? []).map((lang: string, idx: number) => (
+                      <div key={`ls-${idx}`} className="flex gap-2">
+                        <input className={fieldStyle} value={lang} onChange={handleEditArrayItem('languagesSpokenItems', idx)} />
+                        <button type="button" onClick={() => handleRemoveArrayItem('languagesSpokenItems', idx)()} className="rounded-full border px-3 py-1 text-sm">Remove</button>
+                      </div>
+                    ))}
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => handleAddArrayItem('languagesSpokenItems', '')()} className="rounded-full border px-3 py-1 text-sm">Add language</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4 rounded-2xl border border-slate-800/70 bg-night-900/50 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-semibold text-white">Achievements</p>
+                      <p className="text-xs text-slate-500">Bulleted achievements to show on experiences page</p>
+                    </div>
+                    <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
+                      <input type="checkbox" className="h-4 w-4" checked={sectionsForm.achievementsVisible} onChange={handleToggle('achievementsVisible')} disabled={sectionsBusy} />
+                      <span>{sectionsForm.achievementsVisible ? 'Visible' : 'Hidden'}</span>
+                    </label>
+                  </div>
+                  <div className="space-y-2">
+                    {(sectionsForm.achievementsItems ?? []).map((a: string, idx: number) => (
+                      <div key={`ach-${idx}`} className="flex gap-2">
+                        <input className={fieldStyle} value={a} onChange={handleEditArrayItem('achievementsItems', idx)} />
+                        <button type="button" onClick={() => handleRemoveArrayItem('achievementsItems', idx)()} className="rounded-full border px-3 py-1 text-sm">Remove</button>
+                      </div>
+                    ))}
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => handleAddArrayItem('achievementsItems', '')()} className="rounded-full border px-3 py-1 text-sm">Add achievement</button>
+                    </div>
+                  </div>
+                </div>
               </div>
               <div className="flex flex-col gap-3 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-xs text-slate-500">

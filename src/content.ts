@@ -56,8 +56,34 @@ export type SectionDetails = {
   description: string
 }
 
+export type Education = {
+  institution: string
+  degree?: string
+  year?: string
+  description?: string
+}
+
 export type SectionsContent = {
   contact: SectionDetails
+  experiencesPage?: {
+    visible: boolean
+  }
+  educations?: {
+    visible: boolean
+    items: Education[]
+  }
+  programmingLanguages?: {
+    visible: boolean
+    items: string[]
+  }
+  languagesSpoken?: {
+    visible: boolean
+    items: string[]
+  }
+  achievements?: {
+    visible: boolean
+    items: string[]
+  }
 }
 
 export type SiteLogo = {
@@ -194,6 +220,11 @@ export const defaultContent: ContentState = {
       description:
         'I partner with founders, product leaders, and engineering teams to untangle complex systems, accelerate delivery, and coach developers. Drop a note and let’s explore how we can collaborate.',
     },
+    experiencesPage: { visible: true },
+    educations: { visible: true, items: [] },
+    programmingLanguages: { visible: true, items: [] },
+    languagesSpoken: { visible: true, items: [] },
+    achievements: { visible: true, items: [] },
   },
 }
 

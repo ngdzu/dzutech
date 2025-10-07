@@ -244,36 +244,41 @@ const withPostsDefaults = (value: unknown, defaults: Post[]): Post[] => {
 }
 
 const withSectionsDefaults = (value: unknown, defaults: SectionsContent): SectionsContent => {
-  const fallbackDescription = defaults.contact.description
-
+  // If nothing persisted, return defaults (deep copy)
   if (!value || typeof value !== 'object') {
-    return {
-      contact: {
-        description: fallbackDescription,
-      },
+    return JSON.parse(JSON.stringify(defaults)) as SectionsContent
+  }
+
+  const candidate = value as Partial<SectionsContent> & Record<string, unknown>
+
+  // Start from defaults and shallow-merge top-level keys from candidate.
+  // For contact, prefer candidate.contact.description, or candidate.about.description (legacy),
+  // falling back to defaults.contact.description.
+  const result: SectionsContent = JSON.parse(JSON.stringify(defaults)) as SectionsContent
+
+  // Preserve/merge any known fields if present on candidate
+  if (candidate.contact && typeof candidate.contact === 'object') {
+    const c = candidate.contact as { description?: unknown }
+    if (typeof c.description === 'string' && c.description.trim().length > 0) {
+      result.contact.description = c.description.trim()
+    }
+  } else if (candidate.about && typeof candidate.about === 'object') {
+    // legacy about -> contact.description mapping
+    const a = candidate.about as { description?: unknown }
+    if (typeof a.description === 'string' && a.description.trim().length > 0) {
+      result.contact.description = a.description.trim()
     }
   }
 
-  const candidate = value as Partial<SectionsContent> & {
-    about?: { description?: unknown }
+  // For any other keys present on candidate, shallow-copy them into result to preserve
+  // user-provided nested blocks (educations, programmingLanguages, languagesSpoken, achievements, etc.)
+  for (const [k, v] of Object.entries(candidate)) {
+    if (k === 'contact' || k === 'about') continue
+    // @ts-expect-error dynamic assignment: we intentionally preserve unknown nested keys
+    result[k as keyof SectionsContent] = v as unknown as SectionsContent[keyof SectionsContent]
   }
 
-  const extractDescription = (source?: { description?: unknown }): string | undefined => {
-    if (!source) return undefined
-    const raw = source.description
-    if (typeof raw !== 'string') return undefined
-    const trimmed = raw.trim()
-    return trimmed.length > 0 ? trimmed : undefined
-  }
-
-  const contactDescription =
-    extractDescription(candidate.contact) ?? extractDescription(candidate.about) ?? fallbackDescription
-
-  return {
-    contact: {
-      description: contactDescription,
-    },
-  }
+  return result
 }
 
 export const getContent = async (): Promise<ContentState> => {

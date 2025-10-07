@@ -164,7 +164,7 @@ const PostCard = ({
 
 
 const navItems = [
-  { href: '#experience', label: 'Experience' },
+  { href: '#experiences', label: 'Experiences' },
   { href: '#blogs', label: 'Blogs' },
   { href: '#contact', label: 'Contact' },
 ]
@@ -375,11 +375,20 @@ export const LandingPage = () => {
             transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
           />
         </section>
-        <Section id="experience" title="Experience" eyebrow="Career timeline">
+        <Section id="experiences" title="Experiences" eyebrow="Career timeline">
           <div className="space-y-8">
             {experiences.map((experience) => (
               <ExperienceCard key={`${experience.company}-${experience.role}`} {...experience} />
             ))}
+            <div className="flex justify-end">
+              <Link
+                to="/experiences"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-accent-200 transition hover:text-accent-100"
+              >
+                See full list
+                <FiArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </Section>
 

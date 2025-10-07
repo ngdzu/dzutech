@@ -59,13 +59,13 @@ describe('LandingPage', () => {
     )
 
     expect(screen.getByRole('heading', { level: 1, name: /Your Name/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Experience/i })).toHaveAttribute('href', '#experience')
+    expect(screen.getByRole('link', { name: /Experiences?/i })).toHaveAttribute('href', '#experiences')
 
     const contactLink = screen.getByRole('link', { name: /Contact me/i })
     expect(contactLink).toHaveAttribute('href', expect.stringContaining('mailto:'))
 
     // Verify the experience location is rendered inline with the experience header
-    const expHeading = screen.getByRole('heading', { name: /Experience/i })
+    const expHeading = screen.getByRole('heading', { name: /Experiences?/i })
     const expSection = expHeading.closest('section')
     expect(expSection).not.toBeNull()
     expect(within(expSection!).getByText(/Seattle,\s*WA/)).toBeInTheDocument()
