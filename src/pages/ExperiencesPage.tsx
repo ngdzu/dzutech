@@ -1,5 +1,6 @@
 import { useMemo, useEffect, useState } from 'react'
-import { useLocation, Link } from 'react-router-dom'
+import { useLocation, Link, useNavigate } from 'react-router-dom'
+import { FiArrowLeft } from 'react-icons/fi'
 import { useContent } from '../context/ContentContext'
 
 type NavSection = { id: string; label: string }
@@ -36,7 +37,7 @@ const SideNav = ({ sections, activeSection }: { sections: NavSection[]; activeSe
 
 const ExperiencesPage = () => {
     const { content } = useContent()
-    const { experiences, sections, site } = content
+    const { experiences, sections } = content
 
     const sectionsList = useMemo<NavSection[]>(() => [
         { id: 'experiences', label: 'Experiences' },
@@ -83,26 +84,27 @@ const ExperiencesPage = () => {
         return () => observer.disconnect()
     }, [sectionsList])
 
-    const siteTitle = site.title?.trim()
-    const homeUsesLogo = site.homeButtonMode === 'logo' && Boolean(site.logo?.data)
-    const homeLogoAlt = site.logo?.alt?.trim() || siteTitle || 'Home'
-    const homeLinkClasses = homeUsesLogo
-        ? 'inline-flex items-center gap-3 rounded-xl font-semibold text-white transition hover:text-accent-200'
-        : 'inline-flex items-center gap-2 text-lg font-semibold tracking-tight text-white transition hover:text-accent-200'
+    // Header uses shared blog-style header (Back + Home).
+
+    const navigate = useNavigate()
 
     return (
         <div className="relative min-h-screen bg-night-900 text-slate-100">
-            <header className="sticky top-0 z-50 border-b border-white/5 bg-night-900/90 backdrop-blur-xl">
-                <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-                    <Link to="/" className={homeLinkClasses} aria-label={homeUsesLogo ? homeLogoAlt : undefined}>
-                        {homeUsesLogo && site.logo?.data ? (
-                            <img src={site.logo.data} alt={homeLogoAlt} className="h-10 w-auto max-h-10 object-contain" />
-                        ) : (
-                            <>
-                                {siteTitle ? siteTitle.toLowerCase() : 'home'}
-                                <span className="text-accent-400">.</span>
-                            </>
-                        )}
+            <header className="border-b border-white/5 bg-night-900/80">
+                <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-6">
+                    <button
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-slate-300 transition hover:text-white"
+                    >
+                        <FiArrowLeft />
+                        Back
+                    </button>
+                    <Link
+                        to="/#experiences"
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+                    >
+                        Home
                     </Link>
                 </div>
             </header>
