@@ -153,7 +153,7 @@ const ExperiencesPage = () => {
                                                 </div>
                                             )}
 
-                                            <ul className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
+                                            <ul className="mt-3 mb-3 flex flex-wrap gap-2 text-xs text-slate-300">
                                                 {exp.stack.map((s) => {
                                                     const trimmed = typeof s === 'string' ? s.trim() : ''
                                                     if (!trimmed) return null
@@ -171,21 +171,25 @@ const ExperiencesPage = () => {
                                                 })}
                                             </ul>
 
-                                            <div className="mt-6 flex justify-center">
+                                            <div className="flex justify-center">
                                                 <button
                                                     type="button"
                                                     aria-expanded={isExpanded}
                                                     aria-label={isExpanded ? 'Collapse achievements' : 'Expand achievements'}
                                                     onClick={toggleExpanded(key)}
-                                                    className="inline-flex items-center justify-center h-6 w-6 text-accent-400 transition transform duration-150 hover:text-accent-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40"
+                                                    className="mt-2 mb-2 flex items-center justify-center w-full bg-transparent border-0 p-0 cursor-pointer group focus:outline-none"
                                                 >
-                                                    <svg
-                                                        viewBox="0 0 20 20"
-                                                        fill="none"
-                                                        xmlns="http://www.w3.org/2000/svg"
-                                                        className={`h-5 w-5 transform ${isExpanded ? 'rotate-180' : ''} transition ${chevronDuration} ${chevronEasing}`} aria-hidden>
-                                                        <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                    </svg>
+                                                    <span className="inline-flex items-center justify-center h-6 w-6 text-accent-400 transition transform duration-150 group-hover:text-accent-200 group-hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400">
+                                                        <svg
+                                                            viewBox="0 0 20 20"
+                                                            fill="none"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            className={`h-5 w-5 transform ${isExpanded ? 'rotate-180' : ''} transition ${chevronDuration} ${chevronEasing}`}
+                                                            aria-hidden
+                                                        >
+                                                            <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                        </svg>
+                                                    </span>
                                                 </button>
                                             </div>
                                         </article>
