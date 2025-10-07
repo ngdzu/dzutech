@@ -84,25 +84,11 @@ describe('AdminDashboard sections editor', () => {
         const eduInstitution = screen.getByPlaceholderText('Institution')
         fireEvent.change(eduInstitution, { target: { value: 'Test University' } })
 
-        // Add a programming language (the first 'Add language' button targets programming languages)
-        const addLangBtns = screen.getAllByText('Add language')
-        const addLangBtn = addLangBtns[0]
-        fireEvent.click(addLangBtn)
-        // Fill the new programming language input (find inputs relative to the "Add language" button)
-        const addLangBtnContainer = addLangBtn.closest('div')!
-        const plSection = addLangBtnContainer.parentElement!
-
-        // Wait for the new input to be added to the DOM after clicking "Add language"
-        await waitFor(() => Array.from(plSection.querySelectorAll('input')).filter((i) => i.type !== 'checkbox').length > 0)
-
-        // querySelectorAll to find inputs and exclude any checkboxes
-        const plInputsNodeList = Array.from(plSection.querySelectorAll('input')).filter((i) => i.type !== 'checkbox')
-        const plInputs = plInputsNodeList as HTMLInputElement[]
-        const lastPlInput = plInputs[plInputs.length - 1]
-        fireEvent.change(lastPlInput, { target: { value: 'TypeScript' } })
-
+        // Add a programming language via the comma-separated input
+        const plInput = screen.getByLabelText('Languages (comma separated)') as HTMLInputElement
+        fireEvent.change(plInput, { target: { value: 'TypeScript' } })
         // Wait for the input value to be reflected in the DOM / component state
-        await waitFor(() => expect(lastPlInput.value).toBe('TypeScript'))
+        await waitFor(() => expect(plInput.value).toBe('TypeScript'))
 
         // Submit the experiences page sections form
         const saveExperiencesButton = screen.getByRole('button', { name: /Save sections/i })

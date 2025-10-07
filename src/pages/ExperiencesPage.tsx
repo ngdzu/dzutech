@@ -224,11 +224,16 @@ const ExperiencesPage = () => {
                         <section id="programming-languages" className="scroll-mt-24 space-y-6">
                             <h2 className="text-3xl font-semibold text-white">Programming languages</h2>
                             <div className="flex flex-wrap gap-2 mt-3">
-                                {(sections.programmingLanguages?.items ?? []).map((lang) => (
-                                    <span key={lang} className="rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1 text-xs text-slate-300">
-                                        {lang}
-                                    </span>
-                                ))}
+                                {(sections.programmingLanguages?.items ?? []).map((lang) => {
+                                    const trimmed = typeof lang === 'string' ? lang.trim() : ''
+                                    if (!trimmed) return null
+                                    const encoded = encodeURIComponent(trimmed.toLowerCase())
+                                    return (
+                                        <li key={trimmed} className="list-none">
+                                            <Chip to={`/blogs/tags/${encoded}`}>{trimmed}</Chip>
+                                        </li>
+                                    )
+                                })}
                             </div>
                         </section>
 

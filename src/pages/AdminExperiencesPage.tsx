@@ -60,8 +60,16 @@ const AdminExperiencesPage = () => {
 
     const [sectionsForm, setSectionsForm] = useState<SectionsFormState>(sectionsInitialForm as unknown as SectionsFormState)
 
+    // Local raw input for programming languages so typing commas is preserved
+    const [programmingLanguagesRaw, setProgrammingLanguagesRaw] = useState<string>('')
+
     useEffect(() => {
         setSectionsForm(sectionsInitialForm as unknown as SectionsFormState)
+    }, [sectionsInitialForm])
+
+    // initialize/sync the raw input when sections form changes (e.g., load)
+    useEffect(() => {
+        setProgrammingLanguagesRaw(((sectionsInitialForm as unknown as SectionsFormState).programmingLanguagesItems ?? []).join(', '))
     }, [sectionsInitialForm])
 
     const updateSectionsFormField = <T extends keyof SectionsFormState>(prev: SectionsFormState, field: T, value: SectionsFormState[T]): SectionsFormState => {
@@ -404,14 +412,28 @@ const AdminExperiencesPage = () => {
                             </label>
                         </div>
                         <div className="space-y-2">
-                            {(sectionsForm.programmingLanguagesItems ?? []).map((lang: string, idx: number) => (
-                                <div key={`pl-${idx}`} className="flex gap-2">
-                                    <input className={fieldStyle} value={lang} onChange={handleEditArrayItem('programmingLanguagesItems', idx)} />
-                                    <button type="button" onClick={handleRemoveArrayItem('programmingLanguagesItems', idx)} className="rounded-full border px-3 py-1 text-sm">Remove</button>
-                                </div>
-                            ))}
-                            <div className="flex gap-2">
-                                <button type="button" onClick={handleAddArrayItem('programmingLanguagesItems', '')} className="rounded-full border px-3 py-1 text-sm">Add language</button>
+                            <label className="flex flex-col gap-2">
+                                <span className={labelStyle}>Languages (comma separated)</span>
+                                <input
+                                    className={fieldStyle}
+                                    value={programmingLanguagesRaw}
+                                    onChange={(e) => {
+                                        const val = e.target.value
+                                        setProgrammingLanguagesRaw(val)
+                                        const items = val
+                                            .split(',')
+                                            .map((s) => s.trim())
+                                            .filter(Boolean)
+                                        setSectionsForm((prev) => updateSectionsFormField(prev, 'programmingLanguagesItems', items as SectionsFormState['programmingLanguagesItems']))
+                                    }}
+                                    placeholder="JavaScript, TypeScript, Go"
+                                />
+                            </label>
+
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {(sectionsForm.programmingLanguagesItems ?? []).map((lang: string) => (
+                                    <span key={lang} className="rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1 text-xs text-slate-300">{lang}</span>
+                                ))}
                             </div>
                         </div>
                     </div>
