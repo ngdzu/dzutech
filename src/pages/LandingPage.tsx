@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
 import { markdownExcerpt } from '../lib/markdown'
 
@@ -27,7 +27,7 @@ const Section = ({
   children,
 }: {
   id: string
-  title: string
+  title: ReactNode
   eyebrow?: string
   children: ReactNode
 }) => (
@@ -171,6 +171,7 @@ const navItems = [
 
 export const LandingPage = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const { content } = useContent()
   const { site, profile, experiences, posts, sections } = content
   const visiblePosts = useMemo(
@@ -375,7 +376,28 @@ export const LandingPage = () => {
             transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
           />
         </section>
-        <Section id="experiences" title="Experiences" eyebrow="Career timeline">
+        <Section
+          id="experiences"
+          title={
+            <>
+              {/* Visible, clickable heading (button) — keeps role separate from header's link */}
+              <button
+                type="button"
+                onClick={() => {
+                  /* navigate on click */
+                  navigate('/experiences')
+                }}
+                className="inline text-inherit font-semibold leading-none p-0 m-0 bg-transparent border-0"
+              >
+                Experiences
+              </button>
+              <Link to="/experiences" className="sr-only">
+                Open full timeline
+              </Link>
+            </>
+          }
+          eyebrow="Career timeline"
+        >
           <div className="space-y-8">
             {experiences.map((experience) => (
               <ExperienceCard key={`${experience.company}-${experience.role}`} {...experience} />
@@ -392,7 +414,26 @@ export const LandingPage = () => {
           </div>
         </Section>
 
-        <Section id="blogs" title="Blogs" eyebrow="Knowledge sharing">
+        <Section
+          id="blogs"
+          title={
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  navigate('/blogs')
+                }}
+                className="inline text-inherit font-semibold leading-none p-0 m-0 bg-transparent border-0"
+              >
+                Blogs
+              </button>
+              <Link to="/blogs" className="sr-only">
+                Open blog listing
+              </Link>
+            </>
+          }
+          eyebrow="Knowledge sharing"
+        >
           <div className="grid gap-10">
             {recentPosts.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2">
