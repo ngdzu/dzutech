@@ -114,148 +114,158 @@ const ExperiencesPage = () => {
                 <div className="flex gap-8">
                     <SideNav sections={sectionsList} activeSection={activeSection} />
                     <main className="flex-1 space-y-16">
-                        <section id="experiences" className="scroll-mt-24 space-y-6">
-                            <h2 className="text-3xl font-semibold text-white">Experiences</h2>
-                            <div className="space-y-6">
-                                {experiences.map((exp, idx) => {
-                                    const key = `${exp.company}-${exp.role}-${idx}`
-                                    const isExpanded = Boolean(expanded[key])
-                                    const easingCollapse = "ease-[cubic-bezier(0.2,0.8,0.2,1)]"
-                                    const easingExpand = "ease-[cubic-bezier(0.22,1,0.36,1)]"
-                                    const containerEasing = isExpanded ? easingExpand : easingCollapse
-                                    const listEasing = isExpanded ? easingExpand : easingCollapse
-                                    const chevronEasing = isExpanded ? easingExpand : easingCollapse
-                                    // Durations: collapse uses original timings; expand is 3x slower
-                                    const containerDuration = isExpanded ? 'duration-[1800ms]' : 'duration-[450ms]'
-                                    const listDuration = isExpanded ? 'duration-[450ms]' : 'duration-[300ms]'
-                                    const chevronDuration = isExpanded ? 'duration-[900ms]' : 'duration-[225ms]'
-                                    return (
-                                        <article key={key} className="relative rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{exp.year}</p>
-                                                    <h3 className="mt-1 text-xl font-semibold text-white">
-                                                        {exp.role} · <span className="text-accent-400">{exp.company}</span>
-                                                    </h3>
+                        {sections.experiencesPage?.visible !== false && (
+                            <section id="experiences" className="scroll-mt-24 space-y-6">
+                                <h2 className="text-3xl font-semibold text-white">Experiences</h2>
+                                <div className="space-y-6">
+                                    {experiences.map((exp, idx) => {
+                                        const key = `${exp.company}-${exp.role}-${idx}`
+                                        const isExpanded = Boolean(expanded[key])
+                                        const easingCollapse = "ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+                                        const easingExpand = "ease-[cubic-bezier(0.22,1,0.36,1)]"
+                                        const containerEasing = isExpanded ? easingExpand : easingCollapse
+                                        const listEasing = isExpanded ? easingExpand : easingCollapse
+                                        const chevronEasing = isExpanded ? easingExpand : easingCollapse
+                                        // Durations: collapse uses original timings; expand is 3x slower
+                                        const containerDuration = isExpanded ? 'duration-[1800ms]' : 'duration-[450ms]'
+                                        const listDuration = isExpanded ? 'duration-[450ms]' : 'duration-[300ms]'
+                                        const chevronDuration = isExpanded ? 'duration-[900ms]' : 'duration-[225ms]'
+                                        return (
+                                            <article key={key} className="relative rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{exp.year}</p>
+                                                        <h3 className="mt-1 text-xl font-semibold text-white">
+                                                            {exp.role} · <span className="text-accent-400">{exp.company}</span>
+                                                        </h3>
+                                                    </div>
+                                                    {exp.location && <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{exp.location}</p>}
                                                 </div>
-                                                {exp.location && <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{exp.location}</p>}
-                                            </div>
 
-                                            <p className="mt-3 text-slate-300">{exp.description}</p>
+                                                <p className="mt-3 text-slate-300">{exp.description}</p>
 
-                                            {exp.achievements && exp.achievements.length > 0 && (
-                                                <div className={`mt-3 overflow-hidden transition-all ${containerDuration} ${containerEasing} ${isExpanded ? 'max-h-64' : 'max-h-0'}`}>
-                                                    <ul className={`space-y-2 text-sm text-slate-300 transform transition-all ${listDuration} ${listEasing} ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
-                                                        {exp.achievements.map((a) => (
-                                                            <li key={a} className="flex gap-3 items-start">
-                                                                <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden />
-                                                                <span>{a}</span>
+                                                {exp.achievements && exp.achievements.length > 0 && (
+                                                    <div className={`mt-3 overflow-hidden transition-all ${containerDuration} ${containerEasing} ${isExpanded ? 'max-h-64' : 'max-h-0'}`}>
+                                                        <ul className={`space-y-2 text-sm text-slate-300 transform transition-all ${listDuration} ${listEasing} ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
+                                                            {exp.achievements.map((a) => (
+                                                                <li key={a} className="flex gap-3 items-start">
+                                                                    <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden />
+                                                                    <span>{a}</span>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                )}
+
+                                                <ul className="mt-3 mb-3 flex flex-wrap gap-2 text-xs text-slate-300">
+                                                    {exp.stack.map((s) => {
+                                                        const trimmed = typeof s === 'string' ? s.trim() : ''
+                                                        if (!trimmed) return null
+                                                        const encoded = encodeURIComponent(trimmed.toLowerCase())
+                                                        return (
+                                                            <li key={trimmed}>
+                                                                <Chip to={`/blogs/tags/${encoded}`}>{trimmed}</Chip>
                                                             </li>
-                                                        ))}
-                                                    </ul>
+                                                        )
+                                                    })}
+                                                </ul>
+
+                                                <div className="flex justify-center">
+                                                    <button
+                                                        type="button"
+                                                        aria-expanded={isExpanded}
+                                                        aria-label={isExpanded ? 'Collapse achievements' : 'Expand achievements'}
+                                                        onClick={toggleExpanded(key)}
+                                                        className="mt-2 mb-2 flex items-center justify-center w-full bg-transparent border-0 p-0 cursor-pointer group focus:outline-none"
+                                                    >
+                                                        <span className="inline-flex items-center justify-center h-6 w-6 text-accent-400 transition transform duration-150 group-hover:text-accent-200 group-hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400">
+                                                            <svg
+                                                                viewBox="0 0 20 20"
+                                                                fill="none"
+                                                                xmlns="http://www.w3.org/2000/svg"
+                                                                className={`h-5 w-5 transform ${isExpanded ? 'rotate-180' : ''} transition ${chevronDuration} ${chevronEasing}`}
+                                                                aria-hidden
+                                                            >
+                                                                <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                            </svg>
+                                                        </span>
+                                                    </button>
                                                 </div>
-                                            )}
+                                            </article>
+                                        )
+                                    })}
+                                </div>
+                            </section>
+                        )}
 
-                                            <ul className="mt-3 mb-3 flex flex-wrap gap-2 text-xs text-slate-300">
-                                                {exp.stack.map((s) => {
-                                                    const trimmed = typeof s === 'string' ? s.trim() : ''
-                                                    if (!trimmed) return null
-                                                    const encoded = encodeURIComponent(trimmed.toLowerCase())
-                                                    return (
-                                                        <li key={trimmed}>
-                                                            <Chip to={`/blogs/tags/${encoded}`}>{trimmed}</Chip>
+                        {sections.educations?.visible !== false && (
+                            <section id="educations" className="scroll-mt-24 space-y-6">
+                                <h2 className="text-3xl font-semibold text-white">Education</h2>
+                                <div className="space-y-6">
+                                    {(sections.educations?.items ?? []).map((edu, i) => (
+                                        <article key={`${edu.institution}-${i}`} className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
+                                            <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{edu.year}</p>
+                                            <h3 className="mt-1 text-xl font-semibold text-white">
+                                                {edu.institution}
+                                                {edu.degree ? <span className="text-accent-400"> · {edu.degree}</span> : null}
+                                            </h3>
+                                            {edu.description && (
+                                                <ul className="mt-3 space-y-2 text-slate-300">
+                                                    {edu.description.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => (
+                                                        <li key={line} className="flex gap-3 items-start text-sm">
+                                                            <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden />
+                                                            <span>{line}</span>
                                                         </li>
-                                                    )
-                                                })}
-                                            </ul>
-
-                                            <div className="flex justify-center">
-                                                <button
-                                                    type="button"
-                                                    aria-expanded={isExpanded}
-                                                    aria-label={isExpanded ? 'Collapse achievements' : 'Expand achievements'}
-                                                    onClick={toggleExpanded(key)}
-                                                    className="mt-2 mb-2 flex items-center justify-center w-full bg-transparent border-0 p-0 cursor-pointer group focus:outline-none"
-                                                >
-                                                    <span className="inline-flex items-center justify-center h-6 w-6 text-accent-400 transition transform duration-150 group-hover:text-accent-200 group-hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400">
-                                                        <svg
-                                                            viewBox="0 0 20 20"
-                                                            fill="none"
-                                                            xmlns="http://www.w3.org/2000/svg"
-                                                            className={`h-5 w-5 transform ${isExpanded ? 'rotate-180' : ''} transition ${chevronDuration} ${chevronEasing}`}
-                                                            aria-hidden
-                                                        >
-                                                            <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                                                        </svg>
-                                                    </span>
-                                                </button>
-                                            </div>
+                                                    ))}
+                                                </ul>
+                                            )}
                                         </article>
-                                    )
-                                })}
-                            </div>
-                        </section>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
 
-                        <section id="educations" className="scroll-mt-24 space-y-6">
-                            <h2 className="text-3xl font-semibold text-white">Education</h2>
-                            <div className="space-y-6">
-                                {(sections.educations?.items ?? []).map((edu, i) => (
-                                    <article key={`${edu.institution}-${i}`} className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
-                                        <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{edu.year}</p>
-                                        <h3 className="mt-1 text-xl font-semibold text-white">
-                                            {edu.institution}
-                                            {edu.degree ? <span className="text-accent-400"> · {edu.degree}</span> : null}
-                                        </h3>
-                                        {edu.description && (
-                                            <ul className="mt-3 space-y-2 text-slate-300">
-                                                {edu.description.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => (
-                                                    <li key={line} className="flex gap-3 items-start text-sm">
-                                                        <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden />
-                                                        <span>{line}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
-                                    </article>
-                                ))}
-                            </div>
-                        </section>
+                        {sections.programmingLanguages?.visible !== false && (
+                            <section id="programming-languages" className="scroll-mt-24 space-y-6">
+                                <h2 className="text-3xl font-semibold text-white">Programming languages</h2>
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {(sections.programmingLanguages?.items ?? []).map((lang) => {
+                                        const trimmed = typeof lang === 'string' ? lang.trim() : ''
+                                        if (!trimmed) return null
+                                        const encoded = encodeURIComponent(trimmed.toLowerCase())
+                                        return (
+                                            <li key={trimmed} className="list-none">
+                                                <Chip to={`/blogs/tags/${encoded}`}>{trimmed}</Chip>
+                                            </li>
+                                        )
+                                    })}
+                                </div>
+                            </section>
+                        )}
 
-                        <section id="programming-languages" className="scroll-mt-24 space-y-6">
-                            <h2 className="text-3xl font-semibold text-white">Programming languages</h2>
-                            <div className="flex flex-wrap gap-2 mt-3">
-                                {(sections.programmingLanguages?.items ?? []).map((lang) => {
-                                    const trimmed = typeof lang === 'string' ? lang.trim() : ''
-                                    if (!trimmed) return null
-                                    const encoded = encodeURIComponent(trimmed.toLowerCase())
-                                    return (
-                                        <li key={trimmed} className="list-none">
-                                            <Chip to={`/blogs/tags/${encoded}`}>{trimmed}</Chip>
-                                        </li>
-                                    )
-                                })}
-                            </div>
-                        </section>
+                        {sections.languagesSpoken?.visible !== false && (
+                            <section id="languages-spoken" className="scroll-mt-24 space-y-6">
+                                <h2 className="text-3xl font-semibold text-white">Languages</h2>
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    {(sections.languagesSpoken?.items ?? []).map((lang) => (
+                                        <span key={lang} className="rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1 text-xs text-slate-300">
+                                            {lang}
+                                        </span>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
 
-                        <section id="languages-spoken" className="scroll-mt-24 space-y-6">
-                            <h2 className="text-3xl font-semibold text-white">Languages</h2>
-                            <div className="flex flex-wrap gap-2 mt-3">
-                                {(sections.languagesSpoken?.items ?? []).map((lang) => (
-                                    <span key={lang} className="rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1 text-xs text-slate-300">
-                                        {lang}
-                                    </span>
-                                ))}
-                            </div>
-                        </section>
-
-                        <section id="achievements" className="scroll-mt-24 space-y-6">
-                            <h2 className="text-3xl font-semibold text-white">Achievements</h2>
-                            <ul className="mt-3 space-y-2 list-disc pl-6 text-slate-300">
-                                {(sections.achievements?.items ?? []).map((a) => (
-                                    <li key={a}>{a}</li>
-                                ))}
-                            </ul>
-                        </section>
+                        {sections.achievements?.visible !== false && (
+                            <section id="achievements" className="scroll-mt-24 space-y-6">
+                                <h2 className="text-3xl font-semibold text-white">Achievements</h2>
+                                <ul className="mt-3 space-y-2 list-disc pl-6 text-slate-300">
+                                    {(sections.achievements?.items ?? []).map((a) => (
+                                        <li key={a}>{a}</li>
+                                    ))}
+                                </ul>
+                            </section>
+                        )}
                     </main>
                 </div>
             </div>
