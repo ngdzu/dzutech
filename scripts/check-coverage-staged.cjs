@@ -33,10 +33,21 @@ if (!staged) {
 
 const stagedFiles = staged.split('\n').map((f) => f.trim()).filter(Boolean)
 
-// filter to only source files we care about (ignore test files)
+// filter to only source files we care about (ignore test files and test helpers)
 const sourceRegex = /^(src\/.*|server\/src\/.*)\.(ts|tsx|js|jsx)$/i
 const testRegex = /\.test\.|\.spec\.|__tests__\//i
-const toCheck = stagedFiles.filter((f) => sourceRegex.test(f) && !testRegex.test(f))
+// files or folders to always exclude from staged coverage checks (relative paths)
+const excludePatterns = [
+  /^src\/test\//i, // test helpers (e.g. src/test/setup.ts)
+  /test\/setup\.(ts|js)x?$/i,
+]
+
+const toCheck = stagedFiles.filter((f) => {
+  if (!sourceRegex.test(f)) return false
+  if (testRegex.test(f)) return false
+  if (excludePatterns.some((rx) => rx.test(f))) return false
+  return true
+})
 
 if (toCheck.length === 0) {
   console.log('No staged source files to check for coverage.')

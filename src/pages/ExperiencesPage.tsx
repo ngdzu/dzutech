@@ -40,16 +40,29 @@ const ExperiencesPage = () => {
     const { content } = useContent()
     const { experiences, sections } = content
 
-    const sectionsList = useMemo<NavSection[]>(() => [
-        { id: 'experiences', label: 'Experiences' },
-        { id: 'educations', label: 'Education' },
-        { id: 'programming-languages', label: 'Programming languages' },
-        { id: 'languages-spoken', label: 'Languages' },
-        { id: 'achievements', label: 'Achievements' },
-    ], [])
+    const sectionsList = useMemo<NavSection[]>(() => {
+        const list: NavSection[] = []
+        if (sections.experiencesPage?.visible !== false) list.push({ id: 'experiences', label: 'Experiences' })
+        if (sections.educations?.visible !== false) list.push({ id: 'educations', label: 'Education' })
+        if (sections.programmingLanguages?.visible !== false) list.push({ id: 'programming-languages', label: 'Programming languages' })
+        if (sections.languagesSpoken?.visible !== false) list.push({ id: 'languages-spoken', label: 'Languages' })
+        if (sections.achievements?.visible !== false) list.push({ id: 'achievements', label: 'Achievements' })
+        return list
+    }, [sections])
 
     const [activeSection, setActiveSection] = useState<string>(sectionsList[0]?.id ?? '')
     const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+
+    // If the available sections change (for example some were hidden), ensure
+    // the activeSection stays valid. Keep the current activeSection when
+    // possible, otherwise fall back to the first visible section or empty.
+    useEffect(() => {
+        if (sectionsList.length === 0) {
+            setActiveSection('')
+            return
+        }
+        setActiveSection((prev) => (sectionsList.find((s) => s.id === prev) ? prev : sectionsList[0].id))
+    }, [sectionsList])
 
     const toggleExpanded = (key: string) => () => {
         setExpanded((prev) => ({ ...prev, [key]: !prev[key] }))
