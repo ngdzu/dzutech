@@ -47,6 +47,11 @@ const ExperiencesPage = () => {
     ], [])
 
     const [activeSection, setActiveSection] = useState<string>(sectionsList[0]?.id ?? '')
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+
+    const toggleExpanded = (key: string) => () => {
+        setExpanded((prev) => ({ ...prev, [key]: !prev[key] }))
+    }
     const location = useLocation()
 
     // Ensure we scroll to the top when navigating to this route so anchors / observer don't start mid-page
@@ -109,42 +114,79 @@ const ExperiencesPage = () => {
                         <section id="experiences" className="scroll-mt-24 space-y-6">
                             <h2 className="text-3xl font-semibold text-white">Experiences</h2>
                             <div className="space-y-6">
-                                {experiences.map((exp) => (
-                                    <article key={`${exp.company}-${exp.role}`} className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{exp.year}</p>
-                                                <h3 className="mt-1 text-xl font-semibold text-white">
-                                                    {exp.role} · <span className="text-accent-400">{exp.company}</span>
-                                                </h3>
+                                {experiences.map((exp, idx) => {
+                                    const key = `${exp.company}-${exp.role}-${idx}`
+                                    const isExpanded = Boolean(expanded[key])
+                                    return (
+                                        <article key={key} className="relative rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{exp.year}</p>
+                                                    <h3 className="mt-1 text-xl font-semibold text-white">
+                                                        {exp.role} · <span className="text-accent-400">{exp.company}</span>
+                                                    </h3>
+                                                </div>
+                                                {exp.location && <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{exp.location}</p>}
                                             </div>
-                                            {exp.location && <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{exp.location}</p>}
-                                        </div>
-                                        <p className="mt-3 text-slate-300">{exp.description}</p>
-                                        <ul className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
-                                            {exp.stack.map((s) => (
-                                                <li key={s} className="rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1">
-                                                    {s}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </article>
-                                ))}
+
+                                            <p className="mt-3 text-slate-300">{exp.description}</p>
+
+                                            {isExpanded && exp.achievements && exp.achievements.length > 0 && (
+                                                <ul className="mt-3 space-y-2 text-sm text-slate-300">
+                                                    {exp.achievements.map((a) => (
+                                                        <li key={a} className="flex gap-3 items-start">
+                                                            <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden />
+                                                            <span>{a}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+
+                                            <ul className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
+                                                {exp.stack.map((s) => (
+                                                    <li key={s} className="rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1">
+                                                        {s}
+                                                    </li>
+                                                ))}
+                                            </ul>
+
+                                            <div className="mt-6 flex justify-center">
+                                                <button
+                                                    type="button"
+                                                    aria-expanded={isExpanded}
+                                                    aria-label={isExpanded ? 'Collapse achievements' : 'Expand achievements'}
+                                                    onClick={toggleExpanded(key)}
+                                                    className="inline-flex items-center justify-center h-6 w-6 text-accent-400 transition transform duration-150 hover:text-accent-200 hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-400/40"
+                                                >
+                                                    <svg
+                                                        viewBox="0 0 20 20"
+                                                        fill="none"
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        className={`h-5 w-5 transform ${isExpanded ? 'rotate-180' : ''}`}
+                                                        aria-hidden
+                                                    >
+                                                        <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </article>
+                                    )
+                                })}
                             </div>
                         </section>
 
                         <section id="educations" className="scroll-mt-24 space-y-6">
                             <h2 className="text-3xl font-semibold text-white">Education</h2>
-                            <div className="space-y-4">
-                                {(sections.educations?.items ?? []).map((edu, idx) => (
-                                    <div key={idx} className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4">
+                            <div className="space-y-6">
+                                {(sections.educations?.items ?? []).map((edu, i) => (
+                                    <article key={`${edu.institution}-${i}`} className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
                                         <h3 className="text-lg font-semibold text-white">
                                             {edu.institution}
                                             {edu.degree ? ` · ${edu.degree}` : ''}
                                         </h3>
                                         <p className="text-sm text-slate-400">{edu.year}</p>
                                         {edu.description && <p className="mt-2 text-slate-300">{edu.description}</p>}
-                                    </div>
+                                    </article>
                                 ))}
                             </div>
                         </section>
