@@ -4,11 +4,7 @@ import { Link } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
 import { AdminSessionActions } from '../components/AdminSessionActions'
 import type { SiteLogo, SiteMeta } from '../content'
-
-const fieldStyle =
-  'block w-full rounded-xl border border-slate-800/60 bg-night-800/80 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-accent-400 focus:outline-none focus:ring-2 focus:ring-accent-500/30'
-
-const labelStyle = 'text-sm font-medium text-slate-200'
+import { fieldStyle, labelStyle } from '../lib/adminHelpers'
 
 const allowedLogoTypes = new Set(['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp'])
 const MAX_LOGO_SIZE_BYTES = 512 * 1024
@@ -52,15 +48,7 @@ type ProfileFormTextField = Exclude<
   'showEmail' | 'showLinkedin' | 'showGithub' | 'highlightsEnabled'
 >
 
-type ExperienceFormEntry = {
-  role: string
-  company: string
-  year: string
-  description: string
-  achievementsInput: string
-  stackInput: string
-  location?: string | undefined
-}
+// ExperienceFormEntry is provided by ./adminHelpers
 
 const AVAILABILITY_MAX_LENGTH = 50
 const FOCUS_AREAS_MAX_LENGTH = 80
@@ -82,10 +70,9 @@ const AdminDashboard = () => {
     updateSite,
     updateProfile,
     updateSections,
-    updateExperiences,
     resetContent,
   } = useContent()
-  const { site, profile, sections, experiences } = content
+  const { site, profile, sections } = content
   const [siteStatus, setSiteStatus] = useState<ActionStatus>({ state: 'idle' })
   const [status, setStatus] = useState<ActionStatus>({ state: 'idle' })
   const [sectionsStatus, setSectionsStatus] = useState<ActionStatus>({ state: 'idle' })
@@ -95,7 +82,7 @@ const AdminDashboard = () => {
       { id: 'profile-identity', label: 'Identity' },
       { id: 'profile-narrative', label: 'Narrative' },
       { id: 'profile-contact', label: 'Contact' },
-      { id: 'experiences', label: 'Experiences' },
+      // experiences moved to a dedicated admin page
       { id: 'site-sections', label: 'Site sections' },
     ],
     [],
@@ -179,34 +166,8 @@ const AdminDashboard = () => {
   }
 
   const [sectionsForm, setSectionsForm] = useState<SectionsFormState>(sectionsInitialForm as unknown as SectionsFormState)
-  const createEmptyExperience = (): ExperienceFormEntry => ({
-    role: '',
-    company: '',
-    year: '',
-    description: '',
-    achievementsInput: '',
-    stackInput: '',
-    location: undefined,
-  })
-
-  const experiencesInitialForm = useMemo<ExperienceFormEntry[]>(() => {
-    if (experiences.length === 0) {
-      return [createEmptyExperience()]
-    }
-
-    return experiences.map((experience) => ({
-      role: experience.role,
-      company: experience.company,
-      year: experience.year,
-      description: experience.description,
-      achievementsInput: experience.achievements.join('\n'),
-      stackInput: experience.stack.join(', '),
-      location: experience.location ?? '',
-    }))
-  }, [experiences])
-
-  const [experiencesForm, setExperiencesForm] = useState<ExperienceFormEntry[]>(experiencesInitialForm)
-  const [experiencesStatus, setExperiencesStatus] = useState<ActionStatus>({ state: 'idle' })
+  // experiences moved to AdminExperiencesPage
+  // experiences moved to separate admin page (see src/pages/AdminExperiencesPage.tsx)
 
   useEffect(() => {
     setSiteForm(siteInitialForm)
@@ -220,9 +181,7 @@ const AdminDashboard = () => {
     setSectionsForm(sectionsInitialForm)
   }, [sectionsInitialForm])
 
-  useEffect(() => {
-    setExperiencesForm(experiencesInitialForm)
-  }, [experiencesInitialForm])
+  // experiences state and handlers moved to AdminExperiencesPage
 
   useEffect(() => {
     if (status.state === 'idle' || status.state === 'saving' || status.state === 'resetting') return
@@ -243,16 +202,7 @@ const AdminDashboard = () => {
     return () => window.clearTimeout(timeout)
   }, [sectionsStatus])
 
-  useEffect(() => {
-    if (
-      experiencesStatus.state === 'idle' ||
-      experiencesStatus.state === 'saving' ||
-      experiencesStatus.state === 'resetting'
-    )
-      return
-    const timeout = window.setTimeout(() => setExperiencesStatus({ state: 'idle' }), 2500)
-    return () => window.clearTimeout(timeout)
-  }, [experiencesStatus])
+  // experiences status handling moved to AdminExperiencesPage
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return
@@ -436,56 +386,9 @@ const AdminDashboard = () => {
     })
   }
 
-  const handleExperienceTextChange = (
-    index: number,
-    field: 'role' | 'company' | 'year' | 'description' | 'location',
-  ) =>
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value = event.target.value
-      setExperiencesForm((prev) =>
-        prev.map((experience, currentIndex) =>
-          currentIndex === index ? { ...experience, [field]: value } : experience,
-        ),
-      )
-      setExperiencesStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev))
-    }
+  // experience editing moved to AdminExperiencesPage
 
-  const handleExperienceAchievementsChange = (index: number) =>
-    (event: ChangeEvent<HTMLTextAreaElement>) => {
-      const value = event.target.value
-      setExperiencesForm((prev) =>
-        prev.map((experience, currentIndex) =>
-          currentIndex === index ? { ...experience, achievementsInput: value } : experience,
-        ),
-      )
-      setExperiencesStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev))
-    }
-
-  const handleExperienceStackChange = (index: number) =>
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const value = event.target.value
-      setExperiencesForm((prev) =>
-        prev.map((experience, currentIndex) =>
-          currentIndex === index ? { ...experience, stackInput: value } : experience,
-        ),
-      )
-      setExperiencesStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev))
-    }
-
-  const handleAddExperience = () => {
-    setExperiencesForm((prev) => [...prev, createEmptyExperience()])
-    setExperiencesStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev))
-  }
-
-  const handleRemoveExperience = (index: number) => {
-    setExperiencesForm((prev) => {
-      if (prev.length <= 1) {
-        return [createEmptyExperience()]
-      }
-      return prev.filter((_, currentIndex) => currentIndex !== index)
-    })
-    setExperiencesStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev))
-  }
+  // experience add/remove handled in AdminExperiencesPage
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -566,72 +469,7 @@ const AdminDashboard = () => {
     }
   }
 
-  const handleExperiencesSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setExperiencesStatus({ state: 'saving' })
-
-    const sanitized = experiencesForm.map((experience) => ({
-      role: experience.role.trim(),
-      company: experience.company.trim(),
-      year: experience.year.trim(),
-      location: (experience.location ?? '').trim(),
-      description: experience.description.trim(),
-      achievements: experience.achievementsInput
-        .split('\n')
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0),
-      stack: experience.stackInput
-        .split(',')
-        .map((item) => item.trim())
-        .filter((item) => item.length > 0),
-    }))
-
-    if (sanitized.length === 0) {
-      setExperiencesStatus({ state: 'error', message: 'Add at least one experience before saving' })
-      return
-    }
-
-    const invalidIndex = sanitized.findIndex((experience) => {
-      if (!experience.year || !experience.role || !experience.company) {
-        return true
-      }
-      if (!experience.description) {
-        return true
-      }
-      if (experience.stack.length === 0) {
-        return true
-      }
-      return false
-    })
-
-    if (invalidIndex !== -1) {
-      const displayIndex = invalidIndex + 1
-      setExperiencesStatus({
-        state: 'error',
-        message: `Experience ${displayIndex} needs a year, title, company, description, and at least one skill chip`,
-      })
-      return
-    }
-
-    try {
-      const saved = await updateExperiences(sanitized)
-      setExperiencesForm(
-        saved.map((experience) => ({
-          role: experience.role,
-          company: experience.company,
-          year: experience.year,
-          description: experience.description,
-          achievementsInput: experience.achievements.join('\n'),
-          stackInput: experience.stack.join(', '),
-          location: experience.location ?? '',
-        })),
-      )
-      setExperiencesStatus({ state: 'saved' })
-    } catch (saveError) {
-      const message = saveError instanceof Error ? saveError.message : 'Failed to save experiences'
-      setExperiencesStatus({ state: 'error', message })
-    }
-  }
+  // experiences submit handler moved to AdminExperiencesPage
 
   const handleSiteSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -724,19 +562,19 @@ const AdminDashboard = () => {
     setStatus({ state: 'resetting' })
     setSiteStatus({ state: 'resetting' })
     setSectionsStatus({ state: 'resetting' })
-    setExperiencesStatus({ state: 'resetting' })
+    // experiences reset moved to AdminExperiencesPage
     try {
       await resetContent()
       setStatus({ state: 'reset' })
       setSiteStatus({ state: 'reset' })
       setSectionsStatus({ state: 'reset' })
-      setExperiencesStatus({ state: 'reset' })
+      // experiences reset moved to AdminExperiencesPage
     } catch (resetError) {
       const message = resetError instanceof Error ? resetError.message : 'Failed to reset content'
       setStatus({ state: 'error', message })
       setSiteStatus({ state: 'error', message })
       setSectionsStatus({ state: 'error', message })
-      setExperiencesStatus({ state: 'error', message })
+      // experiences error reporting is handled in AdminExperiencesPage
     }
   }
 
@@ -745,8 +583,6 @@ const AdminDashboard = () => {
     loading || status.state === 'resetting' || sectionsStatus.state === 'resetting' || siteStatus.state === 'saving' || siteStatus.state === 'resetting'
   const sectionsBusy =
     loading || status.state === 'resetting' || sectionsStatus.state === 'saving' || sectionsStatus.state === 'resetting'
-  const experiencesBusy =
-    loading || status.state === 'resetting' || experiencesStatus.state === 'saving' || experiencesStatus.state === 'resetting'
 
   const getStatusLabel = (
     currentStatus: ActionStatus,
@@ -777,7 +613,7 @@ const AdminDashboard = () => {
   const siteStatusLabel = getStatusLabel(siteStatus, 'site')
   const profileStatusLabel = getStatusLabel(status, 'profile')
   const sectionsStatusLabel = getStatusLabel(sectionsStatus, 'sections')
-  const experiencesStatusLabel = getStatusLabel(experiencesStatus, 'experiences')
+  // experiences status label moved to AdminExperiencesPage
 
   const statusMessages = [
     siteStatusLabel && {
@@ -792,10 +628,7 @@ const AdminDashboard = () => {
       message: sectionsStatusLabel,
       tone: sectionsStatus.state === 'error' ? 'error' : 'default',
     },
-    experiencesStatusLabel && {
-      message: experiencesStatusLabel,
-      tone: experiencesStatus.state === 'error' ? 'error' : 'default',
-    },
+    // experiences status handled by AdminExperiencesPage
   ]
     .filter((item): item is { message: string; tone: 'error' | 'default' } => Boolean(item))
     .concat(error ? [{ message: error, tone: 'error' as const }] : [])
@@ -815,6 +648,12 @@ const AdminDashboard = () => {
                 className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
               >
                 Manage blogs
+              </Link>
+              <Link
+                to="/admin/experiences"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+              >
+                Experiences
               </Link>
               <Link
                 to="/"
@@ -1274,169 +1113,7 @@ const AdminDashboard = () => {
               </div>
             </form>
 
-            <form
-              onSubmit={handleExperiencesSubmit}
-              id="experiences"
-              className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28"
-            >
-              <div className="space-y-2">
-                <h2 className="text-lg font-semibold text-white">Experiences</h2>
-                <p className="text-sm text-slate-400">
-                  Control the experience cards shown on the landing page. Each entry needs a year, title,
-                  company, description, and the skill chips you want to highlight.
-                </p>
-              </div>
-              <div className="space-y-6">
-                {experiencesForm.map((experience, index) => {
-                  const stackItems = experience.stackInput
-                    .split(',')
-                    .map((item) => item.trim())
-                    .filter((item) => item.length > 0)
-
-                  return (
-                    <div
-                      key={`experience-${index}`}
-                      className="space-y-5 rounded-2xl border border-slate-800/70 bg-night-900/50 p-5"
-                    >
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                        <div className="space-y-1">
-                          <h3 className="text-base font-semibold text-white">Experience {index + 1}</h3>
-                          <p className="text-xs text-slate-500">
-                            Showcase a role and the stack you led or contributed to during that time.
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveExperience(index)}
-                          className="inline-flex items-center justify-center rounded-full border border-slate-700/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300 transition hover:border-red-400/60 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-60"
-                          disabled={experiencesBusy}
-                        >
-                          Remove
-                        </button>
-                      </div>
-                      <div className="grid gap-4 md:grid-cols-3">
-                        <label className="flex flex-col gap-2 md:col-span-1">
-                          <span className={labelStyle}>Year</span>
-                          <input
-                            className={fieldStyle}
-                            value={experience.year}
-                            onChange={handleExperienceTextChange(index, 'year')}
-                            placeholder="2023 — Present"
-                            disabled={experiencesBusy}
-                          />
-                        </label>
-                        <label className="flex flex-col gap-2 md:col-span-1">
-                          <span className={labelStyle}>Title</span>
-                          <input
-                            className={fieldStyle}
-                            value={experience.role}
-                            onChange={handleExperienceTextChange(index, 'role')}
-                            placeholder="Principal Software Engineer"
-                            disabled={experiencesBusy}
-                          />
-                        </label>
-                        <label className="flex flex-col gap-2 md:col-span-1">
-                          <span className={labelStyle}>Company</span>
-                          <input
-                            className={fieldStyle}
-                            value={experience.company}
-                            onChange={handleExperienceTextChange(index, 'company')}
-                            placeholder="Aurora Labs"
-                            disabled={experiencesBusy}
-                          />
-                        </label>
-                        <label className="flex flex-col gap-2 md:col-span-1">
-                          <span className={labelStyle}>Location</span>
-                          <input
-                            className={fieldStyle}
-                            value={experience.location ?? ''}
-                            onChange={handleExperienceTextChange(index, 'location')}
-                            placeholder="Seattle, WA"
-                            disabled={experiencesBusy}
-                          />
-                        </label>
-                      </div>
-                      <label className="flex flex-col gap-2">
-                        <span className={labelStyle}>Description</span>
-                        <textarea
-                          className={`${fieldStyle} min-h-[120px]`}
-                          value={experience.description}
-                          onChange={handleExperienceTextChange(index, 'description')}
-                          placeholder="What did you lead or deliver in this role?"
-                          disabled={experiencesBusy}
-                        />
-                      </label>
-                      <div className="grid gap-4 lg:grid-cols-2">
-                        <label className="flex flex-col gap-2">
-                          <span className={labelStyle}>Achievements</span>
-                          <textarea
-                            className={`${fieldStyle} min-h-[110px]`}
-                            value={experience.achievementsInput}
-                            onChange={handleExperienceAchievementsChange(index)}
-                            placeholder={`One achievement per line\nScaled platform reliability\nMentored team to ship faster`}
-                            disabled={experiencesBusy}
-                          />
-                          <span className="text-[10px] uppercase tracking-[0.25em] text-slate-500">
-                            Appears as bullet points on the landing page
-                          </span>
-                        </label>
-                        <div className="space-y-3">
-                          <label className="flex flex-col gap-2">
-                            <span className={labelStyle}>Skill chips</span>
-                            <input
-                              className={fieldStyle}
-                              value={experience.stackInput}
-                              onChange={handleExperienceStackChange(index)}
-                              placeholder="TypeScript, React, Node.js"
-                              disabled={experiencesBusy}
-                            />
-                            <span className="text-[10px] uppercase tracking-[0.25em] text-slate-500">
-                              Separate items with commas
-                            </span>
-                          </label>
-                          <div className="space-y-2 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-3">
-                            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                              Chip preview
-                            </span>
-                            <ul className="flex flex-wrap gap-2 text-xs text-slate-300">
-                              {stackItems.length > 0 ? (
-                                stackItems.map((item) => (
-                                  <li
-                                    key={`${item}-${index}`}
-                                    className="rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1"
-                                  >
-                                    {item}
-                                  </li>
-                                ))
-                              ) : (
-                                <li className="text-xs text-slate-500">Add skills to preview chips</li>
-                              )}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-              <div className="flex flex-col gap-4 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  type="button"
-                  onClick={handleAddExperience}
-                  className="inline-flex items-center justify-center rounded-full border border-slate-700/70 px-5 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={experiencesBusy}
-                >
-                  Add experience
-                </button>
-                <button
-                  type="submit"
-                  className="inline-flex items-center justify-center rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400 disabled:cursor-not-allowed disabled:opacity-60"
-                  disabled={experiencesBusy}
-                >
-                  Save experiences
-                </button>
-              </div>
-            </form>
+            {/* experiences moved to /admin/experiences */}
 
             <form
               onSubmit={handleSectionsSubmit}

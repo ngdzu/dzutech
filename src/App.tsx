@@ -3,6 +3,7 @@ import { LandingPage } from './pages/LandingPage'
 import ExperiencesPage from './pages/ExperiencesPage'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { AdminBlogsPage } from './pages/AdminBlogsPage'
+import { AdminExperiencesPage } from './pages/AdminExperiencesPage'
 import { BlogListPage } from './pages/BlogListPage'
 import { AdminBlogDetailPage } from './pages/AdminBlogDetailPage'
 import { AdminBlogEditorPage } from './pages/AdminBlogEditorPage'
@@ -67,6 +68,14 @@ function App() {
         element={
           <RequireAuth>
             <AdminBlogsByTagPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/experiences"
+        element={
+          <RequireAuth>
+            <AdminExperiencesPage />
           </RequireAuth>
         }
       />
