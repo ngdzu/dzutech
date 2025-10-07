@@ -162,7 +162,7 @@ const ExperiencesPage = () => {
                                                         <ul className={`space-y-2 text-sm text-slate-300 transform transition-all ${listDuration} ${listEasing} ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
                                                             {exp.achievements.map((a) => (
                                                                 <li key={a} className="flex gap-3 items-start">
-                                                                    <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden />
+                                                                    <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500 ring-1 ring-slate-800/60" aria-hidden />
                                                                     <span>{a}</span>
                                                                 </li>
                                                             ))}
@@ -226,7 +226,7 @@ const ExperiencesPage = () => {
                                                 <ul className="mt-3 space-y-2 text-slate-300">
                                                     {edu.description.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => (
                                                         <li key={line} className="flex gap-3 items-start text-sm">
-                                                            <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden />
+                                                            <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500 ring-1 ring-slate-800/60" aria-hidden />
                                                             <span>{line}</span>
                                                         </li>
                                                     ))}
@@ -276,11 +276,18 @@ const ExperiencesPage = () => {
                         {sections.achievements?.visible !== false && (
                             <section id="achievements" className="scroll-mt-24 space-y-6">
                                 <h2 className="text-3xl font-semibold text-white">Achievements</h2>
-                                <ul className="mt-3 space-y-2 list-disc pl-6 text-slate-300">
-                                    {(sections.achievements?.items ?? []).map((a) => (
-                                        <li key={a}>{a}</li>
-                                    ))}
-                                </ul>
+                                <div className="space-y-6">
+                                    <article className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
+                                        <ul className="mt-3 space-y-2 text-slate-300">
+                                            {(sections.achievements?.items ?? []).map((a) => (
+                                                <li key={a} className="flex gap-3 items-start text-sm">
+                                                    <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500 ring-1 ring-slate-800/60" aria-hidden />
+                                                    <span>{a}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </article>
+                                </div>
                             </section>
                         )}
                     </main>
