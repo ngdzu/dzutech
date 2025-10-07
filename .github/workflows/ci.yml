@@ -29,11 +29,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install root dependencies
-        run: npm ci
+      - name: Install root dependencies (include devDependencies)
+        run: HUSKY=0 npm ci --include=dev
 
-      - name: Install server dependencies
-        run: npm ci
+      - name: Install server dependencies (include devDependencies)
+        run: HUSKY=0 npm ci --include=dev
         working-directory: server
 
       - name: Verify production environment configuration
