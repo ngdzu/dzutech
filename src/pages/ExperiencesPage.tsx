@@ -117,6 +117,15 @@ const ExperiencesPage = () => {
                                 {experiences.map((exp, idx) => {
                                     const key = `${exp.company}-${exp.role}-${idx}`
                                     const isExpanded = Boolean(expanded[key])
+                                    const easingCollapse = "ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+                                    const easingExpand = "ease-[cubic-bezier(0.22,1,0.36,1)]"
+                                    const containerEasing = isExpanded ? easingExpand : easingCollapse
+                                    const listEasing = isExpanded ? easingExpand : easingCollapse
+                                    const chevronEasing = isExpanded ? easingExpand : easingCollapse
+                                    // Durations: collapse uses original timings; expand is 3x slower
+                                    const containerDuration = isExpanded ? 'duration-[1800ms]' : 'duration-[450ms]'
+                                    const listDuration = isExpanded ? 'duration-[450ms]' : 'duration-[300ms]'
+                                    const chevronDuration = isExpanded ? 'duration-[900ms]' : 'duration-[225ms]'
                                     return (
                                         <article key={key} className="relative rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
                                             <div className="flex items-center justify-between">
@@ -131,15 +140,17 @@ const ExperiencesPage = () => {
 
                                             <p className="mt-3 text-slate-300">{exp.description}</p>
 
-                                            {isExpanded && exp.achievements && exp.achievements.length > 0 && (
-                                                <ul className="mt-3 space-y-2 text-sm text-slate-300">
-                                                    {exp.achievements.map((a) => (
-                                                        <li key={a} className="flex gap-3 items-start">
-                                                            <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden />
-                                                            <span>{a}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
+                                            {exp.achievements && exp.achievements.length > 0 && (
+                                                <div className={`mt-3 overflow-hidden transition-all ${containerDuration} ${containerEasing} ${isExpanded ? 'max-h-64' : 'max-h-0'}`}>
+                                                    <ul className={`space-y-2 text-sm text-slate-300 transform transition-all ${listDuration} ${listEasing} ${isExpanded ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
+                                                        {exp.achievements.map((a) => (
+                                                            <li key={a} className="flex gap-3 items-start">
+                                                                <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden />
+                                                                <span>{a}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </div>
                                             )}
 
                                             <ul className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
@@ -162,9 +173,7 @@ const ExperiencesPage = () => {
                                                         viewBox="0 0 20 20"
                                                         fill="none"
                                                         xmlns="http://www.w3.org/2000/svg"
-                                                        className={`h-5 w-5 transform ${isExpanded ? 'rotate-180' : ''}`}
-                                                        aria-hidden
-                                                    >
+                                                        className={`h-5 w-5 transform ${isExpanded ? 'rotate-180' : ''} transition ${chevronDuration} ${chevronEasing}`} aria-hidden>
                                                         <path d="M6 8l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                                     </svg>
                                                 </button>
