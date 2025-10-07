@@ -68,16 +68,9 @@ npm run preview
 
 ## ✅ Quality checks & Git hooks
 
-- Run `npm run lint` to execute ESLint across the project.
-- Run `npm run test` for the client/shared Vitest suite and `npm run test:server` for the API; `npm run test:all` wraps both.
 
 Use `npm run verify:env` to make sure all security-critical environment variables are populated before deploying. This command enforces:
 
-- Strong, non-default `DATABASE_URL` credentials
-- `SESSION_SECRET` length (>= 32 chars) and non-placeholder values
-- Explicit `ALLOWED_ORIGIN` domains (no wildcards)
-- Populated `ADMIN_EMAIL` and `ADMIN_PASSWORD_HASH`
-- `DB_SSL=true` for any non-local database
 
 Locally, export `FORCE_ENV_CHECK=true` if you want to run the verification outside of `NODE_ENV=production`/CI.
 
@@ -86,6 +79,8 @@ Locally, export `FORCE_ENV_CHECK=true` if you want to run the verification outsi
 > 1. Runs `npx lint-staged` so only the staged TypeScript/JavaScript files get linted first.
 > 2. Runs the full `npm run lint` command.
 > 3. Runs `npm run test:all` to ensure client and server tests pass.
+
+The project also includes a coverage gate that runs during pre-commit. The hook runs tests with coverage and then enforces a minimum per-file statement coverage for staged source files (default 80%). You can change the threshold by setting the COVERAGE_THRESHOLD environment variable before committing, e.g.: `COVERAGE_THRESHOLD=70 git commit -m "..."`.
 
 ### Before you commit
 

@@ -1,6 +1,25 @@
-#!/usr/bin/env sh
+#!/bin/sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# lint only staged files
 npx lint-staged
+
+# run full lint
 npm run lint
-npm run test:all
+
+# run tests with coverage and then ensure staged files meet the coverage threshold
+echo "Running tests with coverage (this may take a bit)..."
+npm run coverage:run
+if [ $? -ne 0 ]; then
+  echo "Tests/coverage failed. Aborting commit."
+  exit 1
+fi
+
+echo "Checking staged file coverage..."
+npm run coverage:check-staged
+if [ $? -ne 0 ]; then
+  echo "Staged file coverage check failed. Aborting commit."
+  exit 1
+fi
+
+exit 0

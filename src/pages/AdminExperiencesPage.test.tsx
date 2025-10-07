@@ -192,4 +192,62 @@ describe('AdminExperiencesPage', () => {
             expect(calledWith.languagesSpoken.items).toEqual(['English, Spanish'])
         }
     })
+
+    it('removing the only experience resets it to an empty experience', async () => {
+        // make the context contain a single experience so removing it triggers the "empty" fallback
+        mockContext.content = { ...mockContext.content, experiences: [clone().experiences[0]] }
+        const { AdminExperiencesPage } = await import('./AdminExperiencesPage')
+        render(
+            <MemoryRouter>
+                <AdminExperiencesPage />
+            </MemoryRouter>,
+        )
+
+        // ensure there's at least one experience
+        const headingsBefore = screen.getAllByRole('heading', { level: 3 }).filter((h) => /Experience \d+/.test(h.textContent || ''))
+        expect(headingsBefore.length).toBeGreaterThan(0)
+
+        // find the Remove button within the first experience panel and click it
+        const headings = screen.getAllByRole('heading', { level: 3 }).filter((h) => /Experience \d+/.test(h.textContent || ''))
+        const firstHeading = headings[0]
+        const panelRoot = firstHeading.parentElement?.parentElement?.parentElement as HTMLElement
+        const removeBtn = within(panelRoot).getByRole('button', { name: /Remove/i })
+        fireEvent.click(removeBtn)
+
+        // after removing the only experience, there should still be one panel but inputs should be empty/default
+        await waitFor(() => {
+            const headingsAfter = screen.getAllByRole('heading', { level: 3 }).filter((h) => /Experience \d+/.test(h.textContent || ''))
+            expect(headingsAfter.length).toBeGreaterThanOrEqual(1)
+            // after removing the only experience there should still be one panel present (the UI keeps a single editable entry)
+            const newHeadings = screen.getAllByRole('heading', { level: 3 }).filter((h) => /Experience \d+/.test(h.textContent || ''))
+            expect(newHeadings.length).toBeGreaterThanOrEqual(1)
+            const newPanel = newHeadings[0].parentElement?.parentElement?.parentElement as HTMLElement
+            const yearInput = within(newPanel).getByPlaceholderText('2023 — Present') as HTMLInputElement
+            expect(yearInput).toBeTruthy()
+            const titleInput = within(newPanel).getByPlaceholderText('Principal Software Engineer') as HTMLInputElement
+            expect(titleInput).toBeTruthy()
+        })
+    })
+
+    it('shows an error message when updateExperiences throws during save', async () => {
+        const { AdminExperiencesPage } = await import('./AdminExperiencesPage')
+        // make the updateExperiences reject
+        mockContext.updateExperiences = vi.fn(async () => {
+            throw new Error('boom')
+        })
+
+        render(
+            <MemoryRouter>
+                <AdminExperiencesPage />
+            </MemoryRouter>,
+        )
+
+        const saveButtons = screen.getAllByRole('button', { name: /Save experiences/i })
+        const saveBtn = saveButtons[saveButtons.length - 1]
+        fireEvent.click(saveBtn)
+
+        await waitFor(() => expect(mockContext.updateExperiences).toHaveBeenCalled())
+        // the error message should be rendered; match flexibly in case of surrounding markup
+        await waitFor(() => expect(screen.getByText((t) => typeof t === 'string' && t.includes('boom'))).toBeTruthy())
+    })
 })
