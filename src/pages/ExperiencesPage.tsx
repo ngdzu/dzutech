@@ -228,17 +228,21 @@ const ExperiencesPage = () => {
                         {sections.programmingLanguages?.visible !== false && (
                             <section id="programming-languages" className="scroll-mt-24 space-y-6">
                                 <h2 className="text-3xl font-semibold text-white">Programming languages</h2>
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                    {(sections.programmingLanguages?.items ?? []).map((lang) => {
-                                        const trimmed = typeof lang === 'string' ? lang.trim() : ''
-                                        if (!trimmed) return null
-                                        const encoded = encodeURIComponent(trimmed.toLowerCase())
-                                        return (
-                                            <li key={trimmed} className="list-none">
-                                                <Chip to={`/blogs/tags/${encoded}`}>{trimmed}</Chip>
-                                            </li>
-                                        )
-                                    })}
+                                <div className="space-y-6">
+                                    <article className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
+                                        <div className="flex flex-wrap gap-2 mt-1">
+                                            {(sections.programmingLanguages?.items ?? []).map((lang) => {
+                                                const trimmed = typeof lang === 'string' ? lang.trim() : ''
+                                                if (!trimmed) return null
+                                                const encoded = encodeURIComponent(trimmed.toLowerCase())
+                                                return (
+                                                    <li key={trimmed} className="list-none">
+                                                        <Chip to={`/blogs/tags/${encoded}`}>{trimmed}</Chip>
+                                                    </li>
+                                                )
+                                            })}
+                                        </div>
+                                    </article>
                                 </div>
                             </section>
                         )}

@@ -10,7 +10,9 @@ type ChipProps = {
 }
 
 export const Chip = ({ children, to, onClick, ariaLabel, className = '' }: ChipProps) => {
-    const base = 'rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1 text-xs transition'
+    // make chips inline-flex so vertical margins apply, and add small vertical margin
+    // reduce vertical footprint: smaller vertical padding and no extra vertical margin
+    const base = 'inline-flex items-center rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-0.5 text-xs transition my-0'
     const focus = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400'
 
     const interactive = Boolean((to && to.length > 0) || onClick)
