@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
 import { AdminSessionActions } from '../components/AdminSessionActions'
 import { fieldStyle, labelStyle, createEmptyExperience, parseAchievements, parseStack } from '../lib/adminHelpers'
+import { FiTrash2 } from 'react-icons/fi'
 import type { ExperienceFormEntry } from '../lib/adminHelpers'
 
 const AdminExperiencesPage = () => {
@@ -329,7 +330,7 @@ const AdminExperiencesPage = () => {
 
                 <form onSubmit={handleSectionsSubmit} className="space-y-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6 scroll-mt-28">
                     <div className="space-y-2">
-                        <h2 className="text-lg font-semibold text-white">Site sections (Experiences)</h2>
+                        <h2 className="text-lg font-semibold text-white">Education and more</h2>
                         <p className="text-sm text-slate-400">Control the content blocks shown on the experiences page: education, programming languages, languages spoken, and achievements.</p>
                     </div>
 
@@ -359,11 +360,30 @@ const AdminExperiencesPage = () => {
                         </div>
                         <div className="space-y-3">
                             {(sectionsForm.educationsItems ?? []).map((edu, idx: number) => (
-                                <div key={`edu-${idx}`} className="grid gap-2 md:grid-cols-4">
-                                    <input className={fieldStyle} value={edu.institution ?? ''} onChange={handleEditEducation(idx, 'institution')} placeholder="Institution" />
-                                    <input className={fieldStyle} value={edu.degree ?? ''} onChange={handleEditEducation(idx, 'degree')} placeholder="Degree" />
-                                    <input className={fieldStyle} value={edu.year ?? ''} onChange={handleEditEducation(idx, 'year')} placeholder="Year" />
-                                    <input className={fieldStyle} value={edu.description ?? ''} onChange={handleEditEducation(idx, 'description')} placeholder="Description" />
+                                <div key={`edu-${idx}`} className="space-y-2">
+                                    <div className="grid gap-2 md:grid-cols-3">
+                                        <input className={fieldStyle} value={edu.institution ?? ''} onChange={handleEditEducation(idx, 'institution')} placeholder="Institution" />
+                                        <input className={fieldStyle} value={edu.degree ?? ''} onChange={handleEditEducation(idx, 'degree')} placeholder="Degree" />
+                                        <input className={fieldStyle} value={edu.year ?? ''} onChange={handleEditEducation(idx, 'year')} placeholder="Year" />
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                        <textarea className={`${fieldStyle} min-h-[64px] w-full`} value={edu.description ?? ''} onChange={handleEditEducation(idx, 'description')} placeholder="Description" />
+                                        <button
+                                            type="button"
+                                            aria-label={`Delete education ${idx + 1}`}
+                                            onClick={() => {
+                                                const hasContent = Boolean((edu.institution ?? '').trim() || (edu.degree ?? '').trim() || (edu.year ?? '').trim() || (edu.description ?? '').trim())
+                                                if (hasContent) {
+                                                    if (!window.confirm('This education entry contains data. Are you sure you want to remove it?')) return
+                                                }
+                                                handleRemoveArrayItem('educationsItems', idx)()
+                                            }}
+                                            className="inline-flex items-center gap-2 rounded-full border border-red-500/60 px-3 py-1 text-xs font-semibold text-red-200 transition hover:border-red-400/70 hover:text-red-100"
+                                        >
+                                            <FiTrash2 />
+                                            Delete
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                             <div className="flex gap-2">

@@ -459,6 +459,53 @@ app.put('/api/sections', requireAuth, async (req: Request, res: Response) => {
           ? payload.contact.description
           : currentSections.contact.description,
     },
+    experiencesPage: {
+      visible:
+        typeof payload?.experiencesPage?.visible === 'boolean'
+          ? payload.experiencesPage.visible
+          : currentSections.experiencesPage?.visible ?? true,
+    },
+    educations: {
+      visible:
+        typeof payload?.educations?.visible === 'boolean'
+          ? payload.educations.visible
+          : currentSections.educations?.visible ?? true,
+      items: Array.isArray(payload?.educations?.items)
+        ? payload!.educations!.items.map((e) => ({
+          institution: typeof e?.institution === 'string' ? e.institution : '',
+          degree: typeof e?.degree === 'string' ? e.degree : undefined,
+          year: typeof e?.year === 'string' ? e.year : undefined,
+          description: typeof e?.description === 'string' ? e.description : undefined,
+        }))
+        : currentSections.educations?.items ?? [],
+    },
+    programmingLanguages: {
+      visible:
+        typeof payload?.programmingLanguages?.visible === 'boolean'
+          ? payload.programmingLanguages.visible
+          : currentSections.programmingLanguages?.visible ?? true,
+      items: Array.isArray(payload?.programmingLanguages?.items)
+        ? payload!.programmingLanguages!.items.map((s) => (typeof s === 'string' ? s : '')).filter(Boolean)
+        : currentSections.programmingLanguages?.items ?? [],
+    },
+    languagesSpoken: {
+      visible:
+        typeof payload?.languagesSpoken?.visible === 'boolean'
+          ? payload.languagesSpoken.visible
+          : currentSections.languagesSpoken?.visible ?? true,
+      items: Array.isArray(payload?.languagesSpoken?.items)
+        ? payload!.languagesSpoken!.items.map((s) => (typeof s === 'string' ? s : '')).filter(Boolean)
+        : currentSections.languagesSpoken?.items ?? [],
+    },
+    achievements: {
+      visible:
+        typeof payload?.achievements?.visible === 'boolean'
+          ? payload.achievements.visible
+          : currentSections.achievements?.visible ?? true,
+      items: Array.isArray(payload?.achievements?.items)
+        ? payload!.achievements!.items.map((s) => (typeof s === 'string' ? s : '')).filter(Boolean)
+        : currentSections.achievements?.items ?? [],
+    },
   }
 
   const errorMessage = validateSections(next)

@@ -113,7 +113,7 @@ const ExperiencesPage = () => {
             <div className="mx-auto max-w-6xl px-6 py-12">
                 <div className="flex gap-8">
                     <SideNav sections={sectionsList} activeSection={activeSection} />
-                    <main className="flex-1">
+                    <main className="flex-1 space-y-16">
                         <section id="experiences" className="scroll-mt-24 space-y-6">
                             <h2 className="text-3xl font-semibold text-white">Experiences</h2>
                             <div className="space-y-6">
@@ -201,12 +201,21 @@ const ExperiencesPage = () => {
                             <div className="space-y-6">
                                 {(sections.educations?.items ?? []).map((edu, i) => (
                                     <article key={`${edu.institution}-${i}`} className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
-                                        <h3 className="text-lg font-semibold text-white">
+                                        <p className="text-sm uppercase tracking-[0.25em] text-slate-400">{edu.year}</p>
+                                        <h3 className="mt-1 text-xl font-semibold text-white">
                                             {edu.institution}
-                                            {edu.degree ? ` · ${edu.degree}` : ''}
+                                            {edu.degree ? <span className="text-accent-400"> · {edu.degree}</span> : null}
                                         </h3>
-                                        <p className="text-sm text-slate-400">{edu.year}</p>
-                                        {edu.description && <p className="mt-2 text-slate-300">{edu.description}</p>}
+                                        {edu.description && (
+                                            <ul className="mt-3 space-y-2 text-slate-300">
+                                                {edu.description.split('\n').map((line) => line.trim()).filter(Boolean).map((line) => (
+                                                    <li key={line} className="flex gap-3 items-start text-sm">
+                                                        <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-accent-500" aria-hidden />
+                                                        <span>{line}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
                                     </article>
                                 ))}
                             </div>
