@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { FiArrowLeft } from 'react-icons/fi'
 import { Link, useParams } from 'react-router-dom'
+import Chip from '../components/Chip'
 import { useContent } from '../context/ContentContext'
 import { markdownExcerpt } from '../lib/markdown'
 
@@ -75,14 +76,16 @@ const BlogTagPage = () => {
                       {previewText || 'Content coming soon.'}
                     </p>
                     <div className="mt-auto flex flex-wrap gap-2 text-xs text-slate-300/80">
-                      {(Array.isArray(post.tags) ? post.tags : []).map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1"
-                        >
-                          {tag}
-                        </span>
-                      ))}
+                      {(Array.isArray(post.tags) ? post.tags : []).map((tag) => {
+                        const trimmed = String(tag).trim()
+                        if (!trimmed) return null
+                        const encoded = encodeURIComponent(trimmed.toLowerCase())
+                        return (
+                          <Chip key={trimmed} to={`/blogs/tags/${encoded}`}>
+                            {trimmed}
+                          </Chip>
+                        )
+                      })}
                     </div>
                   </div>
                 </article>

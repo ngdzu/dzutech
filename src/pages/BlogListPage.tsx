@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { FiArrowLeft } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
+import Chip from '../components/Chip'
 import { useContent } from '../context/ContentContext'
 import { markdownExcerpt } from '../lib/markdown'
 
@@ -118,13 +119,9 @@ const BlogListPage = () => {
                           const trimmed = tag.trim()
                           const encoded = encodeURIComponent(trimmed.toLowerCase())
                           return (
-                            <Link
-                              key={trimmed}
-                              to={`/blogs/tags/${encoded}`}
-                              className="rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1 transition hover:border-accent-400 hover:text-white"
-                            >
+                            <Chip key={trimmed} to={`/blogs/tags/${encoded}`}>
                               {trimmed}
-                            </Link>
+                            </Chip>
                           )
                         })}
                       </div>

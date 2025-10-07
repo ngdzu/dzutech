@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import Chip from '../components/Chip'
 import { useContent } from '../context/ContentContext'
 import { markdownExcerpt } from '../lib/markdown'
 
@@ -81,20 +82,18 @@ const ExperienceCard = ({
         </h3>
       </div>
       <ul className="flex flex-wrap gap-2 text-xs font-medium text-slate-300">
-        {stack.map((item) => (
-          <li key={item}>
-            <button
-              type="button"
-              className="rounded-full border border-slate-700/70 bg-slate-900/80 px-3 py-1 text-slate-300 transition hover:border-accent-400/70 hover:text-accent-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
-              aria-label={`Skill: ${item}`}
-              onClick={() => {
-                /* Reserved for future interactions */
-              }}
-            >
-              {item}
-            </button>
-          </li>
-        ))}
+        {stack.map((item) => {
+          const trimmed = typeof item === 'string' ? item.trim() : ''
+          if (!trimmed) return null
+          const encoded = encodeURIComponent(trimmed.toLowerCase())
+          return (
+            <li key={trimmed}>
+              <Chip to={`/blogs/tags/${encoded}`} ariaLabel={`Skill: ${trimmed}`}>
+                {trimmed}
+              </Chip>
+            </li>
+          )
+        })}
       </ul>
     </div>
     <p className="mt-4 text-base text-slate-300/95">{description}</p>
@@ -147,13 +146,9 @@ const PostCard = ({
             if (!trimmed) return null
             const encoded = encodeURIComponent(trimmed.toLowerCase())
             return (
-              <Link
-                key={trimmed}
-                to={`/blogs/tags/${encoded}`}
-                className="rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1 transition hover:border-accent-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
-              >
+              <Chip key={trimmed} to={`/blogs/tags/${encoded}`}>
                 {trimmed}
-              </Link>
+              </Chip>
             )
           })}
         </div>

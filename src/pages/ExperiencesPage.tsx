@@ -1,5 +1,6 @@
 import { useMemo, useEffect, useState } from 'react'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
+import Chip from '../components/Chip'
 import { FiArrowLeft } from 'react-icons/fi'
 import { useContent } from '../context/ContentContext'
 
@@ -162,12 +163,7 @@ const ExperiencesPage = () => {
                                                     const encoded = encodeURIComponent(trimmed.toLowerCase())
                                                     return (
                                                         <li key={trimmed}>
-                                                            <Link
-                                                                to={`/blogs/tags/${encoded}`}
-                                                                className="rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1 transition hover:border-accent-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
-                                                            >
-                                                                {trimmed}
-                                                            </Link>
+                                                            <Chip to={`/blogs/tags/${encoded}`}>{trimmed}</Chip>
                                                         </li>
                                                     )
                                                 })}
