@@ -287,7 +287,7 @@ const AdminExperiencesPage = () => {
                                     </button>
                                 </div>
 
-                                <div className="grid gap-4 md:grid-cols-3">
+                                <div className="grid gap-4 md:grid-cols-4">
                                     <label className="flex flex-col gap-2 md:col-span-1">
                                         <span className={labelStyle}>Year</span>
                                         <input className={fieldStyle} value={experience.year} onChange={handleExperienceTextChange(index, 'year')} placeholder="2023 — Present" />
@@ -299,6 +299,10 @@ const AdminExperiencesPage = () => {
                                     <label className="flex flex-col gap-2 md:col-span-1">
                                         <span className={labelStyle}>Company</span>
                                         <input className={fieldStyle} value={experience.company} onChange={handleExperienceTextChange(index, 'company')} placeholder="Aurora Labs" />
+                                    </label>
+                                    <label className="flex flex-col gap-2 md:col-span-1">
+                                        <span className={labelStyle}>Location</span>
+                                        <input className={fieldStyle} value={experience.location} onChange={handleExperienceTextChange(index, 'location')} placeholder="Remote / City" />
                                     </label>
                                 </div>
 
