@@ -49,11 +49,15 @@ beforeEach(() => {
 
 describe('AdminDashboard sections editor', () => {
     it('edits contact, adds education and programming language, and submits payload', async () => {
-        const { AdminDashboard } = await import('./AdminDashboard')
+        // sections related to experiences were moved to AdminExperiencesPage
+        const [{ AdminDashboard }, { AdminExperiencesPage }] = await Promise.all([import('./AdminDashboard'), import('./AdminExperiencesPage')])
 
         render(
             <MemoryRouter>
-                <AdminDashboard />
+                <div>
+                    <AdminDashboard />
+                    <AdminExperiencesPage />
+                </div>
             </MemoryRouter>,
         )
 
@@ -61,7 +65,18 @@ describe('AdminDashboard sections editor', () => {
         const contactTextarea = screen.getByLabelText('Contact section description')
         fireEvent.change(contactTextarea, { target: { value: 'Reach out via email' } })
 
-        // Add an education entry
+        // Save contact description from AdminDashboard (contact UI remains on dashboard)
+        const saveDashboardButton = screen.getByRole('button', { name: /Save section copy/i })
+        fireEvent.click(saveDashboardButton)
+
+        await waitFor(() => expect(mockContextValue.updateSections).toHaveBeenCalled())
+
+        const firstCallRaw = (mockContextValue.updateSections as unknown as { mock: { calls: unknown[][] } }).mock.calls[0][0]
+        const firstCall = firstCallRaw as unknown as import('../content').SectionsContent
+        expect(firstCall).toHaveProperty('contact')
+        expect(firstCall.contact.description).toBe('Reach out via email')
+
+        // Now add an education entry in the Experiences admin page
         const addEduButton = screen.getByText('Add education')
         fireEvent.click(addEduButton)
 
@@ -89,24 +104,24 @@ describe('AdminDashboard sections editor', () => {
         // Wait for the input value to be reflected in the DOM / component state
         await waitFor(() => expect(lastPlInput.value).toBe('TypeScript'))
 
-        // Submit the sections form
-        const saveButton = screen.getByRole('button', { name: /Save section copy/i })
-        fireEvent.click(saveButton)
+        // Submit the experiences page sections form
+        const saveExperiencesButton = screen.getByRole('button', { name: /Save sections/i })
+        fireEvent.click(saveExperiencesButton)
 
-        await waitFor(() => expect(mockContextValue.updateSections).toHaveBeenCalled())
+        // Expect updateSections to have been called again for the experiences page changes
+        await waitFor(() => expect((mockContextValue.updateSections as unknown as { mock: { calls: unknown[][] } }).mock.calls.length).toBeGreaterThanOrEqual(2))
 
-        const calledWithRaw = (mockContextValue.updateSections as unknown as { mock: { calls: unknown[][] } }).mock.calls[0][0]
-        const calledWith = calledWithRaw as unknown as import('../content').SectionsContent
-        expect(calledWith).toHaveProperty('contact')
-        expect(calledWith.contact.description).toBe('Reach out via email')
-        expect(calledWith).toHaveProperty('educations')
-        if (calledWith.educations) {
-            expect(Array.isArray(calledWith.educations.items)).toBe(true)
-            expect(calledWith.educations.items[0].institution).toBe('Test University')
+        const secondCallRaw = (mockContextValue.updateSections as unknown as { mock: { calls: unknown[][] } }).mock.calls[1][0]
+        const secondCall = secondCallRaw as unknown as import('../content').SectionsContent
+        expect(secondCall).toHaveProperty('educations')
+        if (secondCall.educations) {
+            expect(Array.isArray(secondCall.educations.items)).toBe(true)
+            expect(secondCall.educations.items.length).toBeGreaterThan(0)
+            expect(secondCall.educations.items[0].institution).toBe('Test University')
         }
-        expect(calledWith).toHaveProperty('programmingLanguages')
-        if (calledWith.programmingLanguages) {
-            expect(calledWith.programmingLanguages.items).toContain('TypeScript')
+        expect(secondCall).toHaveProperty('programmingLanguages')
+        if (secondCall.programmingLanguages) {
+            expect(secondCall.programmingLanguages.items).toContain('TypeScript')
         }
     })
 })
