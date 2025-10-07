@@ -62,6 +62,8 @@ const AdminExperiencesPage = () => {
 
     // Local raw input for programming languages so typing commas is preserved
     const [programmingLanguagesRaw, setProgrammingLanguagesRaw] = useState<string>('')
+    // Local raw input for human languages (single string saved/displayed as entered)
+    const [languagesSpokenRaw, setLanguagesSpokenRaw] = useState<string>('')
 
     useEffect(() => {
         setSectionsForm(sectionsInitialForm as unknown as SectionsFormState)
@@ -70,6 +72,9 @@ const AdminExperiencesPage = () => {
     // initialize/sync the raw input when sections form changes (e.g., load)
     useEffect(() => {
         setProgrammingLanguagesRaw(((sectionsInitialForm as unknown as SectionsFormState).programmingLanguagesItems ?? []).join(', '))
+    }, [sectionsInitialForm])
+    useEffect(() => {
+        setLanguagesSpokenRaw(((sectionsInitialForm as unknown as SectionsFormState).languagesSpokenItems ?? []).join(', '))
     }, [sectionsInitialForm])
 
     const updateSectionsFormField = <T extends keyof SectionsFormState>(prev: SectionsFormState, field: T, value: SectionsFormState[T]): SectionsFormState => {
@@ -442,7 +447,7 @@ const AdminExperiencesPage = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-semibold text-white">Languages spoken</p>
-                                <p className="text-xs text-slate-500">Human languages to display</p>
+                                <p className="text-xs text-slate-500">Enter a comma-separated list</p>
                             </div>
                             <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
                                 <input type="checkbox" className="h-4 w-4" checked={sectionsForm.languagesSpokenVisible} onChange={handleToggle('languagesSpokenVisible')} />
@@ -450,15 +455,19 @@ const AdminExperiencesPage = () => {
                             </label>
                         </div>
                         <div className="space-y-2">
-                            {(sectionsForm.languagesSpokenItems ?? []).map((lang: string, idx: number) => (
-                                <div key={`ls-${idx}`} className="flex gap-2">
-                                    <input className={fieldStyle} value={lang} onChange={handleEditArrayItem('languagesSpokenItems', idx)} />
-                                    <button type="button" onClick={handleRemoveArrayItem('languagesSpokenItems', idx)} className="rounded-full border px-3 py-1 text-sm">Remove</button>
-                                </div>
-                            ))}
-                            <div className="flex gap-2">
-                                <button type="button" onClick={handleAddArrayItem('languagesSpokenItems', '')} className="rounded-full border px-3 py-1 text-sm">Add language</button>
-                            </div>
+                            <label className="flex flex-col gap-2">
+                                <input
+                                    className={fieldStyle}
+                                    value={languagesSpokenRaw}
+                                    onChange={(e) => {
+                                        const val = e.target.value
+                                        setLanguagesSpokenRaw(val)
+                                        // store as a single-item array so server shape remains consistent
+                                        setSectionsForm((prev) => updateSectionsFormField(prev, 'languagesSpokenItems', [val]))
+                                    }}
+                                    placeholder="English, Vietnamese"
+                                />
+                            </label>
                         </div>
                     </div>
 

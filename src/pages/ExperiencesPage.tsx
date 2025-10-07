@@ -246,12 +246,12 @@ const ExperiencesPage = () => {
                         {sections.languagesSpoken?.visible !== false && (
                             <section id="languages-spoken" className="scroll-mt-24 space-y-6">
                                 <h2 className="text-3xl font-semibold text-white">Languages</h2>
-                                <div className="flex flex-wrap gap-2 mt-3">
-                                    {(sections.languagesSpoken?.items ?? []).map((lang) => (
-                                        <span key={lang} className="rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1 text-xs text-slate-300">
-                                            {lang}
-                                        </span>
-                                    ))}
+                                <div className="space-y-6">
+                                    <article className="rounded-2xl border border-slate-800/60 bg-slate-900/40 p-6">
+                                        <p className="mt-0 text-slate-300">
+                                            {(sections.languagesSpoken?.items ?? []).map((s) => (s ?? '').trim()).filter(Boolean).join(', ')}
+                                        </p>
+                                    </article>
                                 </div>
                             </section>
                         )}
