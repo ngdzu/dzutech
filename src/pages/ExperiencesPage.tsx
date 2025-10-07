@@ -154,11 +154,21 @@ const ExperiencesPage = () => {
                                             )}
 
                                             <ul className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
-                                                {exp.stack.map((s) => (
-                                                    <li key={s} className="rounded-full border border-slate-700/70 bg-slate-900/70 px-3 py-1">
-                                                        {s}
-                                                    </li>
-                                                ))}
+                                                {exp.stack.map((s) => {
+                                                    const trimmed = typeof s === 'string' ? s.trim() : ''
+                                                    if (!trimmed) return null
+                                                    const encoded = encodeURIComponent(trimmed.toLowerCase())
+                                                    return (
+                                                        <li key={trimmed}>
+                                                            <Link
+                                                                to={`/blogs/tags/${encoded}`}
+                                                                className="rounded-full border border-slate-800/60 bg-slate-900/70 px-3 py-1 transition hover:border-accent-400 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-400"
+                                                            >
+                                                                {trimmed}
+                                                            </Link>
+                                                        </li>
+                                                    )
+                                                })}
                                             </ul>
 
                                             <div className="mt-6 flex justify-center">
