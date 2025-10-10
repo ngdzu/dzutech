@@ -1,0 +1,7 @@
+- Client: React + TypeScript via Vite. Routing lives in App, public UI is composed by LandingPage, blog views, and admin screens (for example AdminDashboard). Styling is driven by Tailwind (tailwind.config.js), with entry CSS in index.css. Markdown rendering utilities are in renderMarkdown.
+- Server: Node/Express API in index.ts with session auth, rate limiting, and REST endpoints built on repository helpers such as getContent and PostgreSQL access in db.ts. Default seed content sits in defaultContent.ts, and the DB bootstrapper runs from prepare-db.ts.
+- Shared data model: Type definitions are mirrored in content.ts and types.ts; the client consumes API data through the ContentProvider.
+- Tooling: Husky pre-commit (pre-commit), lint/test scripts in package.json and package.json, environment verification via verify-env.mjs, and Vitest configs (vite.config.ts, vitest.config.ts).
+- Docker stack: Root docker-compose.yml builds three services—Postgres (db) with the postgres_data volume, the API (api) from Dockerfile exposing port 4000, and the static site (website) from dockerfile behind Nginx (nginx.conf). The dev override docker-compose.dev.yml runs Vite on port 
+4173 with mounted source and node_modules caches.
+- CI/CD: GitHub Actions pipeline in ci.yml installs root and server deps, enforces verify:env, lint, and shared/server test suites.
