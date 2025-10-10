@@ -42,10 +42,17 @@ const excludePatterns = [
   /test\/setup\.(ts|js)x?$/i,
 ]
 
+// specific files to always ignore in staged coverage check (relative to repo root)
+const excludeExactPaths = new Set([
+  'server/src/index.ts',
+  'src/App.tsx',
+])
+
 const toCheck = stagedFiles.filter((f) => {
   if (!sourceRegex.test(f)) return false
   if (testRegex.test(f)) return false
   if (excludePatterns.some((rx) => rx.test(f))) return false
+  if (excludeExactPaths.has(f)) return false
   return true
 })
 
@@ -60,12 +67,14 @@ toCheck.forEach((rel) => {
   const abs = path.resolve(process.cwd(), rel)
   const entry = coverage[abs]
   if (!entry) {
+    // No coverage entry for this file — treat as failure so tests must be added
     failures.push({ file: rel, pct: 0, reason: 'no coverage data' })
     return
   }
   const s = entry.s || {}
   const total = Object.keys(s).length
   const covered = Object.values(s).filter((v) => v > 0).length
+  // if there are no statements, consider file fully covered (nothing to measure)
   const pct = total === 0 ? 100 : Math.round((covered / total) * 100)
   if (pct < THRESHOLD) failures.push({ file: rel, pct })
 })

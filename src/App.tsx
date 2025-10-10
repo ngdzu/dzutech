@@ -4,6 +4,7 @@ import ExperiencesPage from './pages/ExperiencesPage'
 import { AdminDashboard } from './pages/AdminDashboard'
 import { AdminBlogsPage } from './pages/AdminBlogsPage'
 import { AdminExperiencesPage } from './pages/AdminExperiencesPage'
+import { AdminUploadsPage } from './pages/AdminUploadsPage'
 import { BlogListPage } from './pages/BlogListPage'
 import { AdminBlogDetailPage } from './pages/AdminBlogDetailPage'
 import { AdminBlogEditorPage } from './pages/AdminBlogEditorPage'
@@ -76,6 +77,14 @@ function App() {
         element={
           <RequireAuth>
             <AdminExperiencesPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/uploads"
+        element={
+          <RequireAuth>
+            <AdminUploadsPage />
           </RequireAuth>
         }
       />

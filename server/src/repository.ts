@@ -12,6 +12,8 @@ import type {
   SiteMeta,
 } from './types.js'
 
+import { pool } from './db.js'
+
 const CONTENT_KEYS: (keyof ContentState)[] = [
   'site',
   'profile',
@@ -379,6 +381,38 @@ export const setPostHidden = async (postId: string, hidden: boolean): Promise<Po
 export const saveSections = async (sections: SectionsContent): Promise<SectionsContent> => {
   await writeJson('sections', sections)
   return sections
+}
+
+export type UploadRecord = {
+  id: string
+  key: string
+  filename: string
+  mimetype?: string
+  size?: number
+  width?: number | null
+  height?: number | null
+  created_at: string
+}
+
+export const saveUpload = async (upload: { key: string; filename: string; mimetype?: string; size?: number; width?: number | null; height?: number | null }) : Promise<UploadRecord> => {
+  const result = await pool.query<UploadRecord>(
+    `INSERT INTO uploads(key, filename, mimetype, size, width, height) VALUES($1,$2,$3,$4,$5,$6) RETURNING id, key, filename, mimetype, size, width, height, created_at`,
+    [upload.key, upload.filename, upload.mimetype ?? null, upload.size ?? null, upload.width ?? null, upload.height ?? null],
+  )
+  return result.rows[0]
+}
+
+export const getUploadById = async (id: string): Promise<UploadRecord | null> => {
+  const result = await pool.query<UploadRecord>('SELECT id, key, filename, mimetype, size, width, height, created_at FROM uploads WHERE id = $1', [id])
+  if (result.rowCount === 0) return null
+  return result.rows[0]
+}
+
+export const listUploads = async (limit = 50, offset = 0): Promise<{ rows: UploadRecord[]; total: number }> => {
+  const totalRes = await pool.query<{ count: string }>('SELECT COUNT(*)::text as count FROM uploads')
+  const total = parseInt(totalRes.rows[0]?.count ?? '0', 10)
+  const result = await pool.query<UploadRecord>('SELECT id, key, filename, mimetype, size, width, height, created_at FROM uploads ORDER BY created_at DESC LIMIT $1 OFFSET $2', [limit, offset])
+  return { rows: result.rows, total }
 }
 
 export const resetContent = async (): Promise<ContentState> => {

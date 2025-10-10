@@ -78,4 +78,71 @@ describe('src/lib/api', () => {
         expect(calledUrl).toMatch(/\/api\/auth\/logout$/)
         expect(init.method).toBe('POST')
     })
+
+    it('updatePosts sends PUT and returns posts', async () => {
+        const posts = [{ id: 'p1', title: 'x', content: '', contentHtml: '', tags: [], hidden: false }]
+        ; (globalThis.fetch as unknown as Mock).mockResolvedValueOnce({ ok: true, json: async () => posts })
+        const res = await api.updatePosts(posts)
+        expect(res).toEqual(posts)
+        const [calledUrl, init] = (globalThis.fetch as unknown as Mock).mock.calls[0]
+        expect(calledUrl).toMatch(/\/api\/posts$/)
+        expect(init.method).toBe('PUT')
+    })
+
+    it('deletePost calls DELETE and encodes id', async () => {
+        const result = [{ id: 'deleted' }]
+        ; (globalThis.fetch as unknown as Mock).mockResolvedValueOnce({ ok: true, json: async () => result })
+        const res = await api.deletePost('my id/with slashes')
+        expect(res).toEqual(result)
+        const [calledUrl] = (globalThis.fetch as unknown as Mock).mock.calls[0]
+        expect(calledUrl).toMatch(/\/api\/posts\/my%20id%2Fwith%20slashes$/)
+    })
+
+    it('updatePostVisibility patches hidden flag', async () => {
+        const out = [{ id: 'p1', hidden: true }]
+        ; (globalThis.fetch as unknown as Mock).mockResolvedValueOnce({ ok: true, json: async () => out })
+        const res = await api.updatePostVisibility('p1', true)
+        expect(res).toEqual(out)
+        const [calledUrl, init] = (globalThis.fetch as unknown as Mock).mock.calls[0]
+        expect(calledUrl).toMatch(/\/api\/posts\/p1\/visibility$/)
+        expect(init.method).toBe('PATCH')
+    })
+
+    it('updateExperiences sends PUT', async () => {
+        const data = [{ role: 'r', company: 'X', year: '2020', description: '', achievements: [], stack: [], location: '' }]
+        ; (globalThis.fetch as unknown as Mock).mockResolvedValueOnce({ ok: true, json: async () => data })
+        const res = await api.updateExperiences(data)
+        expect(res).toEqual(data)
+    })
+
+    it('updateSections and resetContent call respective endpoints', async () => {
+        const sections = {
+            contact: { description: '' },
+            experiencesPage: { visible: true },
+            educations: { visible: true, items: [] },
+            programmingLanguages: { visible: true, items: [] },
+            languagesSpoken: { visible: true, items: [] },
+            achievements: { visible: true, items: [] },
+        }
+        ; (globalThis.fetch as unknown as Mock).mockResolvedValueOnce({ ok: true, json: async () => sections })
+        const res = await api.updateSections(sections)
+        expect(res).toEqual(sections)
+
+        const content = { posts: [], profile: {}, sections }
+        ; (globalThis.fetch as unknown as Mock).mockResolvedValueOnce({ ok: true, json: async () => content })
+        const r2 = await api.resetContent()
+        expect(r2).toEqual(content)
+    })
+
+    it('fetchCurrentUser and updateSite', async () => {
+        const user = { email: 'u@x' }
+        ; (globalThis.fetch as unknown as Mock).mockResolvedValueOnce({ ok: true, json: async () => user })
+        const got = await api.fetchCurrentUser()
+        expect(got).toEqual(user)
+
+    const site = { title: 'site', description: 'd', homeButtonMode: 'text' as const, logo: null }
+    ; (globalThis.fetch as unknown as Mock).mockResolvedValueOnce({ ok: true, json: async () => site })
+    const updated = await api.updateSite(site)
+    expect(updated).toEqual(site)
+    })
 })

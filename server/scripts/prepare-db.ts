@@ -22,6 +22,23 @@ const ensureSchema = async () => {
   await pool.query(`
     CREATE INDEX IF NOT EXISTS user_sessions_expire_idx ON user_sessions (expire)
   `)
+
+  await pool.query(`
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
+  `)
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS uploads (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      key TEXT NOT NULL UNIQUE,
+      filename TEXT NOT NULL,
+      mimetype TEXT,
+      size BIGINT,
+      width INT,
+      height INT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `)
 }
 
 const ensureSeedData = async () => {

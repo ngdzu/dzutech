@@ -71,7 +71,7 @@ const ymlConfigs = (() => {
 const markdownConfig = markdown.configs.recommended
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage']),
+  globalIgnores(['dist', 'coverage', 'server/dist', '.github']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -83,6 +83,13 @@ export default defineConfig([
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+    },
+  },
+  // enforce stricter rules for test files
+  {
+    files: ['**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}', 'server/src/**/*.test.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
   jsoncBaseConfig,
