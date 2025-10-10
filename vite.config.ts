@@ -8,5 +8,18 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     css: false,
+    coverage: {
+      provider: 'v8',
+      reportsDirectory: './coverage',
+      exclude: [
+        'node_modules/**',
+        'dist/**',
+        'server/dist/**',
+        'server/scripts/**',
+        'scripts/**',
+        '**/*.config.js',
+        '**/*.config.ts',
+      ],
+    },
   },
 })

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { FiArrowLeft, FiSave } from 'react-icons/fi'
 import { Link, useNavigate, useParams } from 'react-router-dom'
@@ -37,6 +37,8 @@ const generatePostId = () => {
   return `post-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 }
 
+import { uploadFile } from '../lib/upload'
+
 const AdminBlogEditorPage = () => {
   const { postId } = useParams<{ postId: string }>()
   const isCreateMode = !postId
@@ -47,6 +49,8 @@ const AdminBlogEditorPage = () => {
   const [form, setForm] = useState<BlogFormState>(() => ({ ...EMPTY_POST }))
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
 
   const currentPost = useMemo(() => {
     if (!postId) return null
@@ -198,12 +202,52 @@ const AdminBlogEditorPage = () => {
             </label>
             <label className="flex flex-col gap-2">
               <span className={labelStyle}>Content</span>
-              <textarea
-                className={`${fieldStyle} min-h-[260px]`}
-                value={form.content}
-                onChange={handleChange('content')}
-                placeholder="Write or paste the full blog post content."
-              />
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="rounded-md bg-slate-800/60 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700"
+                  >
+                    Insert image
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      try {
+                        const { url } = await uploadFile(file)
+                        // insert markdown at cursor
+                        const ta = textareaRef.current
+                        const before = ta ? ta.value.slice(0, ta.selectionStart) : form.content
+                        const after = ta ? ta.value.slice(ta.selectionEnd) : ''
+                        const insertion = `![alt text](${url})\n\n`
+                        const nextContent = `${before}${insertion}${after}`
+                        setForm((prev) => ({ ...prev, content: nextContent }))
+                        // restore focus to textarea
+                        ta?.focus()
+                      } catch (err) {
+                        console.error('Upload failed', err)
+                        setErrorMessage(err instanceof Error ? err.message : 'Upload failed')
+                      } finally {
+                        // clear the input so the same file can be reselected if needed
+                        ;(e.target as HTMLInputElement).value = ''
+                      }
+                    }}
+                  />
+                </div>
+                <textarea
+                  ref={textareaRef}
+                  className={`${fieldStyle} min-h-[260px]`}
+                  value={form.content}
+                  onChange={handleChange('content')}
+                  placeholder="Write or paste the full blog post content."
+                />
+              </div>
             </label>
             <label className="flex flex-col gap-2">
               <span className={labelStyle}>Tags</span>
