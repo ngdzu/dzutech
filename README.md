@@ -102,7 +102,27 @@ GitHub Actions workflow `.github/workflows/ci.yml` installs dependencies, verifi
 2. Optionally provide `DB_SSL_CA` or other secrets if your infrastructure requires them; the workflow will pass through anything you add.
 3. Monitor the Actions tab—deployments should only proceed once the environment check, lint, and test jobs finish successfully.
 
-## 🐳 Docker
+## � Coverage
+
+This repository produces separate coverage reports for the frontend and server during test runs, then merges them into a single human-readable report.
+
+- Local merged output: coverage/merged
+  - Open the HTML report locally in your browser:
+
+```bash
+# on macOS
+open coverage/merged/index.html
+
+# on Linux (or any system with xdg-open)
+xdg-open coverage/merged/index.html
+```
+
+- The merged artifact created by CI is uploaded as `coverage-merged` and contains the same LCOV (`lcov.info`) + HTML files.
+
+- Where staged/commit checks look: the pre-push hook runs coverage and produces the merged report before it enforces the staged-file coverage gate. If coverage fails, the push is aborted and the merged HTML is left under `coverage/merged` for inspection.
+
+
+## �🐳 Docker
 
 Build and run the entire stack (database, API, frontend) with Docker Compose:
 

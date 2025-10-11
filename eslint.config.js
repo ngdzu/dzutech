@@ -71,7 +71,7 @@ const ymlConfigs = (() => {
 const markdownConfig = markdown.configs.recommended
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage', 'server/dist', '.github']),
+  globalIgnores(['dist', 'coverage', 'server/dist', 'server/coverage', 'server/coverage/**', '.github']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

@@ -2,7 +2,9 @@ const fs = require('fs')
 const path = require('path')
 const { execSync } = require('child_process')
 
-const COVERAGE_FILE = path.resolve(process.cwd(), 'coverage/coverage-final.json')
+const MERGED_COVERAGE_FILE = path.resolve(process.cwd(), 'coverage/merged/coverage-final.json')
+const FRONTEND_COVERAGE_FILE = path.resolve(process.cwd(), 'coverage/coverage-final.json')
+const SERVER_COVERAGE_FILE = path.resolve(process.cwd(), 'server/coverage/coverage-final.json')
 const THRESHOLD = Number(process.env.COVERAGE_THRESHOLD || 80)
 
 function fail(msg) {
@@ -10,12 +12,43 @@ function fail(msg) {
   process.exitCode = 1
 }
 
-if (!fs.existsSync(COVERAGE_FILE)) {
-  console.error('coverage report not found; run tests with coverage before running this check (generate coverage/coverage-final.json)')
-  process.exit(2)
+// load and merge coverage outputs from frontend and server (frontend takes precedence)
+let coverage = {}
+// prefer merged coverage if available
+if (fs.existsSync(MERGED_COVERAGE_FILE)) {
+  try {
+    coverage = JSON.parse(fs.readFileSync(MERGED_COVERAGE_FILE, 'utf8'))
+  } catch (err) {
+    console.error('failed to read merged coverage file:', err.message)
+    process.exit(2)
+  }
+} else {
+  if (fs.existsSync(FRONTEND_COVERAGE_FILE)) {
+    try {
+      coverage = JSON.parse(fs.readFileSync(FRONTEND_COVERAGE_FILE, 'utf8'))
+    } catch (err) {
+      console.error('failed to read frontend coverage file:', err.message)
+      process.exit(2)
+    }
+  }
+  if (fs.existsSync(SERVER_COVERAGE_FILE)) {
+    try {
+      const serverCov = JSON.parse(fs.readFileSync(SERVER_COVERAGE_FILE, 'utf8'))
+      // copy server entries that don't exist in frontend coverage
+      Object.keys(serverCov).forEach((k) => {
+        if (!coverage[k]) coverage[k] = serverCov[k]
+      })
+    } catch (err) {
+      console.error('failed to read server coverage file:', err.message)
+      process.exit(2)
+    }
+  }
 }
 
-const coverage = JSON.parse(fs.readFileSync(COVERAGE_FILE, 'utf8'))
+if (Object.keys(coverage).length === 0) {
+  console.error('coverage report not found; run tests with coverage before running this check (generate coverage/coverage-final.json and/or server/coverage/coverage-final.json)')
+  process.exit(2)
+}
 
 // get staged files
 let staged = ''

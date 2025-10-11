@@ -7,12 +7,15 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "prepare": "husky",
-    "lint": "eslint . --max-warnings=0",
-    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
+    "lint": "eslint . --max-warnings=0 --no-warn-ignored",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix --no-warn-ignored",
     "verify:env": "node scripts/verify-env.mjs",
-    "coverage:run": "vitest run --coverage",
+    "coverage:run": "vitest run src --coverage",
+    "coverage:run:server": "npm run test --prefix server -- --coverage",
+    "coverage:merge": "node ./scripts/merge-coverage.cjs",
     "coverage:check-staged": "node ./scripts/check-coverage-staged.cjs",
-    "ci:local": "npm run verify:env && npm run lint && npm run coverage:run && npm run test:server",
+    "ci:local": "rm -rf server/coverage && npm run verify:env && npm run lint && npm run coverage:run && npm run coverage:run:server",
+    "pre-submit": "rm -rf server/coverage && npm run ci:local",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:server": "npm run test --prefix server",
@@ -49,6 +52,9 @@
     "husky": "^9.0.11",
     "jsdom": "^27.0.0",
     "lint-staged": "^15.2.10",
+    "istanbul-lib-coverage": "^3.2.0",
+    "istanbul-lib-report": "^3.0.0",
+    "istanbul-reports": "^3.0.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.14",
     "typescript": "~5.8.3",
@@ -58,13 +64,13 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "eslint --fix --ext .js,.jsx,.ts,.tsx --max-warnings=0"
+      "eslint --fix --ext .js,.jsx,.ts,.tsx --max-warnings=0 --no-warn-ignored"
     ],
     "**/*.json": [
-      "eslint --fix --max-warnings=0"
+      "eslint --fix --max-warnings=0 --no-warn-ignored"
     ],
     "**/*.{yml,yaml}": [
-      "eslint --fix --max-warnings=0"
+      "eslint --fix --max-warnings=0 --no-warn-ignored"
     ],
     "**/*.md": [
       "eslint --fix --max-warnings=0 --no-warn-ignored"
