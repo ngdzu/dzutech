@@ -587,6 +587,12 @@ const AdminDashboard = () => {
                 Experiences
               </Link>
               <Link
+                to="/admin/uploads"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+              >
+                Photos
+              </Link>
+              <Link
                 to="/"
                 className="inline-flex items-center gap-2 rounded-full border border-accent-500/60 bg-accent-500/10 px-4 py-2 text-sm font-medium text-accent-200 transition hover:border-accent-500 hover:bg-accent-500/20"
               >
