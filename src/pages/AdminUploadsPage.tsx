@@ -12,6 +12,42 @@ type UploadRecord = {
   created_at: string | null
 }
 
+const formatFileSize = (bytes: number | null): string => {
+  if (bytes === null || bytes === 0) return '-'
+
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let size = bytes
+  let unitIndex = 0
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024
+    unitIndex++
+  }
+
+  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
+}
+
+const formatDate = (dateString: string | null): { short: string; full: string } => {
+  if (!dateString) return { short: '-', full: '' }
+
+  const date = new Date(dateString)
+  const short = date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: '2-digit'
+  })
+  const full = date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+
+  return { short, full }
+}
+
 const AdminUploadsPage = () => {
   const [uploads, setUploads] = useState<UploadRecord[]>([])
   const [loading, setLoading] = useState(false)
@@ -226,17 +262,14 @@ const AdminUploadsPage = () => {
                       )}
                     </td>
                     <td className="px-2 py-3 align-middle text-slate-200">{u.filename ?? u.key}</td>
-                    <td className="px-2 py-3 align-middle text-slate-400">{u.size ?? '-'}</td>
-                    <td className="px-2 py-3 align-middle text-slate-400">{u.created_at ?? '-'}</td>
+                    <td className="px-2 py-3 align-middle text-slate-400">{formatFileSize(u.size)}</td>
+                    <td className="px-2 py-3 align-middle text-slate-400">
+                      <span title={formatDate(u.created_at).full}>
+                        {formatDate(u.created_at).short}
+                      </span>
+                    </td>
                     <td className="px-2 py-3 align-middle">
                       <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => copy(u.id)}
-                          className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-                        >
-                          Copy ID
-                        </button>
                         <button
                           type="button"
                           onClick={() => copyMarkdown(u.id)}

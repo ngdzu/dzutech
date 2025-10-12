@@ -102,14 +102,6 @@ describe('AdminUploadsPage', () => {
       expect(cells.length).toBe(1)
     })
 
-    // Copy ID button
-    const copyButtons = screen.getAllByText('Copy ID')
-    expect(copyButtons.length).toBeGreaterThan(0)
-    fireEvent.click(copyButtons[0])
-  // clipboard called with id
-  // @ts-expect-error - clipboard test stub
-  expect(global.navigator.clipboard.writeText).toHaveBeenCalledWith('abc-123')
-
     // Copy Markdown button
     const copyMd = screen.getAllByText('Copy Markdown')
     expect(copyMd.length).toBeGreaterThan(0)
