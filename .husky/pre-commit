@@ -6,6 +6,31 @@ rm -rf server/coverage || true
 # lint only staged files
 npx lint-staged
 
-# run full lint
-npm run lint
+# Run any staged tests only (fast, focused on what changed)
+STAGED_FILES=$(git diff --name-only --cached)
+# find staged test files (vitest style)
+TEST_FILES=$(printf "%s\n" $STAGED_FILES | grep -E '\.(test|spec)\.(ts|tsx|js|jsx)$' || true)
+if [ -n "$TEST_FILES" ]; then
+  echo "Running staged tests:"
+  printf "%s\n" $TEST_FILES
+  # run the staged test files only
+  npx vitest run $TEST_FILES
+  if [ $? -ne 0 ]; then
+    echo "Staged tests failed. Aborting commit."
+    exit 1
+  fi
+fi
+
+# If a coverage report exists, run the staged coverage check. Otherwise skip to keep commits fast.
+if [ -f coverage/coverage-final.json ]; then
+  echo "Checking staged file coverage..."
+  npm run coverage:check-staged
+  if [ $? -ne 0 ]; then
+    echo "Staged file coverage check failed. Aborting commit."
+    exit 1
+  fi
+else
+  echo "No coverage report found; skipping staged coverage check. Run full CI locally to verify coverage." 
+fi
+
 exit 0
