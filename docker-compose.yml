@@ -27,8 +27,6 @@ services:
       DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD:?DB_PASSWORD must be set}@db:5432/${DB_NAME}"
       ALLOWED_ORIGIN: ${ALLOWED_ORIGIN}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:?ADMIN_EMAIL must be set}
-      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?ADMIN_PASSWORD_HASH must be set}
     depends_on:
       db:
         condition: service_healthy

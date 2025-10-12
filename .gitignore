@@ -30,3 +30,5 @@ server/uploads
 
 # Coverage reports
 coverage
+server/.env_backup
+.env_backup

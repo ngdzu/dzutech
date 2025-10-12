@@ -14,6 +14,53 @@ source .alias
 docker_dev_build
 ```
 
+### Configure environment (.env)
+
+Before running the app or the server helpers you should create a local `.env` from the provided example. This keeps secrets and environment-specific settings out of the repo while making local overrides easy.
+
+```bash
+# copy the example to a local .env file
+# There are two example files you may need to copy depending on what you run:
+# - root `.env.example` (frontend / repo-level settings)
+# - `server/.env.example` (server-specific settings like DATABASE_URL)
+
+# copy both examples to local .env files
+cp .env.example .env
+cp server/.env.example server/.env
+
+```
+
+Note: After cloning, you can use the provided password hash in .env.example for development. However, for production, you must generate and use a secure, unique password hash.
+
+Quick commands to generate secrets and directories:
+
+```bash
+# Create uploads dir
+mkdir -p server/uploads
+
+# Generate a session secret (macOS / Linux):
+openssl rand -base64 32
+
+# Generate a bcrypt password hash (from the server folder):
+cd server
+npm run hash-password -- "My$tr0ngP@ssw0rd!"
+```
+
+Security reminder: do not commit `.env` files containing real secrets. Keep `*.example` files in the repo and copy them to `.env` only on trusted machines.
+
+Important variables you may want to update:
+
+- `DATABASE_URL` — connection string for Postgres (for local Docker setups this may be `postgres://user:pass@db:5432/dbname`).
+- `MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`, `MINIO_BUCKET` — if you run local MinIO for S3-compatible storage.
+- `S3_REGION`, `S3_ENDPOINT` — if you use a cloud S3 provider or an alternate endpoint.
+- `BCRYPT_SALT_ROUNDS` — controls bcrypt hashing rounds for `npm run hash-password` (default 12).
+- `UPLOAD_DIR` — local filesystem fallback directory for uploads when S3/MinIO is unavailable.
+
+Note: update both `./.env` and `./server/.env` as needed — some variables are consumed by the frontend/app at repo root and others are server-only. Keep values consistent (for example DB host/port, minio endpoint) when running locally with Docker.
+
+Security note: never commit `.env` to git. The repo includes `.env.example` for reference only.
+
+
 ## CI
 
 Run the repository's full verification (lint + tests + coverage):
@@ -140,6 +187,42 @@ This script prefers `coverage/merged/coverage-final.json` if present; otherwise 
 
 ---
 
-If you'd like, I can update `README.md` to point to `doc/setup.md` and `doc/usage.md` (container-first) for discoverability.
 
-Which would you prefer next?
+
+## Creating password hashes
+
+The server includes a small helper script to generate bcrypt password hashes for seeding the database or creating an initial admin user. Use this locally (do not share plaintext passwords in public chat or logs).
+
+1. Change into the `server` folder:
+
+```bash
+cd server
+```
+
+2. Create a bcrypt hash from a plaintext password (default 12 salt rounds):
+
+```bash
+npm run hash-password -- "My$tr0ngP@ssw0rd!"
+```
+
+The script prints the generated hash to stdout. Copy that hash into your database or seed file as needed.
+
+3. (Optional) Control bcrypt salt rounds using `BCRYPT_SALT_ROUNDS` environment variable:
+
+```bash
+BCRYPT_SALT_ROUNDS=14 npm run hash-password -- "My$tr0ngP@ssw0rd!"
+```
+
+The script will validate the provided rounds (must be a number >= 4) and fall back to 12 if the value is invalid.
+
+4. Verify a plaintext password against an existing hash (quick one-liner):
+
+```bash
+node -e "const b=require('bcryptjs'); console.log(b.compareSync('My$tr0ngP@ssw0rd!', '<PASTED_HASH>'))"
+# prints true or false
+```
+
+Security notes
+- Do not paste real production passwords into public logs, issue trackers, or chat.
+- Generate hashes on a trusted machine and copy only the hash into the database.
+- Prefer using at least 12 salt rounds; increase rounds if you require higher CPU-based protection (but expect slower hashing).
