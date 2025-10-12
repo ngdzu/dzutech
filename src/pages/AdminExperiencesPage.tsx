@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
-import { AdminSessionActions } from '../components/AdminSessionActions'
+import { AdminHeader } from '../components/AdminHeader'
 import { fieldStyle, labelStyle, createEmptyExperience, parseAchievements, parseStack } from '../lib/adminHelpers'
 import { FiTrash2 } from 'react-icons/fi'
 import type { ExperienceFormEntry } from '../lib/adminHelpers'
@@ -245,27 +245,23 @@ const AdminExperiencesPage = () => {
 
     return (
         <div className="min-h-screen bg-night-900 text-slate-100">
-            <header className="border-b border-white/5 bg-night-900/80">
-                <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 pt-3 pb-6">
-                    <div className="flex justify-end">
-                        <AdminSessionActions />
+            <AdminHeader />
+            <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 pt-3 pb-6">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-semibold text-white">Experience management</h1>
+                        <p className="text-sm text-slate-400">Edit the experiences shown on the landing page.</p>
                     </div>
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div>
-                            <h1 className="text-2xl font-semibold text-white">Experience management</h1>
-                            <p className="text-sm text-slate-400">Edit the experiences shown on the landing page.</p>
-                        </div>
-                        <div className="flex flex-wrap justify-end gap-3">
-                            <Link
-                                to="/admin"
-                                className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-                            >
-                                Back to dashboard
-                            </Link>
-                        </div>
+                    <div className="flex flex-wrap justify-end gap-3">
+                        <Link
+                            to="/admin"
+                            className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+                        >
+                            Back to dashboard
+                        </Link>
                     </div>
                 </div>
-            </header>
+            </div>
 
             <main className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-10">
                 <form onSubmit={handleExperiencesSubmit} className="space-y-6">

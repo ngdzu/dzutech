@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
-import { AdminSessionActions } from '../components/AdminSessionActions'
+import { AdminHeader } from '../components/AdminHeader'
 import type { SiteLogo, SiteMeta } from '../content'
 import { fieldStyle, labelStyle } from '../lib/adminHelpers'
 
@@ -62,7 +62,7 @@ type ActionStatus =
   | { state: 'reset' }
   | { state: 'error'; message: string }
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) => {
   const {
     content,
     loading,
@@ -87,7 +87,7 @@ const AdminDashboard = () => {
     ],
     [],
   )
-  const [activeSection, setActiveSection] = useState<string>(sectionNav[0]?.id ?? '')
+  const [activeSection, setActiveSection] = useState<string>(testActiveSection ?? sectionNav[0]?.id ?? '')
 
   const siteInitialForm = useMemo<SiteFormState>(
     () => ({
@@ -566,11 +566,9 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-night-900">
+      <AdminHeader />
       <div className="mx-auto flex max-w-5xl flex-col gap-12 px-6 pt-4 pb-12">
-        <header className="flex flex-col gap-4 border-b border-slate-800/80 pb-6">
-          <div className="flex justify-end">
-            <AdminSessionActions />
-          </div>
+        <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h1 className="text-3xl font-semibold text-white">Admin dashboard</h1>
             <div className="flex flex-wrap gap-3">
@@ -619,7 +617,7 @@ const AdminDashboard = () => {
               ))}
             </div>
           )}
-        </header>
+        </div>
 
         <div className="flex flex-col gap-10 lg:flex-row">
           <nav className="lg:w-60 xl:w-64">
@@ -865,7 +863,8 @@ const AdminDashboard = () => {
                         onChange={handleHighlightsToggle}
                         disabled={profileBusy}
                       />
-                      <span>{form.highlightsEnabled ? 'Visible' : 'Hidden'}</span>
+                      <span>Show highlights</span>
+                      <span className="ml-1">({form.highlightsEnabled ? 'Visible' : 'Hidden'})</span>
                     </label>
                   </div>
                   <div className={`space-y-4 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4 transition ${form.highlightsEnabled ? '' : 'opacity-50'}`}>
@@ -962,7 +961,8 @@ const AdminDashboard = () => {
                           onChange={handleContactToggle('showEmail')}
                           disabled={profileBusy}
                         />
-                        <span>{form.showEmail ? 'Visible' : 'Hidden'}</span>
+                        <span>Show email</span>
+                        <span className="ml-1">({form.showEmail ? 'Visible' : 'Hidden'})</span>
                       </label>
                     </div>
                     <input
@@ -987,7 +987,8 @@ const AdminDashboard = () => {
                           onChange={handleContactToggle('showLinkedin')}
                           disabled={profileBusy}
                         />
-                        <span>{form.showLinkedin ? 'Visible' : 'Hidden'}</span>
+                        <span>Show LinkedIn</span>
+                        <span className="ml-1">({form.showLinkedin ? 'Visible' : 'Hidden'})</span>
                       </label>
                     </div>
                     <input
@@ -1012,7 +1013,8 @@ const AdminDashboard = () => {
                           onChange={handleContactToggle('showGithub')}
                           disabled={profileBusy}
                         />
-                        <span>{form.showGithub ? 'Visible' : 'Hidden'}</span>
+                        <span>Show GitHub</span>
+                        <span className="ml-1">({form.showGithub ? 'Visible' : 'Hidden'})</span>
                       </label>
                     </div>
                     <input

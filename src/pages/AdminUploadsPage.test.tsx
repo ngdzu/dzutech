@@ -53,7 +53,11 @@ describe('AdminUploadsPage', () => {
   })
 
   it('renders UI and shows empty state', async () => {
-    render(<AdminUploadsPage />)
+    render(
+      <MemoryRouter>
+        <AdminUploadsPage />
+      </MemoryRouter>
+    )
     // header
     expect(screen.getByText('Uploaded photos')).toBeDefined()
 

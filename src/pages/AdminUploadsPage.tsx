@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react'
 import { FiTrash2, FiUpload } from 'react-icons/fi'
-import { AdminSessionActions } from '../components/AdminSessionActions'
+import { AdminHeader } from '../components/AdminHeader'
 import { ImagePreviewModal } from '../components/ImagePreviewModal'
 import { ImageUploaderModal } from '../components/ImageUploaderModal'
 
@@ -164,17 +164,13 @@ const AdminUploadsPage = () => {
 
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
-      <header className="border-b border-white/5 bg-night-900/80">
-        <div className="mx-auto max-w-5xl px-6 py-5">
-          <div className="flex justify-end">
-            <AdminSessionActions />
-          </div>
-          <div className="mt-4">
-            <h1 className="text-2xl font-semibold text-white">Uploaded photos</h1>
-            <p className="text-sm text-slate-400">List of uploaded photos. Copy the ID to embed into markdown.</p>
-          </div>
+      <AdminHeader />
+      <div className="mx-auto max-w-5xl px-6 py-5">
+        <div>
+          <h1 className="text-2xl font-semibold text-white">Uploaded photos</h1>
+          <p className="text-sm text-slate-400">List of uploaded photos. Copy the ID to embed into markdown.</p>
         </div>
-      </header>
+      </div>
 
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="flex items-center gap-3">

@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { FiEye, FiEyeOff, FiPlus, FiTrash2 } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
-import { AdminSessionActions } from '../components/AdminSessionActions'
+import { AdminHeader } from '../components/AdminHeader'
 
 const cardStyle =
   'space-y-3 rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 shadow-inner shadow-black/40 transition hover:border-accent-500/50 hover:bg-night-800/70'
@@ -102,54 +102,50 @@ const AdminBlogsPage = () => {
 
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
-      <header className="border-b border-white/5 bg-night-900/80">
-        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 pt-3 pb-6">
-          <div className="flex justify-end">
-            <AdminSessionActions />
+      <AdminHeader />
+      <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 pt-3 pb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-white">Blog management</h1>
+            <p className="text-sm text-slate-400">
+              Review existing blog posts, manage visibility, or add new entries.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {loading && (
+                <span className={`${badgeStyle} border-slate-700/70 bg-slate-900/70 text-slate-300`}>
+                  Loading posts…
+                </span>
+              )}
+              {globalStatus && (
+                <span
+                  className={`${badgeStyle} ${
+                    globalStatus.tone === 'success'
+                      ? 'border-emerald-400/70 bg-emerald-500/10 text-emerald-200'
+                      : 'border-red-500/70 bg-red-500/10 text-red-200'
+                  }`}
+                >
+                  {globalStatus.message}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-semibold text-white">Blog management</h1>
-              <p className="text-sm text-slate-400">
-                Review existing blog posts, manage visibility, or add new entries.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {loading && (
-                  <span className={`${badgeStyle} border-slate-700/70 bg-slate-900/70 text-slate-300`}>
-                    Loading posts…
-                  </span>
-                )}
-                {globalStatus && (
-                  <span
-                    className={`${badgeStyle} ${
-                      globalStatus.tone === 'success'
-                        ? 'border-emerald-400/70 bg-emerald-500/10 text-emerald-200'
-                        : 'border-red-500/70 bg-red-500/10 text-red-200'
-                    }`}
-                  >
-                    {globalStatus.message}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-wrap justify-end gap-3">
-              <Link
-                to="/admin/blogs/new"
-                className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400"
-              >
-                <FiPlus />
-                Create new blog
-              </Link>
-              <Link
-                to="/admin"
-                className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-              >
-                Back to dashboard
-              </Link>
-            </div>
+          <div className="flex flex-wrap justify-end gap-3">
+            <Link
+              to="/admin/blogs/new"
+              className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400"
+            >
+              <FiPlus />
+              Create new blog
+            </Link>
+            <Link
+              to="/admin"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+            >
+              Back to dashboard
+            </Link>
           </div>
         </div>
-      </header>
+      </div>
 
       <main className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-10">
         {sortedPosts.length === 0 && !loading ? (
