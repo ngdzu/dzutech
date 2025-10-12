@@ -415,6 +415,13 @@ export const listUploads = async (limit = 50, offset = 0): Promise<{ rows: Uploa
   return { rows: result.rows, total }
 }
 
+export const deleteUpload = async (id: string): Promise<void> => {
+  const result = await pool.query('DELETE FROM uploads WHERE id = $1', [id])
+  if (result.rowCount === 0) {
+    throw new Error('Upload not found')
+  }
+}
+
 export const resetContent = async (): Promise<ContentState> => {
   for (const key of CONTENT_KEYS) {
     await writeJson(key, defaultContent[key])

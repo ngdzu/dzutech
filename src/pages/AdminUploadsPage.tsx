@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from 'react'
+import { FiTrash2 } from 'react-icons/fi'
 import { AdminSessionActions } from '../components/AdminSessionActions'
 
 type UploadRecord = {
@@ -17,6 +18,8 @@ const AdminUploadsPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; filename: string | null } | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -89,17 +92,57 @@ const AdminUploadsPage = () => {
 
   const copy = async (text: string) => {
     try {
+      // Try modern Clipboard API first
       await navigator.clipboard.writeText(text)
       // small feedback could be added later
     } catch (err) {
-      console.error('copy failed', err)
-      void alert('Unable to copy to clipboard — your browser may block it.')
+      console.error('Modern clipboard API failed, trying fallback', err)
+      try {
+        // Fallback for older browsers or when Clipboard API is blocked
+        const textArea = document.createElement('textarea')
+        textArea.value = text
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        const successful = document.execCommand('copy')
+        document.body.removeChild(textArea)
+
+        if (!successful) {
+          throw new Error('Fallback copy method also failed')
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback copy failed', fallbackErr)
+        void alert('Unable to copy to clipboard — your browser may block it.')
+      }
     }
   }
 
   const copyMarkdown = (id: string) => {
     const md = `![](/photos/${id})`
     void copy(md)
+  }
+
+  const handleDelete = async (id: string) => {
+    setDeleting(true)
+    setError(null)
+    try {
+      const resp = await fetch(`/api/admin/uploads/${id}`, { method: 'DELETE' })
+      if (!resp.ok) {
+        const txt = await resp.text()
+        throw new Error(txt || resp.statusText)
+      }
+      // Remove from local state
+      setUploads((s) => s.filter((u) => u.id !== id))
+      setDeleteConfirm(null)
+    } catch (err) {
+      console.error('Delete failed', err)
+      setError(String((err as Error).message || err))
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -190,14 +233,14 @@ const AdminUploadsPage = () => {
                         <button
                           type="button"
                           onClick={() => copy(u.id)}
-                          className="rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200"
+                          className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
                         >
                           Copy ID
                         </button>
                         <button
                           type="button"
                           onClick={() => copyMarkdown(u.id)}
-                          className="rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200"
+                          className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
                         >
                           Copy Markdown
                         </button>
@@ -207,10 +250,18 @@ const AdminUploadsPage = () => {
                           )}`}
                           target="_blank"
                           rel="noreferrer"
-                          className="rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200"
+                          className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
                         >
                           Open
                         </a>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteConfirm({ id: u.id, filename: u.filename })}
+                          className="inline-flex items-center gap-2 rounded-full border border-red-500/60 px-3 py-1 text-xs font-semibold text-red-200 transition hover:border-red-400/70 hover:text-red-100"
+                        >
+                          <FiTrash2 />
+                          Delete
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -220,6 +271,36 @@ const AdminUploadsPage = () => {
           </table>
         </div>
       </main>
+
+      {/* Delete confirmation dialog */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 max-w-md rounded-lg border border-slate-700/70 bg-slate-900 p-6 shadow-xl">
+            <h3 className="text-lg font-semibold text-white">Delete Upload</h3>
+            <p className="mt-2 text-sm text-slate-300">
+              Are you sure you want to delete "{deleteConfirm.filename ?? 'this upload'}"? This action cannot be undone.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleting}
+                className="flex-1 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(deleteConfirm.id)}
+                disabled={deleting}
+                className="flex-1 rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-red-700"
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 import express, { type NextFunction, type Request, type Response } from 'express'
 import session from 'express-session'
 import connectPgSimple from 'connect-pg-simple'
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, GetObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
 import { listUploads } from './repository.js'
 import rateLimit from 'express-rate-limit'
@@ -21,6 +21,7 @@ import {
   saveSections,
   removePostById,
   setPostHidden,
+  deleteUpload,
 } from './repository.js'
 import type { Experience, Post, Profile, SectionsContent } from './types.js'
 import { validateExperience, validatePost, validateSections } from './validators.js'
@@ -443,6 +444,36 @@ app.get('/api/admin/uploads', requireAuth, async (req: Request, res: Response) =
   } catch (err) {
     console.error('Failed to list uploads', err)
     res.status(500).json({ message: 'Failed to list uploads' })
+  }
+})
+
+// Admin: delete uploaded photo
+app.delete('/api/admin/uploads/:id', requireAuth, async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id
+
+    const upload = await getUploadById(id)
+    if (!upload) {
+      return res.status(404).json({ message: 'Upload not found' })
+    }
+
+    // Delete from S3/MinIO if configured
+    if (s3Client) {
+      try {
+        await s3Client.send(new DeleteObjectCommand({ Bucket: process.env.S3_BUCKET, Key: upload.key }))
+      } catch (err) {
+        console.error('Failed to delete from S3', err)
+        // Continue with database deletion even if S3 deletion fails
+      }
+    }
+
+    // Delete from database
+    await deleteUpload(id)
+
+    res.json({ message: 'Upload deleted successfully' })
+  } catch (err) {
+    console.error('Failed to delete upload', err)
+    res.status(500).json({ message: 'Failed to delete upload' })
   }
 })
 
