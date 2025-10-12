@@ -63,7 +63,7 @@ describe('AdminUploadsPage', () => {
     expect(screen.getByText('No uploads yet.')).toBeInTheDocument()
   })
 
-  it('renders uploads from API and allows copy actions and open link', async () => {
+  it('renders uploads from API and allows copy actions and thumbnail preview', async () => {
     const upload = {
       id: 'abc-123',
       key: 'uploads/test1.png',
@@ -110,9 +110,17 @@ describe('AdminUploadsPage', () => {
   // @ts-expect-error - clipboard test stub
   expect(global.navigator.clipboard.writeText).toHaveBeenCalledWith('![](/photos/abc-123)')
 
-    // Open link should use presignedUrl
-    const openLink = screen.getByText('Open') as HTMLAnchorElement
-    expect(openLink.href).toContain('https://example.com/test1.png')
+    // Thumbnail should be clickable and open preview modal
+    const thumbnail = screen.getByAltText('test1.png') as HTMLImageElement
+    expect(thumbnail).toBeInTheDocument()
+    expect(thumbnail.className).toContain('cursor-pointer')
+    fireEvent.click(thumbnail)
+
+    // Modal should open with image and markdown
+    await waitFor(() => {
+      expect(screen.getByText('Markdown:')).toBeInTheDocument()
+      expect(screen.getByText('![](/photos/abc-123)')).toBeInTheDocument()
+    })
   })
 
   it('uploads a file and prepends to the list', async () => {

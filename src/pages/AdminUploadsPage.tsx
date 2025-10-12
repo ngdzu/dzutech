@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { FiTrash2 } from 'react-icons/fi'
 import { AdminSessionActions } from '../components/AdminSessionActions'
+import { ImagePreviewModal } from '../components/ImagePreviewModal'
 
 type UploadRecord = {
   id: string
@@ -56,6 +57,13 @@ const AdminUploadsPage = () => {
   const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; filename: string | null } | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [previewModal, setPreviewModal] = useState<{
+    isOpen: boolean
+    imageUrl: string
+    imageAlt: string
+    markdownLink: string
+  } | null>(null)
+  const [copiedUploadId, setCopiedUploadId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -159,6 +167,25 @@ const AdminUploadsPage = () => {
   const copyMarkdown = (id: string) => {
     const md = `![](/photos/${id})`
     void copy(md)
+    setCopiedUploadId(id)
+    setTimeout(() => setCopiedUploadId(null), 2000)
+  }
+
+  const openPreview = (upload: UploadRecord) => {
+    const imageUrl = (upload as any).presignedUrl
+      ? (upload as any).presignedUrl
+      : `/uploads/${encodeURIComponent((upload.filename ?? upload.key.replace(/^uploads\//, '')) as string)}`
+
+    setPreviewModal({
+      isOpen: true,
+      imageUrl,
+      imageAlt: upload.filename ?? '',
+      markdownLink: `![](/photos/${upload.id})`
+    })
+  }
+
+  const closePreview = () => {
+    setPreviewModal(null)
   }
 
   const handleDelete = async (id: string) => {
@@ -255,7 +282,8 @@ const AdminUploadsPage = () => {
                               )}`
                           }
                           alt={u.filename ?? ''}
-                          className="h-12 w-12 rounded object-cover"
+                          className="h-12 w-12 cursor-pointer rounded object-cover transition hover:opacity-80"
+                          onClick={() => openPreview(u)}
                         />
                       ) : (
                         <div className="h-12 w-12 rounded bg-slate-800/60" />
@@ -270,23 +298,20 @@ const AdminUploadsPage = () => {
                     </td>
                     <td className="px-2 py-3 align-middle">
                       <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => copyMarkdown(u.id)}
-                          className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-                        >
-                          Copy Markdown
-                        </button>
-                        <a
-                          href={(u as any).presignedUrl ? (u as any).presignedUrl : `/uploads/${encodeURIComponent(
-                            (u.filename ?? u.key.replace(/^uploads\//, '')) as string,
-                          )}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-                        >
-                          Open
-                        </a>
+                        <div className="relative">
+                          <button
+                            type="button"
+                            onClick={() => copyMarkdown(u.id)}
+                            className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+                          >
+                            Copy Markdown
+                          </button>
+                          {copiedUploadId === u.id && (
+                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 rounded bg-slate-700 px-2 py-1 text-xs text-slate-200 shadow-lg animate-fade-out">
+                              Copied!
+                            </div>
+                          )}
+                        </div>
                         <button
                           type="button"
                           onClick={() => setDeleteConfirm({ id: u.id, filename: u.filename })}
@@ -333,6 +358,17 @@ const AdminUploadsPage = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Image preview modal */}
+      {previewModal && (
+        <ImagePreviewModal
+          isOpen={previewModal.isOpen}
+          imageUrl={previewModal.imageUrl}
+          imageAlt={previewModal.imageAlt}
+          markdownLink={previewModal.markdownLink}
+          onClose={closePreview}
+        />
       )}
     </div>
   )

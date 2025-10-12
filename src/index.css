@@ -15,3 +15,18 @@ body {
 #root {
   @apply min-h-screen;
 }
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.animate-fade-out {
+  animation: fade-out 2s ease-out forwards;
+}
