@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react'
-import { FiTrash2 } from 'react-icons/fi'
+import { useEffect, useState } from 'react'
+import { FiTrash2, FiUpload } from 'react-icons/fi'
 import { AdminSessionActions } from '../components/AdminSessionActions'
 import { ImagePreviewModal } from '../components/ImagePreviewModal'
+import { ImageUploaderModal } from '../components/ImageUploaderModal'
 
 type UploadRecord = {
   id: string
@@ -53,8 +54,6 @@ const AdminUploadsPage = () => {
   const [uploads, setUploads] = useState<UploadRecord[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; filename: string | null } | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [previewModal, setPreviewModal] = useState<{
@@ -64,7 +63,7 @@ const AdminUploadsPage = () => {
     markdownLink: string
   } | null>(null)
   const [copiedUploadId, setCopiedUploadId] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [uploaderModalOpen, setUploaderModalOpen] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -88,51 +87,6 @@ const AdminUploadsPage = () => {
       mounted = false
     }
   }, [])
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files && e.target.files[0]
-    if (f) setSelectedFileName(f.name)
-    else setSelectedFileName(null)
-  }
-
-  const doUpload = async () => {
-    const el = fileInputRef.current
-    if (!el || !el.files || el.files.length === 0) {
-      return alert('Please choose a file to upload')
-    }
-    const file = el.files[0]
-    setUploading(true)
-    setError(null)
-    try {
-      const fd = new FormData()
-      fd.append('file', file)
-      const resp = await fetch('/api/uploads', { method: 'POST', body: fd })
-      if (!resp.ok) {
-        const txt = await resp.text()
-        throw new Error(txt || resp.statusText)
-      }
-      const data = await resp.json()
-      // The API returns { id, url, filename, mimetype }
-      // Refresh list by prepending the new item (or re-fetch fully if you prefer)
-      const newItem: UploadRecord = {
-        id: data.id,
-        key: data.key ?? `uploads/${data.filename ?? ''}`,
-        filename: data.filename ?? file.name,
-        mimetype: (data.mimetype ?? file.type) || null,
-        size: data.size ?? file.size ?? null,
-        created_at: new Date().toISOString(),
-      }
-      setUploads((s) => [newItem, ...s])
-      // clear file input
-      el.value = ''
-      setSelectedFileName(null)
-    } catch (err) {
-      console.error('Upload failed', err)
-      setError(String((err as Error).message || err))
-    } finally {
-      setUploading(false)
-    }
-  }
 
   const copy = async (text: string) => {
     try {
@@ -224,24 +178,13 @@ const AdminUploadsPage = () => {
 
       <main className="mx-auto max-w-5xl px-6 py-8">
         <div className="flex items-center gap-3">
-          <label className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-sm text-slate-200">
-            <input ref={fileInputRef} onChange={handleFileSelect} type="file" accept="image/*" className="hidden" />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="text-sm font-medium"
-            >
-              Choose file
-            </button>
-            <span className="text-xs text-slate-400">{selectedFileName ?? 'No file chosen'}</span>
-          </label>
           <button
             type="button"
-            onClick={doUpload}
-            disabled={uploading}
-            className="rounded-full bg-accent-500 px-3 py-1 text-xs font-semibold text-night-900 shadow-glow disabled:opacity-60"
+            onClick={() => setUploaderModalOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-night-900 shadow-glow hover:bg-accent-400"
           >
-            {uploading ? 'Uploading…' : 'Upload photo'}
+            <FiUpload />
+            Upload new photo
           </button>
         </div>
 
@@ -370,6 +313,12 @@ const AdminUploadsPage = () => {
           onClose={closePreview}
         />
       )}
+
+      {/* Image uploader modal */}
+      <ImageUploaderModal
+        isOpen={uploaderModalOpen}
+        onClose={() => setUploaderModalOpen(false)}
+      />
     </div>
   )
 }

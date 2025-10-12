@@ -1,0 +1,355 @@
+import { useEffect, useRef, useState } from 'react'
+import { FiTrash2, FiX } from 'react-icons/fi'
+
+type UploadRecord = {
+  id: string
+  key: string
+  filename: string | null
+  mimetype: string | null
+  size: number | null
+  created_at: string | null
+  presignedUrl?: string
+}
+
+type ImageUploaderModalProps = {
+  isOpen: boolean
+  onClose: () => void
+  onImageSelect?: (markdown: string) => void
+}
+
+const formatFileSize = (bytes: number | null): string => {
+  if (bytes === null || bytes === 0) return '-'
+
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let size = bytes
+  let unitIndex = 0
+
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024
+    unitIndex++
+  }
+
+  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
+}
+
+const formatDate = (dateString: string | null): { short: string; full: string } => {
+  if (!dateString) return { short: '-', full: '' }
+
+  const date = new Date(dateString)
+  const short = date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: '2-digit'
+  })
+  const full = date.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  })
+
+  return { short, full }
+}
+
+export const ImageUploaderModal = ({ isOpen, onClose, onImageSelect }: ImageUploaderModalProps) => {
+  const [uploads, setUploads] = useState<UploadRecord[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; filename: string | null } | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [copiedUploadId, setCopiedUploadId] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    let mounted = true
+    setLoading(true)
+    fetch('/api/admin/uploads?limit=200')
+      .then(async (res) => {
+        if (!res.ok) throw new Error(await res.text())
+        return res.json()
+      })
+      .then((data) => {
+        if (!mounted) return
+        setUploads(Array.isArray(data.uploads) ? data.uploads : [])
+      })
+      .catch((err) => {
+        console.error('Failed to fetch uploads', err)
+        if (mounted) setError(String(err?.message ?? err))
+      })
+      .finally(() => mounted && setLoading(false))
+
+    return () => {
+      mounted = false
+    }
+  }, [isOpen])
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files && e.target.files[0]
+    if (f) setSelectedFileName(f.name)
+    else setSelectedFileName(null)
+  }
+
+  const doUpload = async () => {
+    const el = fileInputRef.current
+    if (!el || !el.files || el.files.length === 0) {
+      return alert('Please choose a file to upload')
+    }
+    const file = el.files[0]
+    setUploading(true)
+    setError(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const resp = await fetch('/api/uploads', { method: 'POST', body: fd })
+      if (!resp.ok) {
+        const txt = await resp.text()
+        throw new Error(txt || resp.statusText)
+      }
+      const data = await resp.json()
+      // The API returns { id, url, filename, mimetype }
+      // Refresh list by prepending the new item (or re-fetch fully if you prefer)
+      const newItem: UploadRecord = {
+        id: data.id,
+        key: data.key ?? `uploads/${data.filename ?? ''}`,
+        filename: data.filename ?? file.name,
+        mimetype: (data.mimetype ?? file.type) || null,
+        size: data.size ?? file.size ?? null,
+        created_at: new Date().toISOString(),
+      }
+      setUploads((s) => [newItem, ...s])
+      // clear file input
+      el.value = ''
+      setSelectedFileName(null)
+    } catch (err) {
+      console.error('Upload failed', err)
+      setError(String((err as Error).message || err))
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const copy = async (text: string) => {
+    try {
+      // Try modern Clipboard API first
+      await navigator.clipboard.writeText(text)
+      // small feedback could be added later
+    } catch (err) {
+      console.error('Modern clipboard API failed, trying fallback', err)
+      try {
+        // Fallback for older browsers or when Clipboard API is blocked
+        const textArea = document.createElement('textarea')
+        textArea.value = text
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        const successful = document.execCommand('copy')
+        document.body.removeChild(textArea)
+
+        if (!successful) {
+          throw new Error('Fallback copy method also failed')
+        }
+      } catch (fallbackErr) {
+        console.error('Fallback copy failed', fallbackErr)
+        void alert('Unable to copy to clipboard — your browser may block it.')
+      }
+    }
+  }
+
+  const copyMarkdown = (id: string) => {
+    const md = `![](/photos/${id})`
+    void copy(md)
+    setCopiedUploadId(id)
+    setTimeout(() => setCopiedUploadId(null), 2000)
+
+    // If onImageSelect callback is provided, call it with the markdown
+    if (onImageSelect) {
+      onImageSelect(md)
+      onClose() // Close modal after selection
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    setDeleting(true)
+    setError(null)
+    try {
+      const resp = await fetch(`/api/admin/uploads/${id}`, { method: 'DELETE' })
+      if (!resp.ok) {
+        const txt = await resp.text()
+        throw new Error(txt || resp.statusText)
+      }
+      // Remove from local state
+      setUploads((s) => s.filter((u) => u.id !== id))
+      setDeleteConfirm(null)
+    } catch (err) {
+      console.error('Delete failed', err)
+      setError(String((err as Error).message || err))
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="mx-4 max-w-6xl w-full max-h-[90vh] rounded-lg border border-slate-700/70 bg-slate-900 shadow-xl overflow-hidden">
+        <div className="flex items-center justify-between border-b border-slate-700/70 px-6 py-4">
+          <h2 className="text-lg font-semibold text-white">Upload Images</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+          >
+            <FiX className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <label className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-sm text-slate-200">
+              <input ref={fileInputRef} onChange={handleFileSelect} type="file" accept="image/*" className="hidden" />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-sm font-medium"
+              >
+                Choose file
+              </button>
+              <span className="text-xs text-slate-400">{selectedFileName ?? 'No file chosen'}</span>
+            </label>
+            <button
+              type="button"
+              onClick={doUpload}
+              disabled={uploading}
+              className="rounded-full bg-accent-500 px-3 py-1 text-xs font-semibold text-night-900 shadow-glow disabled:opacity-60"
+            >
+              {uploading ? 'Uploading…' : 'Upload photo'}
+            </button>
+          </div>
+
+          {loading && <p className="text-sm text-slate-400 mb-4">Loading…</p>}
+          {error && <p className="text-sm text-red-400 mb-4">{error}</p>}
+
+          <div className="overflow-x-auto rounded-md border border-slate-800/80 bg-slate-900/50">
+            <table className="w-full table-auto text-sm">
+              <thead>
+                <tr className="text-left text-slate-300">
+                  <th className="px-4 py-3">Preview</th>
+                  <th className="px-4 py-3">Filename</th>
+                  <th className="px-4 py-3">Size</th>
+                  <th className="px-4 py-3">Created</th>
+                  <th className="px-4 py-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {uploads.length === 0 && !loading ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-6 text-center text-slate-400">
+                      No uploads yet.
+                    </td>
+                  </tr>
+                ) : (
+                  uploads.map((u) => (
+                    <tr key={u.id} className="border-t border-slate-800/60">
+                      <td className="px-4 py-3 align-middle">
+                        {u.key ? (
+                          <img
+                            src={
+                              // prefer a presigned URL when provided by the API; otherwise fall back to /uploads proxy
+                              u.presignedUrl
+                                ? u.presignedUrl
+                                : `/uploads/${encodeURIComponent(
+                                  // prefer filename if present, otherwise derive from key
+                                  (u.filename ?? u.key.replace(/^uploads\//, '')) as string,
+                                )}`
+                            }
+                            alt={u.filename ?? ''}
+                            className="h-12 w-12 cursor-pointer rounded object-cover transition hover:opacity-80"
+                          />
+                        ) : (
+                          <div className="h-12 w-12 rounded bg-slate-800/60" />
+                        )}
+                      </td>
+                      <td className="px-4 py-3 align-middle text-slate-200">{u.filename ?? u.key}</td>
+                      <td className="px-4 py-3 align-middle text-slate-400">{formatFileSize(u.size)}</td>
+                      <td className="px-4 py-3 align-middle text-slate-400">
+                        <span title={formatDate(u.created_at).full}>
+                          {formatDate(u.created_at).short}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        <div className="flex gap-2">
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => copyMarkdown(u.id)}
+                              className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+                            >
+                              {onImageSelect ? 'Select' : 'Copy Markdown'}
+                            </button>
+                            {copiedUploadId === u.id && (
+                              <div className="absolute -top-8 left-1/2 -translate-x-1/2 rounded bg-slate-700 px-2 py-1 text-xs text-slate-200 shadow-lg animate-fade-out">
+                                {onImageSelect ? 'Selected!' : 'Copied!'}
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteConfirm({ id: u.id, filename: u.filename })}
+                            className="inline-flex items-center gap-2 rounded-full border border-red-500/60 px-3 py-1 text-xs font-semibold text-red-200 transition hover:border-red-400/70 hover:text-red-100"
+                          >
+                            <FiTrash2 />
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Delete confirmation dialog */}
+        {deleteConfirm && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
+            <div className="mx-4 max-w-md rounded-lg border border-slate-700/70 bg-slate-900 p-6 shadow-xl">
+              <h3 className="text-lg font-semibold text-white">Delete Upload</h3>
+              <p className="mt-2 text-sm text-slate-300">
+                Are you sure you want to delete "{deleteConfirm.filename ?? 'this upload'}"? This action cannot be undone.
+              </p>
+              <div className="mt-6 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirm(null)}
+                  disabled={deleting}
+                  className="flex-1 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(deleteConfirm.id)}
+                  disabled={deleting}
+                  className="flex-1 rounded-full bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60 hover:bg-red-700"
+                >
+                  {deleting ? 'Deleting…' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}

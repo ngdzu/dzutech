@@ -4,6 +4,7 @@ import { FiArrowLeft, FiSave } from 'react-icons/fi'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
 import { AdminSessionActions } from '../components/AdminSessionActions'
+import { ImageUploaderModal } from '../components/ImageUploaderModal'
 
 const fieldStyle =
   'block w-full rounded-xl border border-slate-800/60 bg-night-800/80 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-accent-400 focus:outline-none focus:ring-2 focus:ring-accent-500/30'
@@ -37,8 +38,6 @@ const generatePostId = () => {
   return `post-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`
 }
 
-import { uploadFile } from '../lib/upload'
-
 const AdminBlogEditorPage = () => {
   const { postId } = useParams<{ postId: string }>()
   const isCreateMode = !postId
@@ -49,8 +48,8 @@ const AdminBlogEditorPage = () => {
   const [form, setForm] = useState<BlogFormState>(() => ({ ...EMPTY_POST }))
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const [imageUploaderModalOpen, setImageUploaderModalOpen] = useState(false)
 
   const currentPost = useMemo(() => {
     if (!postId) return null
@@ -137,6 +136,20 @@ const AdminBlogEditorPage = () => {
     }
   }
 
+  const handleImageSelect = (markdown: string) => {
+    // Insert the markdown at the cursor position in the textarea
+    const ta = textareaRef.current
+    if (ta) {
+      const before = ta.value.slice(0, ta.selectionStart)
+      const after = ta.value.slice(ta.selectionEnd)
+      const insertion = `${markdown}\n\n`
+      const nextContent = `${before}${insertion}${after}`
+      setForm((prev) => ({ ...prev, content: nextContent }))
+      // Focus back to textarea
+      ta.focus()
+    }
+  }
+
   const saving = status === 'saving'
 
   const title = isCreateMode ? 'Create new blog post' : 'Edit blog post'
@@ -206,39 +219,11 @@ const AdminBlogEditorPage = () => {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => setImageUploaderModalOpen(true)}
                     className="rounded-md bg-slate-800/60 px-3 py-1 text-sm text-slate-200 hover:bg-slate-700"
                   >
                     Insert image
                   </button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0]
-                      if (!file) return
-                      try {
-                        const { url } = await uploadFile(file)
-                        // insert markdown at cursor
-                        const ta = textareaRef.current
-                        const before = ta ? ta.value.slice(0, ta.selectionStart) : form.content
-                        const after = ta ? ta.value.slice(ta.selectionEnd) : ''
-                        const insertion = `![alt text](${url})\n\n`
-                        const nextContent = `${before}${insertion}${after}`
-                        setForm((prev) => ({ ...prev, content: nextContent }))
-                        // restore focus to textarea
-                        ta?.focus()
-                      } catch (err) {
-                        console.error('Upload failed', err)
-                        setErrorMessage(err instanceof Error ? err.message : 'Upload failed')
-                      } finally {
-                        // clear the input so the same file can be reselected if needed
-                        ;(e.target as HTMLInputElement).value = ''
-                      }
-                    }}
-                  />
                 </div>
                 <textarea
                   ref={textareaRef}
@@ -307,6 +292,13 @@ const AdminBlogEditorPage = () => {
           </div>
         </form>
       </main>
+
+      {/* Image uploader modal */}
+      <ImageUploaderModal
+        isOpen={imageUploaderModalOpen}
+        onClose={() => setImageUploaderModalOpen(false)}
+        onImageSelect={handleImageSelect}
+      />
     </div>
   )
 }
