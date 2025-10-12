@@ -2,15 +2,6 @@
 import request from 'supertest'
 import { describe, it, expect, beforeAll, vi } from 'vitest'
 
-// Set required env vars before module import
-process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'a'.repeat(32)
-process.env.ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com'
-process.env.ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || 'hash'
-process.env.SESSION_NAME = process.env.SESSION_NAME || 'dzutech.sid'
-process.env.SESSION_MAX_AGE_HOURS = process.env.SESSION_MAX_AGE_HOURS || '1'
-process.env.NODE_ENV = process.env.NODE_ENV || 'test'
-process.env.PORT = process.env.PORT || '4000'
-
 // Hoist-safe mocks
 vi.mock('connect-pg-simple', () => ({ default: (session: any) => {
   const Base = (session && session.Store) ? session.Store : class {}

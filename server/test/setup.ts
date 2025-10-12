@@ -2,6 +2,15 @@
 // Provide a lightweight mock for the AWS S3 client so unit tests don't attempt real network DNS lookups.
 import { vi } from 'vitest'
 
+// Set up environment variables required for tests before any module imports
+process.env.SESSION_SECRET = 'test-session-secret'
+process.env.ADMIN_EMAIL = 'admin@test.com'
+process.env.ADMIN_PASSWORD_HASH = '$2b$10$test.hash.for.admin.password'
+process.env.SESSION_NAME = 'test-session'
+process.env.SESSION_MAX_AGE_HOURS = '24'
+process.env.NODE_ENV = 'test'
+process.env.PORT = '3000'
+
 // Create a minimal mock implementation that matches the parts of S3Client used by the server code.
 vi.mock('@aws-sdk/client-s3', async () => {
   // Create a fake command class to allow code that constructs commands to still pass instanceof checks if needed.
