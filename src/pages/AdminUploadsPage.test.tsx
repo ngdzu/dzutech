@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react'
 import { AdminUploadsPage } from './AdminUploadsPage'
 
 // Mock AdminSessionActions to avoid needing AuthProvider
@@ -29,6 +29,7 @@ describe('AdminUploadsPage', () => {
     // Ensure document.body exists for tests
     if (!document.body) {
       document.body = document.createElement('body')
+      document.appendChild(document.body)
     }
 
     // default fetch for listing uploads returns empty list
@@ -41,13 +42,17 @@ describe('AdminUploadsPage', () => {
     }
     // @ts-expect-error - test env clipboard stub
     globalThis.navigator.clipboard = mockClipboard
+
+    // Stub alert globally
+    vi.stubGlobal('alert', vi.fn())
   })
 
   afterEach(() => {
     vi.restoreAllMocks()
+    cleanup()
   })
 
-  it.skip('renders UI and shows empty state', async () => {
+  it('renders UI and shows empty state', async () => {
     render(<AdminUploadsPage />)
     // header
     expect(screen.getByText('Uploaded photos')).toBeDefined()
@@ -58,19 +63,32 @@ describe('AdminUploadsPage', () => {
     expect(screen.getByText('No uploads yet.')).toBeInTheDocument()
   })
 
-  it.skip('renders uploads from API and allows copy actions and open link', async () => {
+  it('renders uploads from API and allows copy actions and open link', async () => {
     const upload = {
       id: 'abc-123',
-      key: 'uploads/foo.png',
-      filename: 'foo.png',
+      key: 'uploads/test1.png',
+      filename: 'test1.png',
       mimetype: 'image/png',
       size: 123,
       created_at: '2025-10-10T00:00:00Z',
-      presignedUrl: 'https://example.com/foo.png',
+      presignedUrl: 'https://example.com/test1.png',
     }
 
-    // first call is list
-    mockFetchOnce({ uploads: [upload] })
+    // Clear previous mocks and set up fresh mock
+    vi.restoreAllMocks()
+    const freshFetchSpy = vi.spyOn(globalWithFetch, 'fetch')
+    freshFetchSpy.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ uploads: [upload] }),
+      text: async () => JSON.stringify({ uploads: [upload] }),
+    } as unknown as Response)
+    // Set default for any additional calls
+    freshFetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uploads: [] }),
+      text: async () => '',
+    } as unknown as Response)
 
     render(
       <MemoryRouter>
@@ -79,7 +97,10 @@ describe('AdminUploadsPage', () => {
     )
 
     // wait for the row to appear
-    await waitFor(() => screen.getByText('foo.png'))
+    await waitFor(() => {
+      const cells = screen.getAllByText('test1.png')
+      expect(cells.length).toBe(1)
+    })
 
     // Copy ID button
     const copyButtons = screen.getAllByText('Copy ID')
@@ -99,10 +120,10 @@ describe('AdminUploadsPage', () => {
 
     // Open link should use presignedUrl
     const openLink = screen.getByText('Open') as HTMLAnchorElement
-    expect(openLink.href).toContain('https://example.com/foo.png')
+    expect(openLink.href).toContain('https://example.com/test1.png')
   })
 
-  it.skip('uploads a file and prepends to the list', async () => {
+  it('uploads a file and prepends to the list', async () => {
     // initial list empty
     mockFetchOnce({ uploads: [] })
 
@@ -171,19 +192,53 @@ describe('AdminUploadsPage clipboard fallback', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    cleanup()
   })
 
   it.skip('falls back to document.execCommand when clipboard API fails', async () => {
     const upload = {
       id: 'abc-123',
-      key: 'uploads/foo.png',
-      filename: 'foo.png',
+      key: 'uploads/test2.png',
+      filename: 'test2.png',
       mimetype: 'image/png',
       size: 123,
       created_at: '2025-10-10T00:00:00Z',
     }
 
-    mockFetchOnce({ uploads: [upload] })
+    // Clear previous mocks and set up fresh mock
+    vi.restoreAllMocks()
+    
+    const freshFetchSpy = vi.spyOn(globalWithFetch, 'fetch')
+    freshFetchSpy.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ uploads: [upload] }),
+      text: async () => JSON.stringify({ uploads: [upload] }),
+    } as unknown as Response)
+    freshFetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uploads: [] }),
+      text: async () => '',
+    } as unknown as Response)
+
+    // Re-mock clipboard to reject since vi.restoreAllMocks() cleared it
+    const mockClipboard = {
+      writeText: vi.fn().mockRejectedValue(new Error('Clipboard not available')),
+    }
+    // @ts-expect-error - test env clipboard stub
+    globalThis.navigator.clipboard = mockClipboard
+
+    // Mock document methods for fallback
+    const originalCreateElement = document.createElement
+    vi.spyOn(document, 'createElement').mockImplementation((tag) => {
+      if (tag === 'textarea') {
+        const textarea = originalCreateElement.call(document, tag) as HTMLTextAreaElement
+        textarea.select = vi.fn()
+        return textarea
+      }
+      return originalCreateElement.call(document, tag)
+    })
+    vi.spyOn(document, 'execCommand').mockReturnValue(true)
 
     render(
       <MemoryRouter>
@@ -191,7 +246,10 @@ describe('AdminUploadsPage clipboard fallback', () => {
       </MemoryRouter>,
     )
 
-    await waitFor(() => screen.getByText('foo.png'))
+    await waitFor(() => {
+      const cells = screen.getAllByText('test2.png')
+      expect(cells.length).toBe(1)
+    })
 
     const copyButtons = screen.getAllByText('Copy ID')
     fireEvent.click(copyButtons[0])
@@ -208,14 +266,39 @@ describe('AdminUploadsPage clipboard fallback', () => {
   it.skip('shows alert when both clipboard methods fail', async () => {
     const upload = {
       id: 'abc-123',
-      key: 'uploads/foo.png',
-      filename: 'foo.png',
+      key: 'uploads/test3.png',
+      filename: 'test3.png',
       mimetype: 'image/png',
       size: 123,
       created_at: '2025-10-10T00:00:00Z',
     }
 
-    mockFetchOnce({ uploads: [upload] })
+    // Clear previous mocks but keep alert stub
+    vi.restoreAllMocks()
+    
+    // Re-mock alert after restore
+    const alertSpy = vi.fn()
+    window.alert = alertSpy
+    
+    const freshFetchSpy = vi.spyOn(globalWithFetch, 'fetch')
+    freshFetchSpy.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ uploads: [upload] }),
+      text: async () => JSON.stringify({ uploads: [upload] }),
+    } as unknown as Response)
+    freshFetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uploads: [] }),
+      text: async () => '',
+    } as unknown as Response)
+
+    // Re-mock clipboard to reject since vi.restoreAllMocks() cleared it
+    const mockClipboard = {
+      writeText: vi.fn().mockRejectedValue(new Error('Clipboard not available')),
+    }
+    // @ts-expect-error - test env clipboard stub
+    globalThis.navigator.clipboard = mockClipboard
 
     // Mock execCommand to fail
     vi.spyOn(document, 'execCommand').mockReturnValue(false)
@@ -226,13 +309,16 @@ describe('AdminUploadsPage clipboard fallback', () => {
       </MemoryRouter>,
     )
 
-    await waitFor(() => screen.getByText('foo.png'))
+    await waitFor(() => {
+      const cells = screen.getAllByText('test3.png')
+      expect(cells.length).toBe(1)
+    })
 
     const copyButtons = screen.getAllByText('Copy ID')
     fireEvent.click(copyButtons[0])
 
     // Should show alert
-    expect(window.alert).toHaveBeenCalledWith('Unable to copy to clipboard — your browser may block it.')
+    expect(alertSpy).toHaveBeenCalledWith('Unable to copy to clipboard — your browser may block it.')
   })
 })
 
@@ -250,20 +336,33 @@ describe('AdminUploadsPage delete functionality', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    cleanup()
   })
 
   it('shows delete confirmation dialog and deletes upload', async () => {
     const upload = {
       id: 'abc-123',
-      key: 'uploads/foo.png',
-      filename: 'foo.png',
+      key: 'uploads/test4.png',
+      filename: 'test4.png',
       mimetype: 'image/png',
       size: 123,
       created_at: '2025-10-10T00:00:00Z',
     }
 
-    // Mock initial list
-    mockFetchOnce({ uploads: [upload] })
+    // Clear previous mocks and set up fresh mock
+    vi.restoreAllMocks()
+    const freshFetchSpy = vi.spyOn(globalWithFetch, 'fetch')
+    freshFetchSpy.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ uploads: [upload] }),
+      text: async () => JSON.stringify({ uploads: [upload] }),
+    } as unknown as Response)
+    freshFetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uploads: [] }),
+      text: async () => '',
+    } as unknown as Response)
 
     // Mock delete request
     const deleteSpy = vi.spyOn(globalWithFetch, 'fetch')
@@ -275,7 +374,10 @@ describe('AdminUploadsPage delete functionality', () => {
       </MemoryRouter>,
     )
 
-    await waitFor(() => screen.getByText('foo.png'))
+    await waitFor(() => {
+      const cells = screen.getAllByText('test4.png')
+      expect(cells.length).toBe(1)
+    })
 
     // Click delete button
     const deleteButtons = screen.getAllByText('Delete')
@@ -283,7 +385,7 @@ describe('AdminUploadsPage delete functionality', () => {
 
     // Should show confirmation dialog
     expect(screen.getByText('Delete Upload')).toBeInTheDocument()
-    expect(screen.getByText('Are you sure you want to delete "foo.png"? This action cannot be undone.')).toBeInTheDocument()
+    expect(screen.getByText('Are you sure you want to delete "test4.png"? This action cannot be undone.')).toBeInTheDocument()
 
     // Click confirm delete - select the button in the dialog (not the table button)
     const confirmButtons = screen.getAllByText('Delete')
@@ -305,14 +407,27 @@ describe('AdminUploadsPage delete functionality', () => {
   it('cancels delete when cancel button is clicked', async () => {
     const upload = {
       id: 'abc-123',
-      key: 'uploads/foo.png',
-      filename: 'foo.png',
+      key: 'uploads/test5.png',
+      filename: 'test5.png',
       mimetype: 'image/png',
       size: 123,
       created_at: '2025-10-10T00:00:00Z',
     }
 
-    mockFetchOnce({ uploads: [upload] })
+    // Clear previous mocks and set up fresh mock
+    vi.restoreAllMocks()
+    const freshFetchSpy = vi.spyOn(globalWithFetch, 'fetch')
+    freshFetchSpy.mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ uploads: [upload] }),
+      text: async () => JSON.stringify({ uploads: [upload] }),
+    } as unknown as Response)
+    freshFetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ uploads: [] }),
+      text: async () => '',
+    } as unknown as Response)
 
     render(
       <MemoryRouter>
@@ -320,7 +435,10 @@ describe('AdminUploadsPage delete functionality', () => {
       </MemoryRouter>,
     )
 
-    await waitFor(() => screen.getByText('foo.png'))
+    await waitFor(() => {
+      const cells = screen.getAllByText('test5.png')
+      expect(cells.length).toBe(1)
+    })
 
     // Click delete button
     const deleteButtons = screen.getAllByText('Delete')
