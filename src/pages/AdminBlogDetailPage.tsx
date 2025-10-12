@@ -3,6 +3,7 @@ import { FiArrowLeft, FiEdit2, FiEye, FiEyeOff, FiTrash2 } from 'react-icons/fi'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
 import { AdminSessionActions } from '../components/AdminSessionActions'
+import { renderMarkdown } from '../lib/markdown'
 
 const AdminBlogDetailPage = () => {
   const { postId = '' } = useParams<{ postId: string }>()
@@ -154,7 +155,10 @@ const AdminBlogDetailPage = () => {
         )}
 
         <article className="rounded-3xl border border-slate-800/80 bg-slate-900/50 p-8 shadow-inner shadow-black/40">
-          <div className="whitespace-pre-line text-sm text-slate-300/95">{post.content}</div>
+          <div
+            className="prose prose-invert prose-slate max-w-none text-sm"
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content ?? '') }}
+          />
         </article>
       </main>
     </div>

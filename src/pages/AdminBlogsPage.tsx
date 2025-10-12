@@ -4,6 +4,7 @@ import { FiEye, FiEyeOff, FiPlus, FiTrash2 } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
 import { AdminHeader } from '../components/AdminHeader'
+import { markdownExcerpt } from '../lib/markdown'
 
 const cardStyle =
   'space-y-3 rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 shadow-inner shadow-black/40 transition hover:border-accent-500/50 hover:bg-night-800/70'
@@ -160,9 +161,9 @@ const AdminBlogsPage = () => {
                 : []
               const contentPreview = (post.content ?? '').trim()
               const previewText =
-                contentPreview.length > 220
-                  ? `${contentPreview.slice(0, 220)}…`
-                  : contentPreview || 'No content provided yet.'
+                contentPreview.length > 0
+                  ? markdownExcerpt(contentPreview, 220)
+                  : 'No content provided yet.'
               const encodedId = encodeURIComponent(post.id ?? '')
 
               return (
