@@ -10,6 +10,7 @@ import { listUploads } from './repository.js'
 import rateLimit from 'express-rate-limit'
 import bcrypt from 'bcryptjs'
 import path from 'path'
+import fs from 'fs/promises'
 import uploadsRouter from './uploads.js'
 import {
   getContent,
@@ -818,7 +819,18 @@ if (process.env.S3_ENDPOINT && process.env.AWS_ACCESS_KEY_ID && process.env.AWS_
     } catch (err: any) {
       console.error('S3 proxy error for uploads:', err)
       const code = err?.name || err?.Code || ''
-      if (code === 'NoSuchKey' || code === 'NotFound') return res.status(404).json({ message: 'Not found' })
+      if (code === 'NoSuchKey' || code === 'NotFound') {
+        // Fall back to local filesystem if S3 doesn't have the file
+        const uploadDir = process.env.UPLOAD_DIR ? path.resolve(process.env.UPLOAD_DIR) : path.resolve(process.cwd(), 'uploads')
+        const key = req.path.replace(/^\//, '')
+        const filepath = path.join(uploadDir, key.replace(/^uploads\//, ''))
+        try {
+          await fs.access(filepath)
+          return res.sendFile(filepath)
+        } catch (localErr) {
+          return res.status(404).json({ message: 'Not found' })
+        }
+      }
       if (err?.$metadata?.httpStatusCode === 403 || code === 'AccessDenied') return res.status(403).json({ message: 'Access denied' })
       return res.status(500).json({ message: 'Failed to fetch upload' })
     }
