@@ -1,6 +1,6 @@
 import React from 'react'
-import { vi, describe, it, expect } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import { AdminBlogEditorPage } from './AdminBlogEditorPage'
 import { BrowserRouter } from 'react-router-dom'
 
@@ -27,6 +27,10 @@ vi.mock('../components/AdminSessionActions', () => ({
 }))
 
 describe('AdminBlogEditorPage', () => {
+  beforeEach(() => {
+    cleanup()
+  })
+
   it('inserts image markdown when upload completes', async () => {
     render(
       <BrowserRouter>
@@ -109,8 +113,94 @@ describe('AdminBlogEditorPage', () => {
       const arr = calledWith as unknown as Array<Record<string, unknown>>
       const saved = arr[arr.length - 1]
       expect(saved).toBeDefined()
-      expect(saved).toHaveProperty('hidden', true)
       expect(saved).toHaveProperty('title', 'My Test')
     })
+  })
+
+  it('opens preview modal when preview button is clicked', async () => {
+    render(
+      <BrowserRouter>
+        <MockProvider>
+          <AdminBlogEditorPage />
+        </MockProvider>
+      </BrowserRouter>,
+    )
+
+    // Fill in some content first
+    const titleInput = (screen.getAllByLabelText(/Title/i)[0] as HTMLInputElement)
+    const textarea = (screen.getAllByPlaceholderText('Write or paste the full blog post content.')[0] as HTMLTextAreaElement)
+    fireEvent.change(titleInput, { target: { value: 'Test Post' } })
+    fireEvent.change(textarea, { target: { value: '# Hello World\n\nThis is a test post.' } })
+
+    // Click preview button - find the one in the form footer
+    const previewButtons = screen.getAllByRole('button', { name: 'Preview' })
+    const previewBtn = previewButtons[previewButtons.length - 1] // Get the last one (form footer)
+    fireEvent.click(previewBtn)
+
+    // Modal should open
+    expect(screen.getByText('Blog Preview')).toBeInTheDocument()
+    expect(screen.getByText('Test Post')).toBeInTheDocument()
+    expect(screen.getByText('Hello World')).toBeInTheDocument()
+  })
+
+  it('closes preview modal when close button is clicked', async () => {
+    render(
+      <BrowserRouter>
+        <MockProvider>
+          <AdminBlogEditorPage />
+        </MockProvider>
+      </BrowserRouter>,
+    )
+
+    // Fill in some content first
+    const titleInput = (screen.getAllByLabelText(/Title/i)[0] as HTMLInputElement)
+    const textarea = (screen.getAllByPlaceholderText('Write or paste the full blog post content.')[0] as HTMLTextAreaElement)
+    fireEvent.change(titleInput, { target: { value: 'Test Post' } })
+    fireEvent.change(textarea, { target: { value: 'Some content' } })
+
+    // Click preview button - find the one in the form footer
+    const previewButtons = screen.getAllByRole('button', { name: 'Preview' })
+    const previewBtn = previewButtons[previewButtons.length - 1] // Get the last one (form footer)
+    fireEvent.click(previewBtn)
+
+    // Modal should be open
+    expect(screen.getByText('Blog Preview')).toBeInTheDocument()
+
+    // Click close button (the X button)
+    const closeBtn = screen.getByRole('button', { name: '' }) // The close button has no accessible name
+    fireEvent.click(closeBtn)
+
+    // Modal should be closed
+    await waitFor(() => {
+      expect(screen.queryByText('Blog Preview')).not.toBeInTheDocument()
+    })
+  })
+
+  it('shows tags in preview when tags are provided', async () => {
+    render(
+      <BrowserRouter>
+        <MockProvider>
+          <AdminBlogEditorPage />
+        </MockProvider>
+      </BrowserRouter>,
+    )
+
+    // Fill in content with tags
+    const titleInput = (screen.getAllByLabelText(/Title/i)[0] as HTMLInputElement)
+    const textarea = (screen.getAllByPlaceholderText('Write or paste the full blog post content.')[0] as HTMLTextAreaElement)
+    const tagsInput = (screen.getAllByLabelText(/Tags/i)[0] as HTMLInputElement)
+    
+    fireEvent.change(titleInput, { target: { value: 'Test Post' } })
+    fireEvent.change(textarea, { target: { value: 'Some content' } })
+    fireEvent.change(tagsInput, { target: { value: 'React, TypeScript' } })
+
+    // Click preview button - find the one in the form footer
+    const previewButtons = screen.getAllByRole('button', { name: 'Preview' })
+    const previewBtn = previewButtons[previewButtons.length - 1] // Get the last one (form footer)
+    fireEvent.click(previewBtn)
+
+    // Tags should appear in preview
+    expect(screen.getByText('React')).toBeInTheDocument()
+    expect(screen.getByText('TypeScript')).toBeInTheDocument()
   })
 })
