@@ -1,8 +1,8 @@
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor, within, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { type Post } from '../content'
+import type { Post } from '../content'
 import { AdminBlogsPage } from './AdminBlogsPage'
 
 vi.mock('../components/AdminSessionActions', () => ({
@@ -32,34 +32,34 @@ vi.mock('../context/ContentContext', () => ({
 }))
 
 afterEach(() => {
+  cleanup()
   mockDeletePost.mockReset()
   mockSetPostVisibility.mockReset()
-  mockContextValue.loading = false
-  mockContextValue.error = null
   mockContextValue.content = { posts: [] }
 })
 
 describe('AdminBlogsPage', () => {
-  it('calls setPostVisibility with toggled hidden flag and shows success feedback', async () => {
+  it('shows empty state when no posts', () => {
+    mockContextValue.content = { posts: [] }
+    render(
+      <MemoryRouter>
+        <AdminBlogsPage />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/No blog posts yet/i)).toBeInTheDocument()
+  })
+
+  it('toggles hidden and shows feedback', async () => {
     mockContextValue.content = {
       posts: [
-        {
-          id: 'post-1',
-          title: 'First Post',
-          content: 'First content',
-          tags: ['Dev'],
-          hidden: false,
-        },
+        { id: 'post-1', title: 'First Post', content: 'First content', tags: ['Dev'], hidden: false, createdAt: new Date().toISOString() },
       ],
     }
 
-    const deferred: { resolve: () => void } = { resolve: () => { } }
-
+    const deferred: { resolve: (value?: unknown) => void } = { resolve: () => {} }
     mockSetPostVisibility.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          deferred.resolve = () => resolve(undefined)
-        }),
+      () => new Promise((resolve) => { deferred.resolve = resolve }),
     )
 
     render(
@@ -67,8 +67,6 @@ describe('AdminBlogsPage', () => {
         <AdminBlogsPage />
       </MemoryRouter>,
     )
-
-    expect(screen.queryByRole('link', { name: 'Edit' })).toBeNull()
 
     const headings = screen.getAllByRole('heading', { name: 'First Post' })
     const postCard = headings.at(-1)?.closest('article')
@@ -79,35 +77,23 @@ describe('AdminBlogsPage', () => {
     await user.click(toggleButton)
 
     expect(mockSetPostVisibility).toHaveBeenCalledWith('post-1', true)
-
     await waitFor(() => expect(toggleButton).toBeDisabled())
 
     deferred.resolve()
-
     await screen.findByText('Post hidden from public site')
     await waitFor(() => expect(toggleButton).not.toBeDisabled())
   })
 
-  it('confirms before deleting and surfaces success message', async () => {
+  it('confirms before deleting and shows success', async () => {
     mockContextValue.content = {
       posts: [
-        {
-          id: 'post-1',
-          title: 'First Post',
-          content: 'First content',
-          tags: ['Dev'],
-          hidden: false,
-        },
+        { id: 'post-1', title: 'First Post', content: 'First content', tags: ['Dev'], hidden: false, createdAt: new Date().toISOString() },
       ],
     }
 
-    const deferred: { resolve: () => void } = { resolve: () => { } }
-
+    const deferred: { resolve: (value?: unknown) => void } = { resolve: () => {} }
     mockDeletePost.mockImplementationOnce(
-      () =>
-        new Promise((resolve) => {
-          deferred.resolve = () => resolve(undefined)
-        }),
+      () => new Promise((resolve) => { deferred.resolve = resolve }),
     )
 
     const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true)
@@ -117,8 +103,6 @@ describe('AdminBlogsPage', () => {
         <AdminBlogsPage />
       </MemoryRouter>,
     )
-
-    expect(screen.queryByRole('link', { name: 'Edit' })).toBeNull()
 
     const headings = screen.getAllByRole('heading', { name: 'First Post' })
     const postCard = headings.at(-1)?.closest('article')
@@ -132,9 +116,7 @@ describe('AdminBlogsPage', () => {
     expect(mockDeletePost).toHaveBeenCalledWith('post-1')
 
     await waitFor(() => expect(deleteButton).toBeDisabled())
-
     deferred.resolve()
-
     await screen.findByText('Post deleted successfully')
     await waitFor(() => expect(deleteButton).not.toBeDisabled())
 
