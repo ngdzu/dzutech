@@ -15,7 +15,7 @@ describe('photos route local file serving when S3 not configured', () => {
   const __dirname = path.dirname(__filename)
   const serverRoot = path.resolve(__dirname, '..')
   const uploadsDir = path.join(serverRoot, 'uploads')
-  const testFilename = 'local-test.png'
+  const testFilename = 'local-test-1.png'
   const testFilepath = path.join(uploadsDir, testFilename)
 
   beforeEach(async () => {
@@ -39,7 +39,7 @@ describe('photos route local file serving when S3 not configured', () => {
     // the file depending on which branch is exercised.
     const projectUploadsDir = path.resolve(process.cwd(), 'uploads')
     await fs.mkdir(projectUploadsDir, { recursive: true })
-    await fs.writeFile(path.join(projectUploadsDir, testFilename), 'hello-local-file')
+  await fs.writeFile(path.join(projectUploadsDir, testFilename), 'hello-local-file')
   })
 
   afterEach(async () => {

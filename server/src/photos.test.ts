@@ -94,18 +94,18 @@ describe('/photos route variations', () => {
 
     const uploadsDir = path.resolve(process.cwd(), 'uploads')
     await fs.mkdir(uploadsDir, { recursive: true })
-    const filepath = path.join(uploadsDir, 'local-test.png')
-    await fs.writeFile(filepath, 'ok')
+  const filepath = path.join(uploadsDir, 'local-test-2.png')
+  await fs.writeFile(filepath, 'ok')
 
     const app = await importAppWithMocks({ './repository.js': { getUploadById: vi.fn(async () => null) } })
 
-  const res = await request(app).get('/photos/local-test.png')
+  const res = await request(app).get('/photos/local-test-2.png')
   // Depending on how the server initialized S3 during import, this may
   // either serve the file (200) or redirect to /uploads/ as a proxy (302).
   expect([200, 302]).toContain(res.status)
   if (res.status === 200) expect(res.text).toBe('ok')
 
-    // cleanup
-    await fs.unlink(filepath)
+  // cleanup
+  await fs.unlink(filepath)
   })
 })

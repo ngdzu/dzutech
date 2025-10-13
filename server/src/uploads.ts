@@ -10,7 +10,7 @@ import crypto from 'crypto'
 import { fileTypeFromBuffer } from 'file-type'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { requireAuth } from './requireAuth.js'
-import { saveUpload, savePosts } from './repository.js'
+import { saveUpload, savePosts, getContent } from './repository.js'
 import { validatePost } from './validators.js'
 import { parseFrontmatter } from './markdown.js'
 
@@ -93,7 +93,10 @@ const mdUploadHandler = async (req: Request, res: Response) => {
       if (err) return res.status(422).json({ message: err })
     }
 
-    const saved = await savePosts(posts as any)
+  // Merge new posts with existing posts so uploads append rather than replace
+  const current = await getContent()
+  const allPosts = Array.isArray(current.posts) ? [...posts, ...current.posts] : posts
+  const saved = await savePosts(allPosts as any)
     return res.json({ saved, count: saved.length })
   } catch (err: unknown) {
     console.error('mdUploadHandler failed', err)
