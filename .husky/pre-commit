@@ -21,7 +21,9 @@ if [ -n "$TEST_FILES" ]; then
   # Run server tests from server directory with correct config
   if [ -n "$SERVER_TESTS" ]; then
     echo "Running server tests..."
-    cd server && npx vitest run $SERVER_TESTS
+    # Remove 'server/' prefix from test file paths when running from server directory
+    SERVER_TEST_FILES=$(printf "%s\n" $SERVER_TESTS | sed 's|^server/||')
+    cd server && npx vitest run $SERVER_TEST_FILES
     if [ $? -ne 0 ]; then
       echo "Server tests failed. Aborting commit."
       exit 1
