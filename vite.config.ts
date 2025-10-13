@@ -20,6 +20,10 @@ export default defineConfig({
         'scripts/**',
         '**/*.config.js',
         '**/*.config.ts',
+        // exclude test files and test folders from coverage reporting
+        '**/*.test.*',
+        '**/*.spec.*',
+        'src/**/__tests__/**',
       ],
     },
   },
