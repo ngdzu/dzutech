@@ -13,11 +13,30 @@ TEST_FILES=$(printf "%s\n" $STAGED_FILES | grep -E '\.(test|spec)\.(ts|tsx|js|js
 if [ -n "$TEST_FILES" ]; then
   echo "Running staged tests:"
   printf "%s\n" $TEST_FILES
-  # run the staged test files only
-  npx vitest run $TEST_FILES
-  if [ $? -ne 0 ]; then
-    echo "Staged tests failed. Aborting commit."
-    exit 1
+
+  # Separate server and frontend test files
+  SERVER_TESTS=$(printf "%s\n" $TEST_FILES | grep '^server/' || true)
+  FRONTEND_TESTS=$(printf "%s\n" $TEST_FILES | grep -v '^server/' || true)
+
+  # Run server tests from server directory with correct config
+  if [ -n "$SERVER_TESTS" ]; then
+    echo "Running server tests..."
+    cd server && npx vitest run $SERVER_TESTS
+    if [ $? -ne 0 ]; then
+      echo "Server tests failed. Aborting commit."
+      exit 1
+    fi
+    cd ..
+  fi
+
+  # Run frontend tests from root directory
+  if [ -n "$FRONTEND_TESTS" ]; then
+    echo "Running frontend tests..."
+    npx vitest run $FRONTEND_TESTS
+    if [ $? -ne 0 ]; then
+      echo "Frontend tests failed. Aborting commit."
+      exit 1
+    fi
   fi
 fi
 
