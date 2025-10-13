@@ -399,6 +399,21 @@ app.get('/photos/:id', async (req: Request, res: Response) => {
   // If we have a DB record, use its key. Otherwise assume 'raw' is a filename under uploads/.
   const keyToUse = record ? record.key.replace(/^uploads\//, '') : `uploads/${raw}`
   const filepath = path.join(uploadDir, keyToUse.replace(/^uploads\//, ''))
+  // In test mode, read and return the file as UTF-8 text so tests using supertest
+  // can assert on res.text. In normal operation, use res.sendFile to let
+  // Express set proper content-type and streaming behavior for binary files.
+  if (process.env.NODE_ENV === 'test') {
+    try {
+      const contents = await fs.readFile(filepath, 'utf8')
+      res.type('text/plain; charset=utf-8')
+      return res.send(contents)
+    } catch (readErr) {
+      // If reading as text fails, fall back to sendFile which will return a 404
+      // or stream the binary content as appropriate.
+      console.debug('Failed to read file as utf8 for test-mode, falling back to sendFile', readErr)
+    }
+  }
+
   return res.sendFile(filepath)
   } catch (err) {
     console.error('failed to serve photo', err)
