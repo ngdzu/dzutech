@@ -1,5 +1,6 @@
 import type { KeyboardEvent, MouseEvent } from 'react'
 import { useMemo, useRef, useState } from 'react'
+import PaginationControls from '../components/PaginationControls'
 import { FiEye, FiEyeOff, FiPlus, FiTrash2 } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
@@ -43,6 +44,13 @@ const AdminBlogsPage = () => {
       return left - right
     })
   }, [posts])
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const pageSize = 10
+  const totalItems = sortedPosts.length
+  const startIndex = (currentPage - 1) * pageSize
+  const pagePosts = sortedPosts.slice(startIndex, startIndex + pageSize)
 
   const handleNavigateToDetail = (postId: string) => () => {
     navigate(`/admin/blogs/${encodeURIComponent(postId)}`)
@@ -230,6 +238,8 @@ const AdminBlogsPage = () => {
                           const count = (body && (body.count ?? (Array.isArray(body.saved) ? body.saved.length : undefined))) ?? selectedFiles.length
                           setFeedback({ message: `Imported ${count} posts`, tone: 'success' })
                           setSelectedFiles(null)
+                          // reset to first page so user sees newest uploaded posts
+                          setCurrentPage(1)
                           if (fileInputRef.current) fileInputRef.current.value = ''
                         } catch (err) {
                           console.error('Failed to upload MD files', err)
@@ -253,8 +263,19 @@ const AdminBlogsPage = () => {
             No blog posts yet. Use the create button above to add your first story.
           </div>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2">
-            {sortedPosts.map((post) => {
+          <>
+            <div className="flex items-center justify-between">
+              <div />
+              <PaginationControls
+                totalItems={totalItems}
+                pageSize={pageSize}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+
+            <div className="grid gap-5 md:grid-cols-2">
+              {pagePosts.map((post) => {
               const tags = Array.isArray(post.tags)
                 ? post.tags.filter((tag): tag is string => Boolean(tag?.trim()))
                 : []
@@ -342,6 +363,16 @@ const AdminBlogsPage = () => {
               )
             })}
           </div>
+
+            <div className="mt-6 flex items-center justify-end">
+              <PaginationControls
+                totalItems={totalItems}
+                pageSize={pageSize}
+                currentPage={currentPage}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </>
         )}
       </main>
     </div>
