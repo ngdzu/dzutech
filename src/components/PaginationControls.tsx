@@ -63,8 +63,9 @@ const PaginationControls = ({ totalItems, pageSize, currentPage, onPageChange }:
       </div>
 
       <div className="ml-3 flex items-center gap-2">
-        <label className="text-sm">Go to</label>
+        <label htmlFor="jump-input" className="text-sm">Go to</label>
         <input
+          id="jump-input"
           type="number"
           min={1}
           max={totalPages}
