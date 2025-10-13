@@ -290,14 +290,18 @@ const AdminBlogsPage = () => {
                 <article
                   key={post.id ?? post.title}
                   className={cardStyle}
-                  role="link"
-                  tabIndex={0}
-                  onClick={handleNavigateToDetail(post.id)}
-                  onKeyDown={handleKeyNavigate(post.id)}
                 >
                       <div className="space-y-3">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="text-lg font-semibold text-white">{post.title}</h2>
+                          <h2 
+                            className="cursor-pointer text-lg font-semibold text-white hover:text-accent-400 transition-colors"
+                            role="link"
+                            tabIndex={0}
+                            onClick={handleNavigateToDetail(post.id)}
+                            onKeyDown={handleKeyNavigate(post.id)}
+                          >
+                            {post.title}
+                          </h2>
                           {/* Show created date on the tile */}
                           {post.createdAt && (
                             <span className="ml-2 text-xs text-slate-400">{new Date(post.createdAt).toISOString().slice(0, 10)}</span>

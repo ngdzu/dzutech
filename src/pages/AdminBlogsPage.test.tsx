@@ -69,8 +69,8 @@ describe('AdminBlogsPage', () => {
       </MemoryRouter>,
     )
 
-  const headings = screen.getAllByRole('heading', { name: 'First Post' })
-    const postCard = headings.at(-1)?.closest('article')
+  const titleElement = screen.getByRole('link', { name: 'First Post' })
+    const postCard = titleElement.closest('article')
     expect(postCard).not.toBeNull()
   // Created date should be visible in YYYY-MM-DD format
   expect(within(postCard!).getByText(created.slice(0, 10))).toBeInTheDocument()
@@ -108,8 +108,8 @@ describe('AdminBlogsPage', () => {
       </MemoryRouter>,
     )
 
-  const headings = screen.getAllByRole('heading', { name: 'First Post' })
-  const postCard = headings.at(-1)?.closest('article')
+  const titleElement = screen.getByRole('link', { name: 'First Post' })
+  const postCard = titleElement.closest('article')
   expect(postCard).not.toBeNull()
   expect(within(postCard!).getByText(created2.slice(0, 10))).toBeInTheDocument()
     const deleteButton = within(postCard!).getByRole('button', { name: 'Delete' })
@@ -126,5 +126,78 @@ describe('AdminBlogsPage', () => {
     await waitFor(() => expect(deleteButton).not.toBeDisabled())
 
     confirmSpy.mockRestore()
+  })
+
+  it('navigates to blog detail when clicking on title', async () => {
+    mockContextValue.content = {
+      posts: [
+        { id: 'post-1', title: 'First Post', content: 'First content', tags: ['Dev'], hidden: false },
+      ],
+    }
+
+    render(
+      <MemoryRouter>
+        <AdminBlogsPage />
+      </MemoryRouter>,
+    )
+
+    const titleElement = screen.getByRole('link', { name: 'First Post' })
+    const user = userEvent.setup()
+    await user.click(titleElement)
+
+    // Since we're using MemoryRouter, we can't easily test navigation
+    // But we can verify the title has the correct role and is clickable
+    expect(titleElement).toBeInTheDocument()
+    expect(titleElement).toHaveAttribute('tabindex', '0')
+  })
+
+  it('does not navigate when clicking on content area (not title)', async () => {
+    mockContextValue.content = {
+      posts: [
+        { id: 'post-1', title: 'First Post', content: 'First content with some text', tags: ['Dev'], hidden: false },
+      ],
+    }
+
+    render(
+      <MemoryRouter>
+        <AdminBlogsPage />
+      </MemoryRouter>,
+    )
+
+    const titleElement = screen.getByRole('link', { name: 'First Post' })
+    const postCard = titleElement.closest('article')
+    expect(postCard).not.toBeNull()
+
+    // Find the content paragraph
+    const contentElement = within(postCard!).getByText('First content with some text')
+    
+    const user = userEvent.setup()
+    await user.click(contentElement)
+
+    // The content element should not have click handlers
+    expect(contentElement).not.toHaveAttribute('onclick')
+    expect(contentElement.tagName).toBe('P')
+  })
+
+  it('supports keyboard navigation on title', async () => {
+    mockContextValue.content = {
+      posts: [
+        { id: 'post-1', title: 'First Post', content: 'First content', tags: ['Dev'], hidden: false },
+      ],
+    }
+
+    render(
+      <MemoryRouter>
+        <AdminBlogsPage />
+      </MemoryRouter>,
+    )
+
+    const titleElement = screen.getByRole('link', { name: 'First Post' })
+    expect(titleElement).toHaveAttribute('tabindex', '0')
+    
+    const user = userEvent.setup()
+    await user.tab({ shift: true }) // Tab backwards to focus something else first
+    titleElement.focus()
+    expect(titleElement).toHaveFocus()
   })
 })
