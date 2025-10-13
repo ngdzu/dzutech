@@ -1,35 +1,22 @@
 #!/bin/sh
 
-# remove any previously generated server coverage so lint doesn't pick it up
-rm -rf server/coverage || true
-rm -rf coverage/merged || true
+# Quick smoke test before push - just run tests without coverage to catch obvious issues
+echo "Running quick smoke test before push..."
 
-echo "Running frontend tests with coverage (this may take a bit)..."
-npm run coverage:run
+echo "Running frontend tests..."
+npm run test
 if [ $? -ne 0 ]; then
-  echo "Frontend tests/coverage failed. Aborting push."
+  echo "Frontend tests failed. Aborting push."
   exit 1
 fi
 
-echo "Running server tests with coverage (this may take a bit)..."
-npm run coverage:run:server
+echo "Running server tests..."
+cd server && npm run test
 if [ $? -ne 0 ]; then
-  echo "Server tests/coverage failed. Aborting push."
+  echo "Server tests failed. Aborting push."
   exit 1
 fi
+cd ..
 
-# merge coverage into a single LCOV/HTML report
-npm run coverage:merge
-if [ $? -ne 0 ]; then
-  echo "Failed to merge coverage reports. Aborting push."
-  exit 1
-fi
-
-# run staged coverage check against merged coverage
-npm run coverage:check-staged
-if [ $? -ne 0 ]; then
-  echo "Staged file coverage check failed. Aborting push."
-  exit 1
-fi
-
+echo "Smoke test passed. Push allowed."
 exit 0

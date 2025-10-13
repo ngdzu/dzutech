@@ -36,7 +36,7 @@ const AdminSessionActions = () => {
           </p>
         )}
         <button type="button" onClick={handleLogout} className={actionButtonStyle} disabled={pending}>
-          <FiLogOut />
+          <FiLogOut data-testid="logout-icon" />
           {pending ? 'Signing out…' : 'Sign out'}
         </button>
       </div>

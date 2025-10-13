@@ -6,52 +6,34 @@ rm -rf server/coverage || true
 # lint only staged files
 npx lint-staged
 
-# Run any staged tests only (fast, focused on what changed)
-STAGED_FILES=$(git diff --name-only --cached)
-# find staged test files (vitest style)
-TEST_FILES=$(printf "%s\n" $STAGED_FILES | grep -E '\.(test|spec)\.(ts|tsx|js|jsx)$' || true)
-if [ -n "$TEST_FILES" ]; then
-  echo "Running staged tests:"
-  printf "%s\n" $TEST_FILES
-
-  # Separate server and frontend test files
-  SERVER_TESTS=$(printf "%s\n" $TEST_FILES | grep '^server/' || true)
-  FRONTEND_TESTS=$(printf "%s\n" $TEST_FILES | grep -v '^server/' || true)
-
-  # Run server tests from server directory with correct config
-  if [ -n "$SERVER_TESTS" ]; then
-    echo "Running server tests..."
-    # Remove 'server/' prefix from test file paths when running from server directory
-    SERVER_TEST_FILES=$(printf "%s\n" $SERVER_TESTS | sed 's|^server/||')
-    cd server && npx vitest run $SERVER_TEST_FILES
-    if [ $? -ne 0 ]; then
-      echo "Server tests failed. Aborting commit."
-      exit 1
-    fi
-    cd ..
-  fi
-
-  # Run frontend tests from root directory
-  if [ -n "$FRONTEND_TESTS" ]; then
-    echo "Running frontend tests..."
-    npx vitest run $FRONTEND_TESTS
-    if [ $? -ne 0 ]; then
-      echo "Frontend tests failed. Aborting commit."
-      exit 1
-    fi
-  fi
+# Run full test suite to ensure everything works together
+echo "Running full test suite..."
+npm run coverage:run
+if [ $? -ne 0 ]; then
+  echo "Frontend tests failed. Aborting commit."
+  exit 1
 fi
 
-# If a coverage report exists, run the staged coverage check. Otherwise skip to keep commits fast.
-if [ -f coverage/coverage-final.json ]; then
-  echo "Checking staged file coverage..."
-  npm run coverage:check-staged
-  if [ $? -ne 0 ]; then
-    echo "Staged file coverage check failed. Aborting commit."
-    exit 1
-  fi
-else
-  echo "No coverage report found; skipping staged coverage check. Run full CI locally to verify coverage." 
+echo "Running server test suite..."
+npm run coverage:run:server
+if [ $? -ne 0 ]; then
+  echo "Server tests failed. Aborting commit."
+  exit 1
+fi
+
+# merge coverage reports
+npm run coverage:merge
+if [ $? -ne 0 ]; then
+  echo "Failed to merge coverage reports. Aborting commit."
+  exit 1
+fi
+
+# Check overall coverage meets threshold
+echo "Checking overall test coverage..."
+npm run coverage:check-overall
+if [ $? -ne 0 ]; then
+  echo "Overall coverage check failed. Aborting commit."
+  exit 1
 fi
 
 exit 0

@@ -13,7 +13,7 @@
     "coverage:run": "vitest run src --coverage",
     "coverage:run:server": "npm run test --prefix server -- --coverage",
     "coverage:merge": "node ./scripts/merge-coverage.cjs",
-    "coverage:check-staged": "node ./scripts/check-coverage-staged.cjs",
+    "coverage:check-overall": "node ./scripts/check-coverage-overall.cjs",
     "ci:local": "rm -rf server/coverage && npm run verify:env && npm run lint && npm run coverage:run && npm run coverage:run:server",
     "pre-submit": "rm -rf server/coverage && npm run ci:local",
     "test": "vitest run",
