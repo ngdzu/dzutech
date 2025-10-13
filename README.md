@@ -46,6 +46,7 @@ Ensure PostgreSQL is running locally (or use `docker compose up db` to boot the 
 ```bash
 cd server
 npm run dev
+
 ```
 
 In a second terminal, start the Vite dev server with hot reload:
@@ -65,6 +66,45 @@ Preview the production build locally:
 ```bash
 npm run preview
 ```
+
+## Simulate uploads (API)
+
+You can exercise the upload endpoints directly to simulate image or Markdown imports. Admin routes are session-authenticated, so first log in and capture the session cookie, then POST files as multipart form data.
+
+1) Log in and save cookies to a jar (replace with admin credentials from `server/.env`):
+
+```bash
+curl -c cookiejar.txt -sS -X POST http://localhost:4000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@example.com","password":"your-password"}'
+```
+
+2) Upload a single image (field name `file`):
+
+```bash
+curl -b cookiejar.txt -sS -X POST http://localhost:4000/api/uploads \
+  -F "file=@./test/fixtures/sample-image.png"
+```
+
+Example successful response:
+
+```json
+{ "url": "/photos/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "filename": "1678920000-abcdef1234.png", "mimetype": "image/png" }
+```
+
+3) Upload multiple Markdown files as new posts (admin route, field name `files`):
+
+```bash
+curl -b cookiejar.txt -sS -X POST http://localhost:4000/api/admin/posts/upload \
+  -F "files=@./posts/article1.md" -F "files=@./posts/article2.md"
+```
+
+Notes and troubleshooting:
+
+- If `S3_ENDPOINT` + `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` + `S3_BUCKET` are set, images will be uploaded to the object store and the DB will record the object key. Otherwise, files are written to the `uploads/` directory (configurable via `UPLOAD_DIR`).
+- To inspect filesystem uploads, check the `uploads/` folder at the repository root or the path referenced by `UPLOAD_DIR`.
+- If uploads return errors about content-type or invalid files, verify the sample files are valid images or markdown and not corrupted; the API validates file contents (not just declared mime type).
+- The repository includes upload handler tests under `server/src` that demonstrate behavior and edge cases.
 
 ## ✅ Quality checks & Git hooks
 
