@@ -12,7 +12,6 @@ jobs:
   build-and-verify:
     runs-on: ubuntu-latest
     env:
-      NODE_ENV: production
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
       ALLOWED_ORIGIN: ${{ secrets.ALLOWED_ORIGIN }}
