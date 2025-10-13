@@ -55,7 +55,7 @@ const mdUploadHandler = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'No markdown files uploaded' })
     }
 
-    const posts = await Promise.all(files.map(async (f) => {
+    const fileResults = await Promise.all(files.map(async (f) => {
       // normalize buffer
       let buf: Buffer | null = null
       const raw = f.buffer
@@ -68,24 +68,50 @@ const mdUploadHandler = async (req: Request, res: Response) => {
       }
 
       const fullText = buf ? buf.toString('utf8') : ''
-      const name = (f.originalname || '').replace(/\.md$/i, '')
-      const title = name.replace(/[-_]/g, ' ').replace(/\.(md)$/i, '') || f.originalname
+      const originalName = f.originalname || ''
 
       // Parse frontmatter from markdown content
       const { frontmatter, content } = parseFrontmatter(fullText)
       const tags = frontmatter.tags || []
 
+      // Determine the H1 title requirement: after frontmatter, the very first
+      // non-empty line must be an H1 of the form `# Title`.
+      const lines = content.split(/\r?\n/)
+      // skip leading blank lines
+      let firstNonEmptyIndex = 0
+      while (firstNonEmptyIndex < lines.length && lines[firstNonEmptyIndex].trim() === '') firstNonEmptyIndex += 1
+      const firstLine = lines[firstNonEmptyIndex] ?? ''
+      const h1Match = firstLine.match(/^#\s+(.*)$/)
+      if (!h1Match) {
+        return { error: `Missing top-level H1 title in file '${originalName}'` }
+      }
+
+      const titleFromH1 = h1Match[1].trim()
+
       const post = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        title,
+        title: titleFromH1 || originalName.replace(/\.md$/i, '').replace(/[-_]/g, ' '),
         content,
         contentHtml: '',
         tags,
         hidden: false,
         createdAt: new Date().toISOString(),
       }
-      return post
+      return { post }
     }))
+
+    // Collect errors from fileResults. If any file failed validation, reject
+    // the whole upload and return per-file error messages.
+    const errors: string[] = []
+    const posts: any[] = []
+    for (const r of fileResults) {
+      if ((r as any).error) errors.push((r as any).error)
+      else if ((r as any).post) posts.push((r as any).post)
+    }
+
+    if (errors.length > 0) {
+      return res.status(422).json({ message: 'One or more files failed validation', errors })
+    }
 
     // validate posts before saving
     for (let i = 0; i < posts.length; i += 1) {
@@ -93,10 +119,10 @@ const mdUploadHandler = async (req: Request, res: Response) => {
       if (err) return res.status(422).json({ message: err })
     }
 
-  // Merge new posts with existing posts so uploads append rather than replace
-  const current = await getContent()
-  const allPosts = Array.isArray(current.posts) ? [...posts, ...current.posts] : posts
-  const saved = await savePosts(allPosts as any)
+    // Merge new posts with existing posts so uploads append rather than replace
+    const current = await getContent()
+    const allPosts = Array.isArray(current.posts) ? [...posts, ...current.posts] : posts
+    const saved = await savePosts(allPosts as any)
     return res.json({ saved, count: saved.length })
   } catch (err: unknown) {
     console.error('mdUploadHandler failed', err)

@@ -28,7 +28,7 @@ const AdminBlogsPage = () => {
     () => (Array.isArray(content.posts) ? content.posts : []),
     [content.posts],
   )
-  const [feedback, setFeedback] = useState<{ message: string; tone: 'success' | 'error' } | null>(null)
+  const [feedback, setFeedback] = useState<{ message: string; tone: 'success' | 'error'; errors?: string[] } | null>(null)
   const [actionState, setActionState] = useState<ActionState | null>(null)
 
   const sortedPosts = useMemo(() => {
@@ -96,6 +96,18 @@ const AdminBlogsPage = () => {
                 >
                   {globalStatus.message}
                 </span>
+              )}
+              {globalStatus && Array.isArray((globalStatus as { errors?: string[] })?.errors) && (globalStatus as { errors?: string[] }).errors!.length > 0 && (
+                <div className="w-full mt-2 rounded-md border border-red-700/50 bg-red-900/20 p-3 text-sm text-red-100">
+                  <div className="font-semibold text-red-200">Upload errors</div>
+                  <ul className="mt-2 list-disc list-inside space-y-1">
+                    {(globalStatus as { errors?: string[] }).errors!.map((err, i) => (
+                      <li key={i} className="text-red-100">
+                        {err}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </div>
           </div>
@@ -186,10 +198,14 @@ const AdminBlogsPage = () => {
                           })
 
                           if (!resp.ok) {
-                            // try to parse JSON error message
+                            // try to parse JSON error message and errors array
                             const body = await resp.json().catch(() => ({}))
                             const message = body && typeof body.message === 'string' ? body.message : resp.statusText
-                            throw new Error(message || 'Upload failed')
+                            const errors = Array.isArray(body && body.errors) ? body.errors : undefined
+                            // set detailed error feedback (per-file errors when present)
+                            setFeedback({ message: message || 'Upload failed', tone: 'error', errors })
+                            // bail out without throwing so we can display detailed errors
+                            return
                           }
 
                           const body = await resp.json().catch(() => ({}))
