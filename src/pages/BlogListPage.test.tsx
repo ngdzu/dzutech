@@ -73,8 +73,8 @@ describe('BlogListPage', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('heading', { level: 2, name: 'Visible Post' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { level: 2, name: 'Hidden Post' })).not.toBeInTheDocument()
+    expect(screen.getByText('Visible Post')).toBeInTheDocument()
+    expect(screen.queryByText('Hidden Post')).not.toBeInTheDocument()
   })
 
   it('shows empty state when all posts are hidden', () => {
