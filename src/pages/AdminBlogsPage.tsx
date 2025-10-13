@@ -178,6 +178,10 @@ const AdminBlogsPage = () => {
                       <div className="space-y-3">
                         <div className="flex flex-wrap items-center gap-2">
                           <h2 className="text-lg font-semibold text-white">{post.title}</h2>
+                          {/* Show created date on the tile */}
+                          {post.createdAt && (
+                            <span className="ml-2 text-xs text-slate-400">{new Date(post.createdAt).toISOString().slice(0, 10)}</span>
+                          )}
                           {post.hidden && (
                             <span className={`${badgeStyle} border-yellow-500/60 bg-yellow-500/10 text-yellow-200`}>
                               Hidden

@@ -51,9 +51,10 @@ describe('AdminBlogsPage', () => {
   })
 
   it('toggles hidden and shows feedback', async () => {
+    const created = new Date().toISOString()
     mockContextValue.content = {
       posts: [
-        { id: 'post-1', title: 'First Post', content: 'First content', tags: ['Dev'], hidden: false, createdAt: new Date().toISOString() },
+        { id: 'post-1', title: 'First Post', content: 'First content', tags: ['Dev'], hidden: false, createdAt: created },
       ],
     }
 
@@ -68,9 +69,11 @@ describe('AdminBlogsPage', () => {
       </MemoryRouter>,
     )
 
-    const headings = screen.getAllByRole('heading', { name: 'First Post' })
+  const headings = screen.getAllByRole('heading', { name: 'First Post' })
     const postCard = headings.at(-1)?.closest('article')
     expect(postCard).not.toBeNull()
+  // Created date should be visible in YYYY-MM-DD format
+  expect(within(postCard!).getByText(created.slice(0, 10))).toBeInTheDocument()
     const toggleButton = within(postCard!).getByRole('button', { name: 'Hide' })
 
     const user = userEvent.setup()
@@ -85,9 +88,10 @@ describe('AdminBlogsPage', () => {
   })
 
   it('confirms before deleting and shows success', async () => {
+    const created2 = new Date().toISOString()
     mockContextValue.content = {
       posts: [
-        { id: 'post-1', title: 'First Post', content: 'First content', tags: ['Dev'], hidden: false, createdAt: new Date().toISOString() },
+        { id: 'post-1', title: 'First Post', content: 'First content', tags: ['Dev'], hidden: false, createdAt: created2 },
       ],
     }
 
@@ -104,9 +108,10 @@ describe('AdminBlogsPage', () => {
       </MemoryRouter>,
     )
 
-    const headings = screen.getAllByRole('heading', { name: 'First Post' })
-    const postCard = headings.at(-1)?.closest('article')
-    expect(postCard).not.toBeNull()
+  const headings = screen.getAllByRole('heading', { name: 'First Post' })
+  const postCard = headings.at(-1)?.closest('article')
+  expect(postCard).not.toBeNull()
+  expect(within(postCard!).getByText(created2.slice(0, 10))).toBeInTheDocument()
     const deleteButton = within(postCard!).getByRole('button', { name: 'Delete' })
 
     const user = userEvent.setup()
