@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  # Remap API host port from 4000 to 4001 for staging
+  api:
+    ports:
+      - "4001:4000"
+
+  # Remap website host port from 4173 to 5173 for staging
+  website:
+    ports:
+      - "5173:4173"
+
+  # MinIO remapped to avoid collision with prod MinIO
+  minio:
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+
+  # It's safer to NOT expose the Postgres DB port to the host on staging.
+  # If you need host access to Postgres for debugging, uncomment and change the port below.
+  db:
+    # ports:
+    #   - "5433:5432"
+    # By default we do not publish DB port to host for safety.
+    deploy:
+      replicas: 1
+
+  # If you want Caddy in the staging compose to bind different host ports
+  # (instead of 80/443), you can override them here. Example binds Caddy to 8080/8443:
+  # caddy:
+  #   ports:
+  #     - "8080:80"
+  #     - "8443:443"

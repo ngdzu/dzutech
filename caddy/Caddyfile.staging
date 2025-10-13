@@ -1,0 +1,31 @@
+
+# Caddyfile for staging.dzutech.com
+# Notes:
+# - This file is used when running Caddy as a container inside the staging compose.
+# - Caddy can reverse-proxy to service names (api, website) because containers share the compose network.
+# - We deliberately do not bind host 80/443 in the repo by default; see docs/STAGING.md for options.
+
+staging.dzutech.com {
+    # Use email from environment for ACME registration if set (passed via docker-compose env).
+    tls {env ACME_EMAIL}
+
+    # Prevent search engines from indexing staging
+    header /* {
+        X-Robots-Tag "noindex, nofollow"
+    }
+
+    # Optional: enable HTTP Basic Auth for staging. Generate a bcrypt hash locally with:
+    #   docker run --rm caddy caddy hash-password --plaintext 'YourStagingPassword'
+    # Then uncomment and paste the hashed password below.
+    # basicauth /* {
+    #   staginguser bcrypt:<PASTE_HASHED_PASSWORD_HERE>
+    # }
+
+    # Route API requests to the api container
+    @api path /api/*
+    reverse_proxy @api api:4000
+
+    # All other requests -> website (Vite/static dev server or built site)
+    reverse_proxy website:4173
+}
+

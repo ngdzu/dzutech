@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    # NOTE: We do NOT bind 80/443 on the host by default here to avoid port collisions
+    # with an existing production reverse-proxy running on the same VPS. If you want
+    # Caddy inside this compose to manage TLS and bind host ports directly (only do
+    # this if production is not using 80/443 on this host, or this is a separate host),
+    # uncomment the ports block below.
+    # ports:
+    #   - '80:80'
+    #   - '443:443'
+    volumes:
+      - ./caddy/Caddyfile.staging:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      # Caddy will use this email for ACME registration; change to your admin email
+      - ACME_EMAIL=admin@dzutech.com
+    depends_on:
+      - website
+      - api
+
+volumes:
+  caddy_data: {}
+  caddy_config: {}

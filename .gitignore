@@ -32,3 +32,7 @@ server/uploads
 coverage
 server/.env_backup
 .env_backup
+
+# Staging env files (do NOT commit secrets)
+server/.env.staging
+.env.staging
