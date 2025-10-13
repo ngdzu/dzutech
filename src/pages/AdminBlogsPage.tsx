@@ -284,7 +284,6 @@ const AdminBlogsPage = () => {
                 contentPreview.length > 0
                   ? markdownExcerpt(contentPreview, 220)
                   : 'No content provided yet.'
-              const encodedId = encodeURIComponent(post.id ?? '')
 
               return (
                 <article
@@ -355,13 +354,6 @@ const AdminBlogsPage = () => {
                           <FiTrash2 />
                           Delete
                         </button>
-                        <Link
-                          to={`/admin/blogs/${encodedId}`}
-                          onClick={(event) => event.stopPropagation()}
-                          className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
-                        >
-                          View details
-                        </Link>
                       </div>
                 </article>
               )
