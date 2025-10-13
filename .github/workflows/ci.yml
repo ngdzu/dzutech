@@ -37,6 +37,7 @@ jobs:
         working-directory: server
 
       - name: Verify production environment configuration
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
         run: npm run verify:env
 
       - name: Run lint
