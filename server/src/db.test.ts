@@ -1,9 +1,16 @@
+import { describe, it, expect, vi } from 'vitest'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Create a mock of the 'pg' module that exports the Pool class and also
 // exposes the mock functions so tests can manipulate their behavior. We
 // avoid referencing vi.fn() variables before the mock is hoisted by
 // creating the mock functions inside the factory and exporting them.
+// Import read/write helpers. The 'pg' module is mocked in a separate test file
+// for environment branch coverage so these unit tests can import the helpers
+// and use the controlled mock provided in that file's factory.
+// Provide a simple mock for 'pg' that exposes the query/on mocks which the
+// helpers will use. This mock is hoisted by vitest so it exists before the
+// module under test is imported.
 vi.mock('pg', () => {
   const q = vi.fn()
   const o = vi.fn()
@@ -14,18 +21,14 @@ vi.mock('pg', () => {
       on = o
       constructor() {}
     },
-    // expose the mocks so the test can import them after the module under test
     __mockQuery: q,
     __mockOn: o,
   }
 })
 
-// Import after mocking so the real Pool constructor isn't executed.
 import { readJson, writeJson } from './db'
 import * as pgMock from 'pg'
 
-// Avoid `any` by treating the imported module as unknown then narrowing to the
-// expected shape that the mock factory provides.
 type PgMockShape = {
   __mockQuery: ReturnType<typeof vi.fn>
   __mockOn: ReturnType<typeof vi.fn>
