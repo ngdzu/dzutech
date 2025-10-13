@@ -12,6 +12,7 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { requireAuth } from './requireAuth.js'
 import { saveUpload, savePosts } from './repository.js'
 import { validatePost } from './validators.js'
+import { parseFrontmatter } from './markdown.js'
 
 const router = express.Router()
 
@@ -66,15 +67,20 @@ const mdUploadHandler = async (req: Request, res: Response) => {
         buf = Buffer.from((raw as { data: Uint8Array }).data)
       }
 
-      const text = buf ? buf.toString('utf8') : ''
+      const fullText = buf ? buf.toString('utf8') : ''
       const name = (f.originalname || '').replace(/\.md$/i, '')
       const title = name.replace(/[-_]/g, ' ').replace(/\.(md)$/i, '') || f.originalname
+
+      // Parse frontmatter from markdown content
+      const { frontmatter, content } = parseFrontmatter(fullText)
+      const tags = frontmatter.tags || []
+
       const post = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         title,
-        content: text,
+        content,
         contentHtml: '',
-        tags: [] as string[],
+        tags,
         hidden: false,
         createdAt: new Date().toISOString(),
       }

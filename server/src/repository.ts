@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { readJson, writeJson } from './db.js'
 import { defaultContent } from './defaultContent.js'
-import { markdownToHtml } from './markdown.js'
+import { markdownToHtml, parseFrontmatter } from './markdown.js'
 import type {
   ContentState,
   Experience,
@@ -194,7 +194,7 @@ const ensureId = (input: unknown, fallback: string): string => {
   return fallback
 }
 
-const normalizePost = (candidate: Partial<Post> & Record<string, unknown>, fallback: Post): Post => {
+export const normalizePost = (candidate: Partial<Post> & Record<string, unknown>, fallback: Post): Post => {
   const ensureString = (input: unknown, fallbackValue: string): string => {
     if (typeof input === 'string') {
       const trimmed = input.trim()
@@ -211,6 +211,10 @@ const normalizePost = (candidate: Partial<Post> & Record<string, unknown>, fallb
   const fallbackSummary = typeof candidate.summary === 'string' ? candidate.summary : undefined
   const content = ensureString(contentSource ?? fallbackSummary, fallback.content)
 
+  // Parse frontmatter from content to extract tags and clean content
+  const { frontmatter, content: cleanContent } = parseFrontmatter(content)
+  const extractedTags = frontmatter.tags || []
+
   const extras: Record<string, unknown> = {}
   for (const [key, value] of Object.entries(candidate)) {
     if (['id', 'hidden', 'title', 'content', 'contentHtml', 'tags', 'summary', 'href'].includes(key)) continue
@@ -221,9 +225,9 @@ const normalizePost = (candidate: Partial<Post> & Record<string, unknown>, fallb
     ...extras,
     id: ensureId(candidate.id, fallback.id),
     title,
-    content,
-    tags: ensureStringArray(candidate.tags, fallback.tags),
-    contentHtml: markdownToHtml(content),
+    content: content, // Store full content including frontmatter
+    tags: ensureStringArray(candidate.tags, extractedTags), // Use extracted tags if no tags provided
+    contentHtml: markdownToHtml(cleanContent), // Generate HTML from clean content
     hidden: ensureBoolean(candidate.hidden, fallback.hidden),
   }
 }

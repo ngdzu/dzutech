@@ -20,7 +20,7 @@ const getTimestamp = (value?: string | null) => {
 }
 
 const AdminBlogsPage = () => {
-  const { content, loading, error: contextError, deletePost, setPostVisibility } = useContent()
+  const { content, loading, error: contextError, deletePost, setPostVisibility, refresh } = useContent()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [selectedFiles, setSelectedFiles] = useState<File[] | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -199,6 +199,8 @@ const AdminBlogsPage = () => {
                           // reset to first page so user sees newest uploaded posts
                           setCurrentPage(1)
                           if (fileInputRef.current) fileInputRef.current.value = ''
+                          // Refresh content to show the newly uploaded posts
+                          await refresh()
                         } catch (err) {
                           console.error('Failed to upload MD files', err)
                           setFeedback({ message: (err as Error)?.message ?? 'Upload failed', tone: 'error' })
