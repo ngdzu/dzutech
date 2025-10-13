@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, it, expect, vi } from 'vitest'
+import { render, screen, cleanup } from '@testing-library/react'
+import { beforeEach, beforeAll, afterAll, afterEach, describe, it, expect, vi } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import { defaultContent } from '../content'
 import ExperiencesPage from './ExperiencesPage'
@@ -22,6 +22,59 @@ const mockContextValue = {
 vi.mock('../context/ContentContext', () => ({
     useContent: () => mockContextValue,
 }))
+
+// Provide safe no-op globals for test environment to avoid unhandled errors
+// during teardown (some DOM APIs may not be implemented or may be removed
+// while async React work is still running). We restore originals after tests.
+let _origScrollTo: unknown
+let _origIntersectionObserver: unknown
+
+type GlobalScroll = { scrollTo?: (...args: unknown[]) => void }
+type GlobalIO = { IntersectionObserver?: typeof IntersectionObserver }
+
+beforeAll(() => {
+    const gScroll = globalThis as unknown as GlobalScroll
+    _origScrollTo = gScroll.scrollTo
+    if (typeof gScroll.scrollTo !== 'function') {
+        gScroll.scrollTo = () => {}
+    }
+
+    const gIO = globalThis as unknown as GlobalIO
+    _origIntersectionObserver = gIO.IntersectionObserver
+    if (typeof gIO.IntersectionObserver !== 'function') {
+        class MockIntersectionObserver {
+            constructor(_cb?: IntersectionObserverCallback, _opts?: IntersectionObserverInit) {
+                // reference args to avoid unused var lint
+                void _cb
+                void _opts
+            }
+            observe(_el: Element) {
+                void _el
+            }
+            unobserve(_el: Element) {
+                void _el
+            }
+            disconnect() {
+                return
+            }
+        }
+        // Cast via unknown to avoid using `any` while satisfying the global type.
+        gIO.IntersectionObserver = MockIntersectionObserver as unknown as GlobalIO['IntersectionObserver']
+    }
+})
+
+afterAll(() => {
+    const gScroll = globalThis as unknown as GlobalScroll
+    gScroll.scrollTo = _origScrollTo as GlobalScroll['scrollTo']
+    const gIO = globalThis as unknown as GlobalIO
+    gIO.IntersectionObserver = _origIntersectionObserver as GlobalIO['IntersectionObserver']
+})
+
+afterEach(() => {
+    // Ensure DOM is cleaned up between tests and restore mocks/spies.
+    cleanup()
+    vi.restoreAllMocks()
+})
 
 beforeEach(() => {
     mockContextValue.content = clone()
