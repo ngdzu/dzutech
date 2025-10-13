@@ -327,6 +327,7 @@ export const saveExperiences = async (experiences: Experience[]): Promise<Experi
 }
 
 export const savePosts = async (posts: Array<Partial<Post> & Record<string, unknown>>): Promise<Post[]> => {
+  console.debug('savePosts: received', posts.length, 'items')
   const normalized = posts.map((post) => {
     const fallback: Post = {
       id: ensureId(post.id, randomUUID()),
@@ -338,9 +339,28 @@ export const savePosts = async (posts: Array<Partial<Post> & Record<string, unkn
       ...(typeof post.createdAt === 'string' ? { createdAt: post.createdAt } : {}),
       ...(typeof post.updatedAt === 'string' ? { updatedAt: post.updatedAt } : {}),
     }
-    return normalizePost({ ...post }, fallback)
+    try {
+      const n = normalizePost({ ...post }, fallback)
+      // Avoid logging entire content in development, but provide sizes to help
+      if (process.env.NODE_ENV !== 'production') {
+        console.debug('savePosts: normalized post', n.id, 'titleLen', n.title.length, 'contentLen', n.content.length)
+      }
+      return n
+    } catch (err) {
+      console.error('savePosts: failed to normalize post', err)
+      throw err
+    }
   })
-  await writeJson('posts', normalized)
+
+  try {
+    console.debug('savePosts: calling writeJson for posts, count', normalized.length)
+    await writeJson('posts', normalized)
+    console.debug('savePosts: writeJson succeeded')
+  } catch (err) {
+    console.error('savePosts: writeJson failed', err)
+    throw err
+  }
+
   return normalized
 }
 

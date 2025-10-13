@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import express, { type Request } from 'express'
+import express, { type Request, type Response } from 'express'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs/promises'
@@ -10,7 +10,8 @@ import crypto from 'crypto'
 import { fileTypeFromBuffer } from 'file-type'
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { requireAuth } from './requireAuth.js'
-import { saveUpload } from './repository.js'
+import { saveUpload, savePosts } from './repository.js'
+import { validatePost } from './validators.js'
 
 const router = express.Router()
 
@@ -27,6 +28,75 @@ const upload = multer({
     cb(null, allowedDeclared.includes(file.mimetype))
   },
 })
+
+// Multer instance for markdown file uploads. Allow larger single-file markdown sizes
+const mdUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: Number(process.env.MD_FILE_SIZE_LIMIT ?? 5 * 1024 * 1024) }, // default 5MB per file
+  fileFilter: (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    const allowed = ['text/markdown', 'text/x-markdown', 'text/plain']
+    // also accept .md by extension if content-type is missing
+    const ext = path.extname(file.originalname || '').toLowerCase()
+    if (allowed.includes(file.mimetype) || ext === '.md') {
+      cb(null, true)
+    } else {
+      cb(null, false)
+    }
+  },
+})
+
+// Handler to accept multiple .md files and persist as posts
+const mdUploadHandler = async (req: Request, res: Response) => {
+  try {
+    // req.files can be File[] or a field-keyed object depending on multer usage; cast to any and normalize
+    const files = (req.files as any) || []
+    if (!Array.isArray(files) || files.length === 0) {
+      return res.status(400).json({ message: 'No markdown files uploaded' })
+    }
+
+    const posts = await Promise.all(files.map(async (f) => {
+      // normalize buffer
+      let buf: Buffer | null = null
+      const raw = f.buffer
+      if (Buffer.isBuffer(raw)) buf = raw
+      else if (raw && typeof (raw as { arrayBuffer?: unknown }).arrayBuffer === 'function') {
+        const ab = await (raw as { arrayBuffer: () => Promise<ArrayBuffer> }).arrayBuffer()
+        buf = Buffer.from(ab)
+      } else if (raw && (raw as { data?: unknown }).data instanceof Uint8Array) {
+        buf = Buffer.from((raw as { data: Uint8Array }).data)
+      }
+
+      const text = buf ? buf.toString('utf8') : ''
+      const name = (f.originalname || '').replace(/\.md$/i, '')
+      const title = name.replace(/[-_]/g, ' ').replace(/\.(md)$/i, '') || f.originalname
+      const post = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        title,
+        content: text,
+        contentHtml: '',
+        tags: [] as string[],
+        hidden: false,
+        createdAt: new Date().toISOString(),
+      }
+      return post
+    }))
+
+    // validate posts before saving
+    for (let i = 0; i < posts.length; i += 1) {
+      const err = validatePost(posts[i] as any, i)
+      if (err) return res.status(422).json({ message: err })
+    }
+
+    const saved = await savePosts(posts as any)
+    return res.json({ saved, count: saved.length })
+  } catch (err: unknown) {
+    console.error('mdUploadHandler failed', err)
+    return res.status(500).json({ message: 'Failed to import markdown files' })
+  }
+}
+
+// Route for admin markdown uploads (multiple files under field name 'files')
+router.post('/api/admin/posts/upload', requireAuth, mdUpload.array('files', 50), mdUploadHandler)
 
 // Use shared requireAuth middleware
 
@@ -198,3 +268,4 @@ router.post('/api/uploads', requireAuth, upload.single('file'), uploadHandler)
 export { uploadHandler }
 
 export default router
+

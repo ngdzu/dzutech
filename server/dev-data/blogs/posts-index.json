@@ -1,0 +1,412 @@
+[
+  {
+    "id": "aa54e702-7d72-48e6-87a8-b95cdae5a7e3",
+    "title": "C++/Qt High Performance: Patterns (1)",
+    "content": "dev-data/blogs/aa54e702-7d72-48e6-87a8-b95cdae5a7e3.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T11:00:46.663Z",
+    "updatedAt": "2025-10-13T11:00:46.663Z"
+  },
+  {
+    "id": "e0349949-d783-4f89-9bf3-b859718350bb",
+    "title": "C++/Qt High Performance: Patterns (1)",
+    "content": "dev-data/blogs/e0349949-d783-4f89-9bf3-b859718350bb.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T10:57:45.728Z",
+    "updatedAt": "2025-10-13T10:57:45.728Z"
+  },
+  {
+    "id": "7fe57321-10e3-4617-a55b-a956806947d9",
+    "title": "C++/Qt High Performance: Patterns (1)",
+    "content": "dev-data/blogs/7fe57321-10e3-4617-a55b-a956806947d9.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T10:57:21.625Z",
+    "updatedAt": "2025-10-13T10:57:21.625Z"
+  },
+  {
+    "id": "0d01151b-ef98-458c-af0c-f7f5036b391f",
+    "title": "C++/Qt High Performance: Patterns (1)",
+    "content": "dev-data/blogs/0d01151b-ef98-458c-af0c-f7f5036b391f.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T10:57:07.680Z",
+    "updatedAt": "2025-10-13T10:57:07.680Z"
+  },
+  {
+    "id": "5a01130b-3421-4a64-ad07-4774fb5c97e5",
+    "title": "C++/Qt High Performance: Patterns (1)",
+    "content": "dev-data/blogs/5a01130b-3421-4a64-ad07-4774fb5c97e5.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T10:57:03.998Z",
+    "updatedAt": "2025-10-13T10:57:03.998Z"
+  },
+  {
+    "id": "c8524710-2006-41e6-8a80-c92619adb04f",
+    "title": "C++/Qt High Performance: Patterns (2)",
+    "content": "dev-data/blogs/c8524710-2006-41e6-8a80-c92619adb04f.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T10:00:46.663Z",
+    "updatedAt": "2025-10-13T10:00:46.663Z"
+  },
+  {
+    "id": "479dbf64-1660-4cd4-8e5f-e8a366cfc679",
+    "title": "C++/Qt High Performance: Patterns (2)",
+    "content": "dev-data/blogs/479dbf64-1660-4cd4-8e5f-e8a366cfc679.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T09:57:45.728Z",
+    "updatedAt": "2025-10-13T09:57:45.728Z"
+  },
+  {
+    "id": "0e723e47-4a53-4c33-bade-6b83812a7221",
+    "title": "C++/Qt High Performance: Patterns (2)",
+    "content": "dev-data/blogs/0e723e47-4a53-4c33-bade-6b83812a7221.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T09:57:21.625Z",
+    "updatedAt": "2025-10-13T09:57:21.625Z"
+  },
+  {
+    "id": "ef2d6a35-f727-4a49-8b7e-d4eb8d4b70a9",
+    "title": "C++/Qt High Performance: Patterns (2)",
+    "content": "dev-data/blogs/ef2d6a35-f727-4a49-8b7e-d4eb8d4b70a9.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T09:57:07.680Z",
+    "updatedAt": "2025-10-13T09:57:07.680Z"
+  },
+  {
+    "id": "0509abc6-3f13-4737-9902-50bf892132e2",
+    "title": "C++/Qt High Performance: Patterns (2)",
+    "content": "dev-data/blogs/0509abc6-3f13-4737-9902-50bf892132e2.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T09:57:03.998Z",
+    "updatedAt": "2025-10-13T09:57:03.998Z"
+  },
+  {
+    "id": "eb88acd7-0c6b-4090-9106-85a1b8352539",
+    "title": "C++/Qt High Performance: Patterns (2)",
+    "content": "dev-data/blogs/eb88acd7-0c6b-4090-9106-85a1b8352539.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T09:55:57.330Z",
+    "updatedAt": "2025-10-13T09:55:57.330Z"
+  },
+  {
+    "id": "91384134-582f-4787-b4f8-3507d74eaf34",
+    "title": "C++/Qt High Performance: Patterns (2)",
+    "content": "dev-data/blogs/91384134-582f-4787-b4f8-3507d74eaf34.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T09:55:49.656Z",
+    "updatedAt": "2025-10-13T09:55:49.656Z"
+  },
+  {
+    "id": "89682df4-7316-4748-bade-ed3a6255b0af",
+    "title": "C++/Qt High Performance: Patterns (3)",
+    "content": "dev-data/blogs/89682df4-7316-4748-bade-ed3a6255b0af.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T09:00:46.663Z",
+    "updatedAt": "2025-10-13T09:00:46.663Z"
+  },
+  {
+    "id": "2fa0b2c0-efce-4c26-8b5e-3812bb37afb2",
+    "title": "C++/Qt High Performance: Patterns (3)",
+    "content": "dev-data/blogs/2fa0b2c0-efce-4c26-8b5e-3812bb37afb2.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T08:57:45.728Z",
+    "updatedAt": "2025-10-13T08:57:45.728Z"
+  },
+  {
+    "id": "784ea02f-26f7-4cb5-a038-d89403122d17",
+    "title": "C++/Qt High Performance: Patterns (3)",
+    "content": "dev-data/blogs/784ea02f-26f7-4cb5-a038-d89403122d17.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T08:57:21.625Z",
+    "updatedAt": "2025-10-13T08:57:21.625Z"
+  },
+  {
+    "id": "08207af3-6b72-43da-82b4-1187734f95f8",
+    "title": "C++/Qt High Performance: Patterns (3)",
+    "content": "dev-data/blogs/08207af3-6b72-43da-82b4-1187734f95f8.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T08:57:07.680Z",
+    "updatedAt": "2025-10-13T08:57:07.680Z"
+  },
+  {
+    "id": "2100cd37-7415-46bb-9c90-81084c29402e",
+    "title": "C++/Qt High Performance: Patterns (3)",
+    "content": "dev-data/blogs/2100cd37-7415-46bb-9c90-81084c29402e.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T08:57:03.998Z",
+    "updatedAt": "2025-10-13T08:57:03.998Z"
+  },
+  {
+    "id": "0f81d128-1a1b-476d-a03e-94a21d53481a",
+    "title": "C++/Qt High Performance: Patterns (3)",
+    "content": "dev-data/blogs/0f81d128-1a1b-476d-a03e-94a21d53481a.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T08:55:57.330Z",
+    "updatedAt": "2025-10-13T08:55:57.330Z"
+  },
+  {
+    "id": "e409d8fa-c343-400f-b9e1-a6067acc1b06",
+    "title": "C++/Qt High Performance: Patterns (4)",
+    "content": "dev-data/blogs/e409d8fa-c343-400f-b9e1-a6067acc1b06.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T07:57:45.728Z",
+    "updatedAt": "2025-10-13T07:57:45.728Z"
+  },
+  {
+    "id": "21ab0dc0-67e3-4d29-b3fa-9b6082111e91",
+    "title": "C++/Qt High Performance: Patterns (4)",
+    "content": "dev-data/blogs/21ab0dc0-67e3-4d29-b3fa-9b6082111e91.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc",
+      "performance"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T07:57:21.625Z",
+    "updatedAt": "2025-10-13T07:57:21.625Z"
+  },
+  {
+    "id": "c-qt-high-performance-deep-dive-79349-0-0153bd66",
+    "title": "C++/Qt High Performance: Deep Dive 79349-0",
+    "content": "dev-data/blogs/c-qt-high-performance-deep-dive-79349-0-0153bd66.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T11:16:19.353Z",
+    "updatedAt": "2025-10-13T11:16:19.357Z"
+  },
+  {
+    "id": "c-qt-high-performance-deep-dive-79362-1-87bd16f0",
+    "title": "C++/Qt High Performance: Deep Dive 79362-1",
+    "content": "dev-data/blogs/c-qt-high-performance-deep-dive-79362-1-87bd16f0.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T11:16:19.367Z",
+    "updatedAt": "2025-10-13T11:16:19.367Z"
+  },
+  {
+    "id": "c-qt-high-performance-deep-dive-79367-2-bd15715e",
+    "title": "C++/Qt High Performance: Deep Dive 79367-2",
+    "content": "dev-data/blogs/c-qt-high-performance-deep-dive-79367-2-bd15715e.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T11:16:19.369Z",
+    "updatedAt": "2025-10-13T11:16:19.369Z"
+  },
+  {
+    "id": "c-qt-high-performance-deep-dive-79369-3-077c9dc1",
+    "title": "C++/Qt High Performance: Deep Dive 79369-3",
+    "content": "dev-data/blogs/c-qt-high-performance-deep-dive-79369-3-077c9dc1.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T11:16:19.372Z",
+    "updatedAt": "2025-10-13T11:16:19.372Z"
+  },
+  {
+    "id": "c-qt-high-performance-deep-dive-79372-4-273dca60",
+    "title": "C++/Qt High Performance: Deep Dive 79372-4",
+    "content": "dev-data/blogs/c-qt-high-performance-deep-dive-79372-4-273dca60.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T11:16:19.373Z",
+    "updatedAt": "2025-10-13T11:16:19.373Z"
+  },
+  {
+    "id": "c-qt-high-performance-deep-dive-79373-5-38774186",
+    "title": "C++/Qt High Performance: Deep Dive 79373-5",
+    "content": "dev-data/blogs/c-qt-high-performance-deep-dive-79373-5-38774186.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T11:16:19.375Z",
+    "updatedAt": "2025-10-13T11:16:19.375Z"
+  },
+  {
+    "id": "c-qt-high-performance-deep-dive-79375-6-10ac37cf",
+    "title": "C++/Qt High Performance: Deep Dive 79375-6",
+    "content": "dev-data/blogs/c-qt-high-performance-deep-dive-79375-6-10ac37cf.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T11:16:19.377Z",
+    "updatedAt": "2025-10-13T11:16:19.377Z"
+  },
+  {
+    "id": "c-qt-high-performance-deep-dive-79377-7-0a938378",
+    "title": "C++/Qt High Performance: Deep Dive 79377-7",
+    "content": "dev-data/blogs/c-qt-high-performance-deep-dive-79377-7-0a938378.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T11:16:19.379Z",
+    "updatedAt": "2025-10-13T11:16:19.379Z"
+  },
+  {
+    "id": "c-qt-high-performance-deep-dive-79379-8-b5bf7f8c",
+    "title": "C++/Qt High Performance: Deep Dive 79379-8",
+    "content": "dev-data/blogs/c-qt-high-performance-deep-dive-79379-8-b5bf7f8c.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T11:16:19.380Z",
+    "updatedAt": "2025-10-13T11:16:19.380Z"
+  },
+  {
+    "id": "c-qt-high-performance-deep-dive-79380-9-26437673",
+    "title": "C++/Qt High Performance: Deep Dive 79380-9",
+    "content": "dev-data/blogs/c-qt-high-performance-deep-dive-79380-9-26437673.md",
+    "tags": [
+      "c++",
+      "qt",
+      "hpc"
+    ],
+    "hidden": false,
+    "createdAt": "2025-10-13T11:16:19.382Z",
+    "updatedAt": "2025-10-13T11:16:19.382Z"
+  }
+]

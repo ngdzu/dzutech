@@ -92,7 +92,10 @@ const PgSessionStore = connectPgSimple(session)
 
 app.set('trust proxy', 1)
 
-app.use(express.json())
+// Allow larger JSON payloads for admin imports (e.g. many/large .md files).
+// Make the limit configurable via JSON_BODY_LIMIT environment variable.
+const jsonBodyLimit = process.env.JSON_BODY_LIMIT ?? '10mb'
+app.use(express.json({ limit: jsonBodyLimit }))
 app.use(
   cors({
     origin: allowedOrigin ?? '*',
@@ -628,11 +631,27 @@ app.put('/api/posts', requireAuth, async (req: Request, res: Response) => {
   }
 
   try {
+    console.debug('POSTS DEBUG: about to call savePosts with payload length', postsPayload.length)
+    // Dump a small sample to help debug malformed payloads without logging entire content in production
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug('POSTS DEBUG sample[0]:', JSON.stringify(postsPayload[0]))
+    }
     const saved = await savePosts(postsPayload)
+    console.debug('POSTS DEBUG: savePosts returned', Array.isArray(saved) ? saved.length : typeof saved)
     res.json(saved)
   } catch (error) {
-    console.error('Failed to save posts', error)
-    res.status(500).json({ message: 'Failed to save posts' })
+    // Prefer to log stack traces to help diagnose 500s during development
+    if (error instanceof Error) {
+      console.error('Failed to save posts', error.stack)
+    } else {
+      console.error('Failed to save posts (non-error)', error)
+    }
+    // Return a slightly more informative message in non-production to help debugging
+    if (process.env.NODE_ENV === 'production') {
+      res.status(500).json({ message: 'Failed to save posts' })
+    } else {
+      res.status(500).json({ message: 'Failed to save posts: ' + (error && typeof error === 'object' && 'message' in (error as any) ? (error as any).message : String(error)) })
+    }
   }
 })
 

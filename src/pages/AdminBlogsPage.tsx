@@ -1,5 +1,5 @@
 import type { KeyboardEvent, MouseEvent } from 'react'
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { FiEye, FiEyeOff, FiPlus, FiTrash2 } from 'react-icons/fi'
 import { Link, useNavigate } from 'react-router-dom'
 import { useContent } from '../context/ContentContext'
@@ -26,6 +26,9 @@ const getTimestamp = (value?: string | null) => {
 const AdminBlogsPage = () => {
   const navigate = useNavigate()
   const { content, loading, error: contextError, deletePost, setPostVisibility } = useContent()
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [selectedFiles, setSelectedFiles] = useState<File[] | null>(null)
+  const [uploading, setUploading] = useState(false)
   const posts = useMemo(
     () => (Array.isArray(content.posts) ? content.posts : []),
     [content.posts],
@@ -138,6 +141,30 @@ const AdminBlogsPage = () => {
               <FiPlus />
               Create new blog
             </Link>
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".md,text/markdown"
+                multiple
+                className="hidden"
+                onChange={async (e) => {
+                  const files = e.target.files
+                  if (!files || files.length === 0) {
+                    setSelectedFiles(null)
+                    return
+                  }
+                  setSelectedFiles(Array.from(files))
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+              >
+                Upload .md files
+              </button>
+            </div>
             <Link
               to="/admin"
               className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
@@ -149,6 +176,78 @@ const AdminBlogsPage = () => {
       </div>
 
       <main className="mx-auto flex max-w-5xl flex-col gap-6 px-6 py-10">
+        {/* File upload area: show selected files and upload action */}
+        {selectedFiles && selectedFiles.length > 0 && (
+          <div className="mx-auto w-full max-w-5xl px-6 py-3">
+            <div className="rounded-2xl border border-slate-800/80 bg-slate-900/50 p-4">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-slate-300">
+                  {selectedFiles.length} file{selectedFiles.length > 1 ? 's' : ''} selected
+                  <div className="mt-2 text-xs text-slate-400">
+                    {selectedFiles.slice(0, 10).map((f) => (
+                      <div key={f.name}>{f.name}</div>
+                    ))}
+                    {selectedFiles.length > 10 && <div className="text-xs text-slate-500">and more…</div>}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedFiles(null)
+                      if (fileInputRef.current) fileInputRef.current.value = ''
+                    }}
+                    disabled={uploading}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white disabled:opacity-60"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                        if (!selectedFiles || selectedFiles.length === 0) return
+                        setUploading(true)
+                        setFeedback(null)
+                        try {
+                          // Send files as multipart/form-data to the new server endpoint
+                          const form = new FormData()
+                          selectedFiles.forEach((file) => form.append('files', file, file.name))
+
+                          const resp = await fetch('/api/admin/posts/upload', {
+                            method: 'POST',
+                            credentials: 'include',
+                            body: form,
+                          })
+
+                          if (!resp.ok) {
+                            // try to parse JSON error message
+                            const body = await resp.json().catch(() => ({}))
+                            const message = body && typeof body.message === 'string' ? body.message : resp.statusText
+                            throw new Error(message || 'Upload failed')
+                          }
+
+                          const body = await resp.json().catch(() => ({}))
+                          const count = (body && (body.count ?? (Array.isArray(body.saved) ? body.saved.length : undefined))) ?? selectedFiles.length
+                          setFeedback({ message: `Imported ${count} posts`, tone: 'success' })
+                          setSelectedFiles(null)
+                          if (fileInputRef.current) fileInputRef.current.value = ''
+                        } catch (err) {
+                          console.error('Failed to upload MD files', err)
+                          setFeedback({ message: (err as Error)?.message ?? 'Upload failed', tone: 'error' })
+                        } finally {
+                          setUploading(false)
+                        }
+                      }}
+                    disabled={uploading}
+                    className="inline-flex items-center gap-2 rounded-full bg-accent-500 px-4 py-2 text-sm font-semibold text-night-900 shadow-glow transition hover:bg-accent-400 disabled:opacity-60"
+                  >
+                    {uploading ? 'Uploading…' : 'Import selected .md files'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {sortedPosts.length === 0 && !loading ? (
           <div className={`${cardStyle} text-center text-sm text-slate-400`}>
             No blog posts yet. Use the create button above to add your first story.

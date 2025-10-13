@@ -5,6 +5,7 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "generate:dev:posts": "tsx ./dev-scripts/generate-posts.ts",
     "build": "tsc --project tsconfig.json",
     "start": "node dist/src/index.js",
     "prepare-db": "tsx scripts/prepare-db.ts",

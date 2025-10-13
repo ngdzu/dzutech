@@ -20,7 +20,8 @@
     "test:watch": "vitest",
     "test:server": "npm run test --prefix server",
     "test:all": "npm run test && npm run test:server",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:dev:posts": "npm --prefix server run generate:dev:posts"
   },
   "dependencies": {
     "dompurify": "^3.1.7",
