@@ -85,8 +85,10 @@ jobs:
         run: npm run coverage:run
 
       - name: Run server tests with coverage
+        # Use the root-level npm script which runs the server tests with --prefix server.
+        # Running npm in the server working-directory previously failed because that package.json
+        # doesn't contain the `coverage:run:server` script. Keep working-directory at root.
         run: npm run coverage:run:server
-        working-directory: server
 
       - name: Merge coverage reports
         run: npm run coverage:merge
