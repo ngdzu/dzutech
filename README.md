@@ -102,6 +102,22 @@ GitHub Actions workflow `.github/workflows/ci.yml` installs dependencies, verifi
 2. Optionally provide `DB_SSL_CA` or other secrets if your infrastructure requires them; the workflow will pass through anything you add.
 3. Monitor the Actions tab—deployments should only proceed once the environment check, lint, and test jobs finish successfully.
 
+### Local CI simulation
+
+For faster iteration and debugging, you can run the GitHub Actions workflow steps locally using the included simulator:
+
+```bash
+npm run ci:simulate
+```
+
+This script parses `.github/workflows/ci.yml` and executes the job steps in your local environment, using the same commands and environment variables as CI. It's useful for:
+
+- Testing workflow changes before pushing
+- Debugging CI failures locally
+- Running CI checks without waiting for GitHub Actions
+
+The simulator uses bash for shell commands and respects the workflow's `working-directory` and `env` settings.
+
 ## � Coverage
 
 This repository produces separate coverage reports for the frontend and server during test runs, then merges them into a single human-readable report.
