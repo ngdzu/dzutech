@@ -1,11 +1,11 @@
 // Set environment variables before module imports
-process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'test-session-secret'
-process.env.ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@test.com'
-process.env.ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '$2b$10$test.hash.for.admin.password'
-process.env.SESSION_NAME = process.env.SESSION_NAME || 'test-session'
-process.env.SESSION_MAX_AGE_HOURS = process.env.SESSION_MAX_AGE_HOURS || '24'
-process.env.NODE_ENV = process.env.NODE_ENV || 'test'
-process.env.PORT = process.env.PORT || '3000'
+process.env.SESSION_SECRET = 'test-session-secret'
+process.env.ADMIN_EMAIL = 'admin@test.com'
+process.env.ADMIN_PASSWORD_HASH = '$2b$10$test.hash.for.admin.password'
+process.env.SESSION_NAME = 'test-session'
+process.env.SESSION_MAX_AGE_HOURS = '24'
+process.env.NODE_ENV = 'test'
+process.env.PORT = '3000'
 
 import { describe, it, expect } from 'vitest'
 import { resolveCookieSecure, parseSameSite, normalizeEmail, asyncHandler } from './index.js'

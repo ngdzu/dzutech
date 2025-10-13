@@ -1,4 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+// Set environment variables before any module imports
+process.env.SESSION_SECRET = 'test-session-secret'
+process.env.ADMIN_EMAIL = 'admin@test.com'
+process.env.ADMIN_PASSWORD_HASH = '$2b$10$test.hash.for.admin.password'
+process.env.SESSION_NAME = 'test-session'
+process.env.SESSION_MAX_AGE_HOURS = '24'
+process.env.NODE_ENV = 'test'
+process.env.PORT = '3000'
+
 import request from 'supertest'
 import { describe, it, expect, beforeAll, vi } from 'vitest'
 
@@ -38,15 +48,6 @@ vi.mock('bcryptjs', () => ({ default: { compare: async () => true } }))
 vi.mock('./requireAuth.js', () => ({ requireAuth: (req: any, _res: any, next: any) => { req.session = req.session || {}; req.session.user = { email: process.env.ADMIN_EMAIL }; next() } }))
 
 beforeAll(async () => {
-  // Set environment variables before importing the module
-  process.env.SESSION_SECRET = process.env.SESSION_SECRET || 'test-session-secret'
-  process.env.ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@test.com'
-  process.env.ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH || '$2b$10$test.hash.for.admin.password'
-  process.env.SESSION_NAME = process.env.SESSION_NAME || 'test-session'
-  process.env.SESSION_MAX_AGE_HOURS = process.env.SESSION_MAX_AGE_HOURS || '24'
-  process.env.NODE_ENV = process.env.NODE_ENV || 'test'
-  process.env.PORT = process.env.PORT || '3000'
-
   // import index to start the server. Mocks are already hoisted.
   const mod = await import('./index.js');
   // Use the exported app instance so supertest doesn't need a real network listener
