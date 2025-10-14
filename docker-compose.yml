@@ -8,7 +8,7 @@ services:
     ports:
       - '${DB_PORT:-5432}:5432'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}']
+      test: [ 'CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}' ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,21 +30,25 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # Host port can be overridden (useful for staging)
     ports:
-      - '4000:4000'
+      - '${API_HOST_PORT:-4000}:4000'
     restart: unless-stopped
     volumes:
       - ./server/uploads:/app/uploads
 
   minio:
-    image: minio/minio:latest
+    # Use a cpuv1 build for older/QEMU virtual CPUs that don't support x86-64-v2.
+    # Recommended tag for this VPS: minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
+    image: ${MINIO_IMAGE:-minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1}
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
     command: server /data
+    # Host ports can be overridden via MINIO_HOST_PORT_1 / MINIO_HOST_PORT_2 (useful for staging)
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '${MINIO_HOST_PORT_1:-9000}:9000'
+      - '${MINIO_HOST_PORT_2:-9001}:9001'
     volumes:
       - minio_data:/data
     restart: unless-stopped

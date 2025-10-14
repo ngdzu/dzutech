@@ -190,6 +190,21 @@ Before starting the stack, populate `.env` with the same admin credentials you c
 
 By default the site is served at <https://dzutech.com> with the API proxied at <https://dzutech.com/api>. Override the origins or point everything back to localhost for development by editing the `.env` file in the project root. PostgreSQL remains exposed on port 5432 inside Docker.
 
+Note about MinIO images:
+
+- Some VPSes (especially QEMU virtual CPUs) don't support newer x86-64-v2 glibc features used by recent MinIO builds. If you see a runtime error like "Fatal glibc error: CPU does not support x86-64-v2" when running the MinIO container, use the cpuv1 build instead. The compatible tag we recommend for this project is:
+
+```bash
+minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
+```
+
+Set it by editing the repo-level `.env` or `server/.env` and changing `MINIO_IMAGE`, or export it before running compose:
+
+```bash
+export MINIO_IMAGE=minio/minio:RELEASE.2025-09-07T16-13-09Z-cpuv1
+docker compose up -d minio
+```
+
 To stop and clean up the container:
 
 ```bash
