@@ -215,6 +215,26 @@ To stop and clean up the container:
 docker compose down
 ```
 
+### Developer debug override (opt-in)
+
+For local debugging that requires the API to see and modify host plugin files (for example enabling/disabling or installing plugins from the admin UI), use the per-developer compose override `docker-compose.debug.yml`.
+
+This file is intentionally opt-in. It sets `PLUGINS_DEBUG=1` inside the API container and mounts the host `./server/plugins` and `./server/uploads` directories into the running container as writable — necessary for manifest writes and local uploads.
+
+To launch the stack with the debug override:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.debug.yml up --build
+```
+
+Tear down the debug stack with:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.debug.yml down
+```
+
+Keep `docker-compose.debug.yml` as a developer helper and avoid committing changes that would enable debug mode for other developers or CI.
+
 ## 📁 Project structure
 
 - `src/App.tsx` – router definition for the marketing site and admin dashboard

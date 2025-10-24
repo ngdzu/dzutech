@@ -570,6 +570,68 @@ app.get(
   }),
 );
 
+// Dev-only debug endpoint to inspect the plugin directory as seen by the
+// running server process. Returns resolved path, whether it exists and a
+// per-directory attempt to read manifest.json. This is intentionally only
+// enabled outside of production to avoid leaking filesystem info in prod.
+app.get('/api/plugins/debug', async (_req: Request, res: Response) => {
+  // Allow enabling this debug endpoint in non-production by default. In
+  // production it is disabled unless explicitly enabled via the
+  // PLUGINS_DEBUG environment variable (set to '1' or 'true'). This lets
+  // developers enable the debug endpoint in containers without changing
+  // NODE_ENV if desired.
+  const debugEnabled =
+    process.env.NODE_ENV !== 'production' ||
+    process.env.PLUGINS_DEBUG === '1' ||
+    String(process.env.PLUGINS_DEBUG).toLowerCase() === 'true';
+
+  if (!debugEnabled) {
+    return res.status(404).json({ message: 'Not found' });
+  }
+
+  const PLUGINS_DIR = path.resolve(process.cwd(), 'server', 'plugins');
+  const result: any = { pluginsDir: PLUGINS_DIR };
+
+  try {
+    const st = await fs.stat(PLUGINS_DIR);
+    result.exists = st.isDirectory();
+  } catch (err) {
+    result.exists = false;
+    result.statError = String(err);
+  }
+
+  if (result.exists) {
+    try {
+      const dirents = await fs.readdir(PLUGINS_DIR, { withFileTypes: true });
+      const details: Array<Record<string, unknown>> = [];
+      for (const d of dirents) {
+        if (!d.isDirectory()) continue;
+        const manifestPath = path.join(PLUGINS_DIR, d.name, 'manifest.json');
+        try {
+          const raw = await fs.readFile(manifestPath, 'utf8');
+          const parsed = JSON.parse(raw);
+          details.push({ id: d.name, manifestPath, manifest: parsed });
+        } catch (err) {
+          details.push({ id: d.name, manifestPath, error: String(err) });
+        }
+      }
+      result.onDisk = details;
+    } catch (err) {
+      result.readDirError = String(err);
+    }
+  }
+
+  try {
+    // show what the server helper sees
+    const helper = await listPlugins();
+    result.listPluginsReturned = helper;
+  } catch (err) {
+    result.listPluginsError = String(err);
+  }
+
+  res.json(result);
+});
+
 app.post(
   '/api/admin/plugins/install',
   requireAuth,

@@ -1,4 +1,22 @@
 services:
+  api:
+    # Dev-only overrides for the API service. This ensures the running API container
+    # sees the host `server/` directory (including `server/plugins`) during local
+    # development. It also enables PLUGINS_DEBUG by default so the debug endpoint
+    # can be used without modifying the production compose file.
+    environment:
+      NODE_ENV: development
+      PORT: ${PORT:-4000}
+    volumes:
+      # Mount only the plugins directory writable in dev so admin actions
+      # (enable/disable, installs, uninstall) can update plugin manifests
+      # without exposing the whole server directory. Keep uploads writable as
+      # well so file uploads persist to the host in dev.
+      - ./server/plugins:/app/server/plugins
+      - ./server/uploads:/app/uploads
+    ports:
+      - '${API_HOST_PORT:-4000}:4000'
+
   website:
     image: node:20-alpine
     working_dir: /app

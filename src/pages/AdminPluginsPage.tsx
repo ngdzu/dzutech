@@ -22,9 +22,20 @@ export const AdminPluginsPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/plugins');
+      // Try admin endpoint first (provides full management info). If that
+      // fails (for example missing auth), fall back to the public plugins
+      // endpoint so the page still shows installed/enabled plugins.
+      let res = await fetch('/api/admin/plugins');
+      if (!res.ok) {
+        // If admin endpoint isn't available to the current session, fall
+        // back to the public listing which returns enabled plugins.
+        console.debug('/api/admin/plugins returned', res.status, 'falling back to /api/plugins');
+        res = await fetch('/api/plugins');
+      }
+
       if (!res.ok) throw new Error(await res.text());
       const body = await res.json();
+      // both endpoints return `{ plugins: [...] }`
       setPlugins(Array.isArray(body.plugins) ? body.plugins : []);
     } catch (err) {
       console.error('Failed to fetch plugins', err);

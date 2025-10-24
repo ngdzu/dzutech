@@ -1,0 +1,12 @@
+services:
+  api:
+    environment:
+      PLUGINS_DEBUG: '1'
+    # Mount only the plugin and uploads directories writable so admin actions
+    # can update manifests during debugging without exposing the whole server
+    # tree. This file is intended to be a per-developer opt-in override:
+    #
+    #   docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.debug.yml up
+    volumes:
+      - ./server/plugins:/app/server/plugins
+      - ./server/uploads:/app/uploads
