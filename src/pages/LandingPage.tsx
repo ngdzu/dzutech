@@ -159,8 +159,8 @@ const PostCard = ({
 
 
 const navItems = [
-  { href: '#experiences', label: 'Experiences' },
-  { href: '#blogs', label: 'Blogs' },
+  { href: '/experiences', label: 'Experiences' },
+  { href: '/blogs', label: 'Blogs' },
   { href: '#contact', label: 'Contact' },
 ]
 

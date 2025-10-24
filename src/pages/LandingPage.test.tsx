@@ -59,7 +59,7 @@ describe('LandingPage', () => {
     )
 
     expect(screen.getByRole('heading', { level: 1, name: /Your Name/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Experiences?/i })).toHaveAttribute('href', '#experiences')
+  expect(screen.getByRole('link', { name: /Experiences?/i })).toHaveAttribute('href', '/experiences')
 
     const contactLink = screen.getByRole('link', { name: /Contact me/i })
     expect(contactLink).toHaveAttribute('href', expect.stringContaining('mailto:'))
