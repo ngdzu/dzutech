@@ -1,7 +1,7 @@
-import { randomUUID } from 'node:crypto'
-import { readJson, writeJson } from './db.js'
-import { defaultContent } from './defaultContent.js'
-import { markdownToHtml, parseFrontmatter } from './markdown.js'
+import { randomUUID } from 'node:crypto';
+import { readJson, writeJson } from './db.js';
+import { defaultContent } from './defaultContent.js';
+import { markdownToHtml, parseFrontmatter } from './markdown.js';
 import type {
   ContentState,
   Experience,
@@ -10,9 +10,9 @@ import type {
   SectionsContent,
   SiteLogo,
   SiteMeta,
-} from './types.js'
+} from './types.js';
 
-import { pool } from './db.js'
+import { pool } from './db.js';
 
 const CONTENT_KEYS: (keyof ContentState)[] = [
   'site',
@@ -20,17 +20,17 @@ const CONTENT_KEYS: (keyof ContentState)[] = [
   'experiences',
   'posts',
   'sections',
-]
+];
 
 const withSiteDefaults = (value: unknown, defaults: SiteMeta): SiteMeta => {
-  const candidate = (value ?? {}) as Partial<SiteMeta>
-  const isString = (input: unknown): input is string => typeof input === 'string'
+  const candidate = (value ?? {}) as Partial<SiteMeta>;
+  const isString = (input: unknown): input is string => typeof input === 'string';
 
-  const rawLogo = candidate.logo
-  let normalizedLogo: SiteLogo | null = null
+  const rawLogo = candidate.logo;
+  let normalizedLogo: SiteLogo | null = null;
 
   if (rawLogo && typeof rawLogo === 'object') {
-    const logoRecord = rawLogo as Partial<SiteLogo>
+    const logoRecord = rawLogo as Partial<SiteLogo>;
     if (isString(logoRecord.data) && isString(logoRecord.type)) {
       normalizedLogo = {
         data: logoRecord.data,
@@ -38,7 +38,7 @@ const withSiteDefaults = (value: unknown, defaults: SiteMeta): SiteMeta => {
         ...(isString(logoRecord.alt) && logoRecord.alt.trim().length > 0
           ? { alt: logoRecord.alt.trim() }
           : {}),
-      }
+      };
     }
   }
 
@@ -47,8 +47,8 @@ const withSiteDefaults = (value: unknown, defaults: SiteMeta): SiteMeta => {
     description: isString(candidate.description) ? candidate.description : defaults.description,
     homeButtonMode: candidate.homeButtonMode === 'logo' ? 'logo' : 'text',
     logo: normalizedLogo,
-  }
-}
+  };
+};
 
 const coerceHighlight = (
   input: unknown,
@@ -56,33 +56,35 @@ const coerceHighlight = (
   highlightsEnabled: boolean,
 ): Profile['availability'] => {
   if (!input || typeof input !== 'object') {
-    return { ...defaults }
+    return { ...defaults };
   }
 
-  const candidate = input as Partial<Profile['availability']>
-  const value = typeof candidate.value === 'string' ? candidate.value : defaults.value
-  const enabledRaw = typeof candidate.enabled === 'boolean' ? candidate.enabled : defaults.enabled
-  const trimmed = value.trim()
+  const candidate = input as Partial<Profile['availability']>;
+  const value = typeof candidate.value === 'string' ? candidate.value : defaults.value;
+  const enabledRaw = typeof candidate.enabled === 'boolean' ? candidate.enabled : defaults.enabled;
+  const trimmed = value.trim();
 
   return {
     value,
     enabled: highlightsEnabled && trimmed.length > 0 ? enabledRaw : false,
-  }
-}
+  };
+};
 
 const withProfileDefaults = (value: unknown, defaults: Profile): Profile => {
-  const candidate = (value ?? {}) as Partial<Profile>
-  const isString = (input: unknown): input is string => typeof input === 'string'
+  const candidate = (value ?? {}) as Partial<Profile>;
+  const isString = (input: unknown): input is string => typeof input === 'string';
 
   const stringOrDefault = (input: unknown, fallback: string): string =>
-    isString(input) ? input : fallback
+    isString(input) ? input : fallback;
 
-  const socialCandidate = (candidate.social ?? {}) as Partial<Profile['social']>
-  const visibilityCandidate = (candidate.contactVisibility ?? {}) as Partial<Profile['contactVisibility']>
+  const socialCandidate = (candidate.social ?? {}) as Partial<Profile['social']>;
+  const visibilityCandidate = (candidate.contactVisibility ?? {}) as Partial<
+    Profile['contactVisibility']
+  >;
   const highlightsEnabled =
     typeof candidate.highlightsEnabled === 'boolean'
       ? candidate.highlightsEnabled
-      : defaults.highlightsEnabled
+      : defaults.highlightsEnabled;
 
   return {
     name: stringOrDefault(candidate.name, defaults.name),
@@ -97,7 +99,9 @@ const withProfileDefaults = (value: unknown, defaults: Profile): Profile => {
     },
     contactVisibility: {
       email:
-        typeof visibilityCandidate.email === 'boolean' ? visibilityCandidate.email : defaults.contactVisibility.email,
+        typeof visibilityCandidate.email === 'boolean'
+          ? visibilityCandidate.email
+          : defaults.contactVisibility.email,
       linkedin:
         typeof visibilityCandidate.linkedin === 'boolean'
           ? visibilityCandidate.linkedin
@@ -110,24 +114,28 @@ const withProfileDefaults = (value: unknown, defaults: Profile): Profile => {
     highlightsEnabled,
     availability: coerceHighlight(candidate.availability, defaults.availability, highlightsEnabled),
     focusAreas: coerceHighlight(candidate.focusAreas, defaults.focusAreas, highlightsEnabled),
-  }
-}
+  };
+};
 
 const withExperienceDefaults = (value: unknown, defaults: Experience[]): Experience[] => {
   if (!Array.isArray(value)) {
-    return defaults.map((item) => ({ ...item }))
+    return defaults.map((item) => ({ ...item }));
   }
 
   const ensureString = (input: unknown, fallback: string): string =>
-    typeof input === 'string' && input.trim().length > 0 ? input : fallback
+    typeof input === 'string' && input.trim().length > 0 ? input : fallback;
 
   const ensureStringArray = (input: unknown, fallback: string[]): string[] =>
     Array.isArray(input)
-      ? input.filter((item): item is string => typeof item === 'string').map((item) => item.trim()).filter(Boolean)
-      : [...fallback]
+      ? input
+          .filter((item): item is string => typeof item === 'string')
+          .map((item) => item.trim())
+          .filter(Boolean)
+      : [...fallback];
 
   const getFallback = (idx: number): Experience =>
-    defaults[idx] ?? defaults[defaults.length - 1] ?? {
+    defaults[idx] ??
+    defaults[defaults.length - 1] ?? {
       role: '',
       company: '',
       year: '',
@@ -135,16 +143,16 @@ const withExperienceDefaults = (value: unknown, defaults: Experience[]): Experie
       achievements: [],
       stack: [],
       location: '',
-    }
+    };
 
   return value.map((entry, index) => {
     if (!entry || typeof entry !== 'object') {
-      const fallback = getFallback(index)
-      return { ...fallback }
+      const fallback = getFallback(index);
+      return { ...fallback };
     }
 
-    const candidate = entry as Partial<Experience> & { period?: unknown }
-    const fallback = getFallback(index)
+    const candidate = entry as Partial<Experience> & { period?: unknown };
+    const fallback = getFallback(index);
 
     return {
       role: ensureString(candidate.role, fallback.role),
@@ -154,22 +162,22 @@ const withExperienceDefaults = (value: unknown, defaults: Experience[]): Experie
       achievements: ensureStringArray(candidate.achievements, fallback.achievements),
       stack: ensureStringArray(candidate.stack, fallback.stack),
       location: ensureString(candidate.location, (fallback.location ?? '') as string),
-    }
-  })
-}
+    };
+  });
+};
 
 const ensureStringArray = (input: unknown, fallback: string[]): string[] =>
   Array.isArray(input)
     ? input
-      .filter((item): item is string => typeof item === 'string')
-      .map((item) => item.trim())
-      .filter(Boolean)
-    : [...fallback]
+        .filter((item): item is string => typeof item === 'string')
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [...fallback];
 
 const getPostFallback = (defaults: Post[], index: number): Post => {
-  const fallback = defaults[index] ?? defaults[defaults.length - 1]
+  const fallback = defaults[index] ?? defaults[defaults.length - 1];
   if (fallback) {
-    return { ...fallback }
+    return { ...fallback };
   }
   return {
     id: randomUUID(),
@@ -178,47 +186,53 @@ const getPostFallback = (defaults: Post[], index: number): Post => {
     contentHtml: '',
     tags: [],
     hidden: false,
-  }
-}
+  };
+};
 
 const ensureBoolean = (input: unknown, fallback: boolean): boolean =>
-  typeof input === 'boolean' ? input : fallback
+  typeof input === 'boolean' ? input : fallback;
 
 const ensureId = (input: unknown, fallback: string): string => {
   if (typeof input === 'string') {
-    const trimmed = input.trim()
+    const trimmed = input.trim();
     if (trimmed.length > 0) {
-      return trimmed
+      return trimmed;
     }
   }
-  return fallback
-}
+  return fallback;
+};
 
-export const normalizePost = (candidate: Partial<Post> & Record<string, unknown>, fallback: Post): Post => {
+export const normalizePost = (
+  candidate: Partial<Post> & Record<string, unknown>,
+  fallback: Post,
+): Post => {
   const ensureString = (input: unknown, fallbackValue: string): string => {
     if (typeof input === 'string') {
-      const trimmed = input.trim()
+      const trimmed = input.trim();
       if (trimmed.length > 0) {
-        return trimmed
+        return trimmed;
       }
     }
-    return fallbackValue
-  }
+    return fallbackValue;
+  };
 
-  const title = ensureString(candidate.title, fallback.title)
+  const title = ensureString(candidate.title, fallback.title);
 
-  const contentSource = typeof candidate.content === 'string' ? candidate.content : undefined
-  const fallbackSummary = typeof candidate.summary === 'string' ? candidate.summary : undefined
-  const content = ensureString(contentSource ?? fallbackSummary, fallback.content)
+  const contentSource = typeof candidate.content === 'string' ? candidate.content : undefined;
+  const fallbackSummary = typeof candidate.summary === 'string' ? candidate.summary : undefined;
+  const content = ensureString(contentSource ?? fallbackSummary, fallback.content);
 
   // Parse frontmatter from content to extract tags and clean content
-  const { frontmatter, content: cleanContent } = parseFrontmatter(content)
-  const extractedTags = frontmatter.tags || []
+  const { frontmatter, content: cleanContent } = parseFrontmatter(content);
+  const extractedTags = frontmatter.tags || [];
 
-  const extras: Record<string, unknown> = {}
+  const extras: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(candidate)) {
-    if (['id', 'hidden', 'title', 'content', 'contentHtml', 'tags', 'summary', 'href'].includes(key)) continue
-    extras[key] = value
+    if (
+      ['id', 'hidden', 'title', 'content', 'contentHtml', 'tags', 'summary', 'href'].includes(key)
+    )
+      continue;
+    extras[key] = value;
   }
 
   return {
@@ -229,109 +243,111 @@ export const normalizePost = (candidate: Partial<Post> & Record<string, unknown>
     tags: ensureStringArray(candidate.tags, extractedTags), // Use extracted tags if no tags provided
     contentHtml: markdownToHtml(cleanContent), // Generate HTML from clean content
     hidden: ensureBoolean(candidate.hidden, fallback.hidden),
-  }
-}
+  };
+};
 
 const withPostsDefaults = (value: unknown, defaults: Post[]): Post[] => {
   if (!Array.isArray(value)) {
-    return defaults.map((item) => ({ ...item }))
+    return defaults.map((item) => ({ ...item }));
   }
 
   return value.map((entry, index) => {
     if (!entry || typeof entry !== 'object') {
-      const fallback = getPostFallback(defaults, index)
-      return { ...fallback }
+      const fallback = getPostFallback(defaults, index);
+      return { ...fallback };
     }
 
-    const candidate = entry as Partial<Post> & Record<string, unknown>
-    const fallback = getPostFallback(defaults, index)
-    return normalizePost(candidate, fallback)
-  })
-}
+    const candidate = entry as Partial<Post> & Record<string, unknown>;
+    const fallback = getPostFallback(defaults, index);
+    return normalizePost(candidate, fallback);
+  });
+};
 
 const withSectionsDefaults = (value: unknown, defaults: SectionsContent): SectionsContent => {
   // If nothing persisted, return defaults (deep copy)
   if (!value || typeof value !== 'object') {
-    return JSON.parse(JSON.stringify(defaults)) as SectionsContent
+    return JSON.parse(JSON.stringify(defaults)) as SectionsContent;
   }
 
-  const candidate = value as Partial<SectionsContent> & Record<string, unknown>
+  const candidate = value as Partial<SectionsContent> & Record<string, unknown>;
 
   // Start from defaults and shallow-merge top-level keys from candidate.
   // For contact, prefer candidate.contact.description, or candidate.about.description (legacy),
   // falling back to defaults.contact.description.
-  const result: SectionsContent = JSON.parse(JSON.stringify(defaults)) as SectionsContent
+  const result: SectionsContent = JSON.parse(JSON.stringify(defaults)) as SectionsContent;
 
   // Preserve/merge any known fields if present on candidate
   if (candidate.contact && typeof candidate.contact === 'object') {
-    const c = candidate.contact as { description?: unknown }
+    const c = candidate.contact as { description?: unknown };
     if (typeof c.description === 'string' && c.description.trim().length > 0) {
-      result.contact.description = c.description.trim()
+      result.contact.description = c.description.trim();
     }
   } else if (candidate.about && typeof candidate.about === 'object') {
     // legacy about -> contact.description mapping
-    const a = candidate.about as { description?: unknown }
+    const a = candidate.about as { description?: unknown };
     if (typeof a.description === 'string' && a.description.trim().length > 0) {
-      result.contact.description = a.description.trim()
+      result.contact.description = a.description.trim();
     }
   }
 
   // For any other keys present on candidate, shallow-copy them into result to preserve
   // user-provided nested blocks (educations, programmingLanguages, languagesSpoken, achievements, etc.)
   for (const [k, v] of Object.entries(candidate)) {
-    if (k === 'contact' || k === 'about') continue
+    if (k === 'contact' || k === 'about') continue;
     // @ts-expect-error dynamic assignment: we intentionally preserve unknown nested keys
-    result[k as keyof SectionsContent] = v as unknown as SectionsContent[keyof SectionsContent]
+    result[k as keyof SectionsContent] = v as unknown as SectionsContent[keyof SectionsContent];
   }
 
-  return result
-}
+  return result;
+};
 
 export const getContent = async (): Promise<ContentState> => {
-  const content: ContentState = JSON.parse(JSON.stringify(defaultContent))
+  const content: ContentState = JSON.parse(JSON.stringify(defaultContent));
   for (const key of CONTENT_KEYS) {
-    const value = await readJson<ContentState[typeof key]>(key)
+    const value = await readJson<ContentState[typeof key]>(key);
     if (value !== undefined) {
       switch (key) {
         case 'site':
-          content.site = withSiteDefaults(value, content.site)
-          break
+          content.site = withSiteDefaults(value, content.site);
+          break;
         case 'profile':
-          content.profile = withProfileDefaults(value, content.profile)
-          break
+          content.profile = withProfileDefaults(value, content.profile);
+          break;
         case 'experiences':
-          content.experiences = withExperienceDefaults(value, content.experiences)
-          break
+          content.experiences = withExperienceDefaults(value, content.experiences);
+          break;
         case 'posts':
-          content.posts = withPostsDefaults(value, content.posts)
-          break
+          content.posts = withPostsDefaults(value, content.posts);
+          break;
 
         case 'sections':
-          content.sections = withSectionsDefaults(value, content.sections)
-          break
+          content.sections = withSectionsDefaults(value, content.sections);
+          break;
       }
     }
   }
-  return content
-}
+  return content;
+};
 
 export const saveProfile = async (profile: Profile): Promise<Profile> => {
-  await writeJson('profile', profile)
-  return profile
-}
+  await writeJson('profile', profile);
+  return profile;
+};
 
 export const saveSite = async (site: SiteMeta): Promise<SiteMeta> => {
-  await writeJson('site', site)
-  return site
-}
+  await writeJson('site', site);
+  return site;
+};
 
 export const saveExperiences = async (experiences: Experience[]): Promise<Experience[]> => {
-  await writeJson('experiences', experiences)
-  return experiences
-}
+  await writeJson('experiences', experiences);
+  return experiences;
+};
 
-export const savePosts = async (posts: Array<Partial<Post> & Record<string, unknown>>): Promise<Post[]> => {
-  console.debug('savePosts: received', posts.length, 'items')
+export const savePosts = async (
+  posts: Array<Partial<Post> & Record<string, unknown>>,
+): Promise<Post[]> => {
+  console.debug('savePosts: received', posts.length, 'items');
   const normalized = posts.map((post) => {
     const fallback: Post = {
       id: ensureId(post.id, randomUUID()),
@@ -342,113 +358,141 @@ export const savePosts = async (posts: Array<Partial<Post> & Record<string, unkn
       hidden: ensureBoolean(post.hidden, false),
       ...(typeof post.createdAt === 'string' ? { createdAt: post.createdAt } : {}),
       ...(typeof post.updatedAt === 'string' ? { updatedAt: post.updatedAt } : {}),
-    }
+    };
     try {
-      const n = normalizePost({ ...post }, fallback)
+      const n = normalizePost({ ...post }, fallback);
       // Avoid logging entire content in development, but provide sizes to help
       if (process.env.NODE_ENV !== 'production') {
-        console.debug('savePosts: normalized post', n.id, 'titleLen', n.title.length, 'contentLen', n.content.length)
+        console.debug(
+          'savePosts: normalized post',
+          n.id,
+          'titleLen',
+          n.title.length,
+          'contentLen',
+          n.content.length,
+        );
       }
-      return n
+      return n;
     } catch (err) {
-      console.error('savePosts: failed to normalize post', err)
-      throw err
+      console.error('savePosts: failed to normalize post', err);
+      throw err;
     }
-  })
+  });
 
   try {
-    console.debug('savePosts: calling writeJson for posts, count', normalized.length)
-    await writeJson('posts', normalized)
-    console.debug('savePosts: writeJson succeeded')
+    console.debug('savePosts: calling writeJson for posts, count', normalized.length);
+    await writeJson('posts', normalized);
+    console.debug('savePosts: writeJson succeeded');
   } catch (err) {
-    console.error('savePosts: writeJson failed', err)
-    throw err
+    console.error('savePosts: writeJson failed', err);
+    throw err;
   }
 
-  return normalized
-}
+  return normalized;
+};
 
 const createNotFoundError = (message: string) => {
-  const error = new Error(message)
-  Object.assign(error, { code: 'POST_NOT_FOUND' as const })
-  return error
-}
+  const error = new Error(message);
+  Object.assign(error, { code: 'POST_NOT_FOUND' as const });
+  return error;
+};
 
 export const removePostById = async (postId: string): Promise<Post[]> => {
-  const content = await getContent()
-  const exists = content.posts.some((post) => post.id === postId)
+  const content = await getContent();
+  const exists = content.posts.some((post) => post.id === postId);
 
   if (!exists) {
-    throw createNotFoundError('Post not found')
+    throw createNotFoundError('Post not found');
   }
 
-  const filtered = content.posts.filter((post) => post.id !== postId)
-  return savePosts(filtered)
-}
+  const filtered = content.posts.filter((post) => post.id !== postId);
+  return savePosts(filtered);
+};
 
 export const setPostHidden = async (postId: string, hidden: boolean): Promise<Post[]> => {
-  const content = await getContent()
-  const exists = content.posts.some((post) => post.id === postId)
+  const content = await getContent();
+  const exists = content.posts.some((post) => post.id === postId);
 
   if (!exists) {
-    throw createNotFoundError('Post not found')
+    throw createNotFoundError('Post not found');
   }
 
-  const updated = content.posts.map((post) =>
-    post.id === postId ? { ...post, hidden } : post,
-  )
-  return savePosts(updated)
-}
-
-
+  const updated = content.posts.map((post) => (post.id === postId ? { ...post, hidden } : post));
+  return savePosts(updated);
+};
 
 export const saveSections = async (sections: SectionsContent): Promise<SectionsContent> => {
-  await writeJson('sections', sections)
-  return sections
-}
+  await writeJson('sections', sections);
+  return sections;
+};
 
 export type UploadRecord = {
-  id: string
-  key: string
-  filename: string
-  mimetype?: string
-  size?: number
-  width?: number | null
-  height?: number | null
-  created_at: string
-}
+  id: string;
+  key: string;
+  filename: string;
+  mimetype?: string;
+  size?: number;
+  width?: number | null;
+  height?: number | null;
+  created_at: string;
+};
 
-export const saveUpload = async (upload: { key: string; filename: string; mimetype?: string; size?: number; width?: number | null; height?: number | null }) : Promise<UploadRecord> => {
+export const saveUpload = async (upload: {
+  key: string;
+  filename: string;
+  mimetype?: string;
+  size?: number;
+  width?: number | null;
+  height?: number | null;
+}): Promise<UploadRecord> => {
   const result = await pool.query<UploadRecord>(
     `INSERT INTO uploads(key, filename, mimetype, size, width, height) VALUES($1,$2,$3,$4,$5,$6) RETURNING id, key, filename, mimetype, size, width, height, created_at`,
-    [upload.key, upload.filename, upload.mimetype ?? null, upload.size ?? null, upload.width ?? null, upload.height ?? null],
-  )
-  return result.rows[0]
-}
+    [
+      upload.key,
+      upload.filename,
+      upload.mimetype ?? null,
+      upload.size ?? null,
+      upload.width ?? null,
+      upload.height ?? null,
+    ],
+  );
+  return result.rows[0];
+};
 
 export const getUploadById = async (id: string): Promise<UploadRecord | null> => {
-  const result = await pool.query<UploadRecord>('SELECT id, key, filename, mimetype, size, width, height, created_at FROM uploads WHERE id = $1', [id])
-  if (result.rowCount === 0) return null
-  return result.rows[0]
-}
+  const result = await pool.query<UploadRecord>(
+    'SELECT id, key, filename, mimetype, size, width, height, created_at FROM uploads WHERE id = $1',
+    [id],
+  );
+  if (result.rowCount === 0) return null;
+  return result.rows[0];
+};
 
-export const listUploads = async (limit = 50, offset = 0): Promise<{ rows: UploadRecord[]; total: number }> => {
-  const totalRes = await pool.query<{ count: string }>('SELECT COUNT(*)::text as count FROM uploads')
-  const total = parseInt(totalRes.rows[0]?.count ?? '0', 10)
-  const result = await pool.query<UploadRecord>('SELECT id, key, filename, mimetype, size, width, height, created_at FROM uploads ORDER BY created_at DESC LIMIT $1 OFFSET $2', [limit, offset])
-  return { rows: result.rows, total }
-}
+export const listUploads = async (
+  limit = 50,
+  offset = 0,
+): Promise<{ rows: UploadRecord[]; total: number }> => {
+  const totalRes = await pool.query<{ count: string }>(
+    'SELECT COUNT(*)::text as count FROM uploads',
+  );
+  const total = parseInt(totalRes.rows[0]?.count ?? '0', 10);
+  const result = await pool.query<UploadRecord>(
+    'SELECT id, key, filename, mimetype, size, width, height, created_at FROM uploads ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+    [limit, offset],
+  );
+  return { rows: result.rows, total };
+};
 
 export const deleteUpload = async (id: string): Promise<void> => {
-  const result = await pool.query('DELETE FROM uploads WHERE id = $1', [id])
+  const result = await pool.query('DELETE FROM uploads WHERE id = $1', [id]);
   if (result.rowCount === 0) {
-    throw new Error('Upload not found')
+    throw new Error('Upload not found');
   }
-}
+};
 
 export const resetContent = async (): Promise<ContentState> => {
   for (const key of CONTENT_KEYS) {
-    await writeJson(key, defaultContent[key])
+    await writeJson(key, defaultContent[key]);
   }
-  return JSON.parse(JSON.stringify(defaultContent))
-}
+  return JSON.parse(JSON.stringify(defaultContent));
+};

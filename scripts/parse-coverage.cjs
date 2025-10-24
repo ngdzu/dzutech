@@ -12,31 +12,42 @@ function pct(covered, total) {
   return Math.round((covered / total) * 100);
 }
 
-function firstN(arr, n) { return arr.slice(0, n); }
+function firstN(arr, n) {
+  return arr.slice(0, n);
+}
 
-const rows = Object.keys(data).map(file => {
+const rows = Object.keys(data).map((file) => {
   const v = data[file];
   const s = v.s || {};
   const stmtTotal = Object.keys(s).length;
-  const stmtCovered = Object.values(s).filter(x => x > 0).length;
+  const stmtCovered = Object.values(s).filter((x) => x > 0).length;
   const stmtPct = pct(stmtCovered, stmtTotal);
 
   const b = v.b || {};
-  const branchTotal = Object.values(b).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0);
-  const branchCovered = Object.values(b).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.filter(x => x > 0).length : 0), 0);
+  const branchTotal = Object.values(b).reduce(
+    (acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0),
+    0,
+  );
+  const branchCovered = Object.values(b).reduce(
+    (acc, arr) => acc + (Array.isArray(arr) ? arr.filter((x) => x > 0).length : 0),
+    0,
+  );
   const branchPct = pct(branchCovered, branchTotal);
 
   const f = v.f || {};
   const fnTotal = Object.keys(f).length;
-  const fnCovered = Object.values(f).filter(x => x > 0).length;
+  const fnCovered = Object.values(f).filter((x) => x > 0).length;
   const fnPct = pct(fnCovered, fnTotal);
 
   const stmtMap = v.statementMap || {};
-  const uncoveredStmtIds = Object.keys(s).filter(id => !(s[id] > 0));
-  const uncoveredLines = uncoveredStmtIds.map(id => {
+  const uncoveredStmtIds = Object.keys(s).filter((id) => !(s[id] > 0));
+  const uncoveredLines = uncoveredStmtIds.map((id) => {
     const m = stmtMap[id];
     if (!m) return '?';
-    return `${m.start.line}` + (m.end && m.end.line && m.end.line !== m.start.line ? `-${m.end.line}` : '');
+    return (
+      `${m.start.line}` +
+      (m.end && m.end.line && m.end.line !== m.start.line ? `-${m.end.line}` : '')
+    );
   });
 
   const sampleUncovered = firstN(uncoveredLines, 6);
@@ -49,14 +60,20 @@ const rows = Object.keys(data).map(file => {
     branchPct: branchTotal ? branchPct : 'n/a',
     functions: `${fnCovered}/${fnTotal}`,
     fnPct,
-    sampleUncovered
+    sampleUncovered,
   };
 });
 
-rows.sort((a,b) => a.stmtPct - b.stmtPct || (typeof a.branchPct === 'number' && typeof b.branchPct === 'number' ? a.branchPct - b.branchPct : 0));
+rows.sort(
+  (a, b) =>
+    a.stmtPct - b.stmtPct ||
+    (typeof a.branchPct === 'number' && typeof b.branchPct === 'number'
+      ? a.branchPct - b.branchPct
+      : 0),
+);
 
 console.log('\nLowest coverage files (by statements %):\n');
-rows.slice(0, 40).forEach(r => {
+rows.slice(0, 40).forEach((r) => {
   console.log(`- ${r.file}`);
   console.log(`  statements: ${r.statements} (${r.stmtPct}%)`);
   console.log(`  branches:   ${r.branches} (${r.branchPct}%)`);

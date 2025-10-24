@@ -10,7 +10,7 @@ services:
       - website_node_modules:/app/node_modules
       - website_vite_cache:/root/.cache/vite
     ports:
-      - "4173:4173"
+      - '4173:4173'
     depends_on:
       api:
         condition: service_started

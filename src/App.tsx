@@ -1,21 +1,20 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import { LandingPage } from './pages/LandingPage'
-import ExperiencesPage from './pages/ExperiencesPage'
-import { AdminDashboard } from './pages/AdminDashboard'
-import { AdminBlogsPage } from './pages/AdminBlogsPage'
-import { AdminExperiencesPage } from './pages/AdminExperiencesPage'
-import { AdminUploadsPage } from './pages/AdminUploadsPage'
-import { BlogListPage } from './pages/BlogListPage'
-import { AdminBlogDetailPage } from './pages/AdminBlogDetailPage'
-import { AdminBlogEditorPage } from './pages/AdminBlogEditorPage'
-import { AdminBlogsByTagPage } from './pages/AdminBlogsByTagPage'
-import { BlogDetailPage } from './pages/BlogDetailPage'
-import { BlogTagPage } from './pages/BlogTagPage'
-import { LoginPage } from './pages/LoginPage'
-import { RequireAuth } from './components/RequireAuth'
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { LandingPage } from './pages/LandingPage';
+import ExperiencesPage from './pages/ExperiencesPage';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { AdminBlogsPage } from './pages/AdminBlogsPage';
+import { AdminExperiencesPage } from './pages/AdminExperiencesPage';
+import { AdminUploadsPage } from './pages/AdminUploadsPage';
+import { BlogListPage } from './pages/BlogListPage';
+import { AdminBlogDetailPage } from './pages/AdminBlogDetailPage';
+import { AdminBlogEditorPage } from './pages/AdminBlogEditorPage';
+import { AdminBlogsByTagPage } from './pages/AdminBlogsByTagPage';
+import { BlogDetailPage } from './pages/BlogDetailPage';
+import { BlogTagPage } from './pages/BlogTagPage';
+import { LoginPage } from './pages/LoginPage';
+import { RequireAuth } from './components/RequireAuth';
 
 function App() {
-
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
@@ -90,7 +89,7 @@ function App() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -1,28 +1,28 @@
-import { FiArrowLeft } from 'react-icons/fi'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useContent } from '../context/ContentContext'
-import { AdminSessionActions } from '../components/AdminSessionActions'
+import { FiArrowLeft } from 'react-icons/fi';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useContent } from '../context/ContentContext';
+import { AdminSessionActions } from '../components/AdminSessionActions';
 
 const chipStyle =
-  'inline-flex w-fit items-center gap-2 rounded-3xl border border-slate-800/70 bg-slate-900/60 px-6 py-4'
+  'inline-flex w-fit items-center gap-2 rounded-3xl border border-slate-800/70 bg-slate-900/60 px-6 py-4';
 
 const AdminBlogsByTagPage = () => {
-  const { tagSlug = '' } = useParams<{ tagSlug: string }>()
-  const decodedTag = decodeURIComponent(tagSlug)
-  const normalizedTag = decodedTag.trim().toLowerCase()
+  const { tagSlug = '' } = useParams<{ tagSlug: string }>();
+  const decodedTag = decodeURIComponent(tagSlug);
+  const normalizedTag = decodedTag.trim().toLowerCase();
 
-  const { content } = useContent()
-  const navigate = useNavigate()
-  const posts = content.posts ?? []
+  const { content } = useContent();
+  const navigate = useNavigate();
+  const posts = content.posts ?? [];
 
   const matchingPosts = posts
     .map((post, index) => ({ post, index }))
     .filter(({ post }) => {
-      if (!Array.isArray(post.tags)) return false
-      return post.tags.some((tag) => tag?.trim().toLowerCase() === normalizedTag)
-    })
+      if (!Array.isArray(post.tags)) return false;
+      return post.tags.some((tag) => tag?.trim().toLowerCase() === normalizedTag);
+    });
 
-  const heading = decodedTag ? `Blogs tagged “${decodedTag}”` : 'Blogs by tag'
+  const heading = decodedTag ? `Blogs tagged “${decodedTag}”` : 'Blogs by tag';
 
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
@@ -35,7 +35,8 @@ const AdminBlogsByTagPage = () => {
             <div>
               <h1 className="text-2xl font-semibold text-white">{heading}</h1>
               <p className="text-sm text-slate-400">
-                {matchingPosts.length} {matchingPosts.length === 1 ? 'blog post found' : 'blog posts found'} with this tag.
+                {matchingPosts.length}{' '}
+                {matchingPosts.length === 1 ? 'blog post found' : 'blog posts found'} with this tag.
               </p>
             </div>
             <Link
@@ -57,8 +58,11 @@ const AdminBlogsByTagPage = () => {
         ) : (
           <div className="grid gap-5 md:grid-cols-2">
             {matchingPosts.map(({ post, index }) => {
-              const contentPreview = (post.content ?? '').trim()
-              const previewText = contentPreview.length > 220 ? `${contentPreview.slice(0, 220)}…` : contentPreview || 'No content provided yet.'
+              const contentPreview = (post.content ?? '').trim();
+              const previewText =
+                contentPreview.length > 220
+                  ? `${contentPreview.slice(0, 220)}…`
+                  : contentPreview || 'No content provided yet.';
               return (
                 <article
                   key={`${index}-${post.title}`}
@@ -70,9 +74,9 @@ const AdminBlogsByTagPage = () => {
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs text-slate-300">
                     {(Array.isArray(post.tags) ? post.tags : []).map((tag) => {
-                      const trimmed = tag?.trim()
-                      if (!trimmed) return null
-                      const encoded = encodeURIComponent(trimmed.toLowerCase())
+                      const trimmed = tag?.trim();
+                      if (!trimmed) return null;
+                      const encoded = encodeURIComponent(trimmed.toLowerCase());
                       return (
                         <Link
                           key={`${trimmed}-${encoded}`}
@@ -81,7 +85,7 @@ const AdminBlogsByTagPage = () => {
                         >
                           {trimmed}
                         </Link>
-                      )
+                      );
                     })}
                   </div>
                   <button
@@ -92,13 +96,13 @@ const AdminBlogsByTagPage = () => {
                     View post
                   </button>
                 </article>
-              )
+              );
             })}
           </div>
         )}
       </main>
     </div>
-  )
-}
+  );
+};
 
-export { AdminBlogsByTagPage }
+export { AdminBlogsByTagPage };

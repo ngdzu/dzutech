@@ -1,166 +1,169 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from 'react'
-import { FiTrash2, FiUpload } from 'react-icons/fi'
-import { AdminHeader } from '../components/AdminHeader'
-import { ImagePreviewModal } from '../components/ImagePreviewModal'
-import { ImageUploaderModal } from '../components/ImageUploaderModal'
+import { useEffect, useState } from 'react';
+import { FiTrash2, FiUpload } from 'react-icons/fi';
+import { AdminHeader } from '../components/AdminHeader';
+import { ImagePreviewModal } from '../components/ImagePreviewModal';
+import { ImageUploaderModal } from '../components/ImageUploaderModal';
 
 type UploadRecord = {
-  id: string
-  key: string
-  filename: string | null
-  mimetype: string | null
-  size: number | null
-  created_at: string | null
-}
+  id: string;
+  key: string;
+  filename: string | null;
+  mimetype: string | null;
+  size: number | null;
+  created_at: string | null;
+};
 
 const formatFileSize = (bytes: number | null): string => {
-  if (bytes === null || bytes === 0) return '-'
+  if (bytes === null || bytes === 0) return '-';
 
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let size = bytes
-  let unitIndex = 0
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let size = bytes;
+  let unitIndex = 0;
 
   while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024
-    unitIndex++
+    size /= 1024;
+    unitIndex++;
   }
 
-  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
-}
+  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+};
 
 const formatDate = (dateString: string | null): { short: string; full: string } => {
-  if (!dateString) return { short: '-', full: '' }
+  if (!dateString) return { short: '-', full: '' };
 
-  const date = new Date(dateString)
+  const date = new Date(dateString);
   const short = date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: '2-digit'
-  })
+    year: '2-digit',
+  });
   const full = date.toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit'
-  })
+    second: '2-digit',
+  });
 
-  return { short, full }
-}
+  return { short, full };
+};
 
 const AdminUploadsPage = () => {
-  const [uploads, setUploads] = useState<UploadRecord[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; filename: string | null } | null>(null)
-  const [deleting, setDeleting] = useState(false)
+  const [uploads, setUploads] = useState<UploadRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    id: string;
+    filename: string | null;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [previewModal, setPreviewModal] = useState<{
-    isOpen: boolean
-    imageUrl: string
-    imageAlt: string
-    markdownLink: string
-  } | null>(null)
-  const [copiedUploadId, setCopiedUploadId] = useState<string | null>(null)
-  const [uploaderModalOpen, setUploaderModalOpen] = useState(false)
+    isOpen: boolean;
+    imageUrl: string;
+    imageAlt: string;
+    markdownLink: string;
+  } | null>(null);
+  const [copiedUploadId, setCopiedUploadId] = useState<string | null>(null);
+  const [uploaderModalOpen, setUploaderModalOpen] = useState(false);
 
   useEffect(() => {
-    let mounted = true
-    setLoading(true)
+    let mounted = true;
+    setLoading(true);
     fetch('/api/admin/uploads?limit=200')
       .then(async (res) => {
-        if (!res.ok) throw new Error(await res.text())
-        return res.json()
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
       })
       .then((data) => {
-        if (!mounted) return
-        setUploads(Array.isArray(data.uploads) ? data.uploads : [])
+        if (!mounted) return;
+        setUploads(Array.isArray(data.uploads) ? data.uploads : []);
       })
       .catch((err) => {
-        console.error('Failed to fetch uploads', err)
-        if (mounted) setError(String(err?.message ?? err))
+        console.error('Failed to fetch uploads', err);
+        if (mounted) setError(String(err?.message ?? err));
       })
-      .finally(() => mounted && setLoading(false))
+      .finally(() => mounted && setLoading(false));
 
     return () => {
-      mounted = false
-    }
-  }, [])
+      mounted = false;
+    };
+  }, []);
 
   const copy = async (text: string) => {
     try {
       // Try modern Clipboard API first
-      await navigator.clipboard.writeText(text)
+      await navigator.clipboard.writeText(text);
       // small feedback could be added later
     } catch (err) {
-      console.error('Modern clipboard API failed, trying fallback', err)
+      console.error('Modern clipboard API failed, trying fallback', err);
       try {
         // Fallback for older browsers or when Clipboard API is blocked
-        const textArea = document.createElement('textarea')
-        textArea.value = text
-        textArea.style.position = 'fixed'
-        textArea.style.left = '-999999px'
-        textArea.style.top = '-999999px'
-        document.body.appendChild(textArea)
-        textArea.focus()
-        textArea.select()
-        const successful = document.execCommand('copy')
-        document.body.removeChild(textArea)
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
 
         if (!successful) {
-          throw new Error('Fallback copy method also failed')
+          throw new Error('Fallback copy method also failed');
         }
       } catch (fallbackErr) {
-        console.error('Fallback copy failed', fallbackErr)
-        void alert('Unable to copy to clipboard — your browser may block it.')
+        console.error('Fallback copy failed', fallbackErr);
+        void alert('Unable to copy to clipboard — your browser may block it.');
       }
     }
-  }
+  };
 
   const copyMarkdown = (id: string) => {
-    const md = `![](/photos/${id})`
-    void copy(md)
-    setCopiedUploadId(id)
-    setTimeout(() => setCopiedUploadId(null), 2000)
-  }
+    const md = `![](/photos/${id})`;
+    void copy(md);
+    setCopiedUploadId(id);
+    setTimeout(() => setCopiedUploadId(null), 2000);
+  };
 
   const openPreview = (upload: UploadRecord) => {
     const imageUrl = (upload as any).presignedUrl
       ? (upload as any).presignedUrl
-      : `/uploads/${encodeURIComponent((upload.filename ?? upload.key.replace(/^uploads\//, '')) as string)}`
+      : `/uploads/${encodeURIComponent((upload.filename ?? upload.key.replace(/^uploads\//, '')) as string)}`;
 
     setPreviewModal({
       isOpen: true,
       imageUrl,
       imageAlt: upload.filename ?? '',
-      markdownLink: `![](/photos/${upload.id})`
-    })
-  }
+      markdownLink: `![](/photos/${upload.id})`,
+    });
+  };
 
   const closePreview = () => {
-    setPreviewModal(null)
-  }
+    setPreviewModal(null);
+  };
 
   const handleDelete = async (id: string) => {
-    setDeleting(true)
-    setError(null)
+    setDeleting(true);
+    setError(null);
     try {
-      const resp = await fetch(`/api/admin/uploads/${id}`, { method: 'DELETE' })
+      const resp = await fetch(`/api/admin/uploads/${id}`, { method: 'DELETE' });
       if (!resp.ok) {
-        const txt = await resp.text()
-        throw new Error(txt || resp.statusText)
+        const txt = await resp.text();
+        throw new Error(txt || resp.statusText);
       }
       // Remove from local state
-      setUploads((s) => s.filter((u) => u.id !== id))
-      setDeleteConfirm(null)
+      setUploads((s) => s.filter((u) => u.id !== id));
+      setDeleteConfirm(null);
     } catch (err) {
-      console.error('Delete failed', err)
-      setError(String((err as Error).message || err))
+      console.error('Delete failed', err);
+      setError(String((err as Error).message || err));
     } finally {
-      setDeleting(false)
+      setDeleting(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
@@ -168,7 +171,9 @@ const AdminUploadsPage = () => {
       <div className="mx-auto max-w-5xl px-6 py-5">
         <div>
           <h1 className="text-2xl font-semibold text-white">Uploaded photos</h1>
-          <p className="text-sm text-slate-400">List of uploaded photos. Copy the ID to embed into markdown.</p>
+          <p className="text-sm text-slate-400">
+            List of uploaded photos. Copy the ID to embed into markdown.
+          </p>
         </div>
       </div>
 
@@ -199,7 +204,7 @@ const AdminUploadsPage = () => {
               </tr>
             </thead>
             <tbody>
-                      {uploads.length === 0 && !loading ? (
+              {uploads.length === 0 && !loading ? (
                 <tr>
                   <td colSpan={5} className="px-2 py-6 text-center text-slate-400">
                     No uploads yet.
@@ -216,9 +221,9 @@ const AdminUploadsPage = () => {
                             (u as any).presignedUrl
                               ? (u as any).presignedUrl
                               : `/uploads/${encodeURIComponent(
-                                // prefer filename if present, otherwise derive from key
-                                (u.filename ?? u.key.replace(/^uploads\//, '')) as string,
-                              )}`
+                                  // prefer filename if present, otherwise derive from key
+                                  (u.filename ?? u.key.replace(/^uploads\//, '')) as string,
+                                )}`
                           }
                           alt={u.filename ?? ''}
                           className="h-12 w-12 cursor-pointer rounded object-cover transition hover:opacity-80"
@@ -229,7 +234,9 @@ const AdminUploadsPage = () => {
                       )}
                     </td>
                     <td className="px-2 py-3 align-middle text-slate-200">{u.filename ?? u.key}</td>
-                    <td className="px-2 py-3 align-middle text-slate-400">{formatFileSize(u.size)}</td>
+                    <td className="px-2 py-3 align-middle text-slate-400">
+                      {formatFileSize(u.size)}
+                    </td>
                     <td className="px-2 py-3 align-middle text-slate-400">
                       <span title={formatDate(u.created_at).full}>
                         {formatDate(u.created_at).short}
@@ -275,7 +282,8 @@ const AdminUploadsPage = () => {
           <div className="mx-4 max-w-md rounded-lg border border-slate-700/70 bg-slate-900 p-6 shadow-xl">
             <h3 className="text-lg font-semibold text-white">Delete Upload</h3>
             <p className="mt-2 text-sm text-slate-300">
-              Are you sure you want to delete "{deleteConfirm.filename ?? 'this upload'}"? This action cannot be undone.
+              Are you sure you want to delete "{deleteConfirm.filename ?? 'this upload'}"? This
+              action cannot be undone.
             </p>
             <div className="mt-6 flex gap-3">
               <button
@@ -311,12 +319,9 @@ const AdminUploadsPage = () => {
       )}
 
       {/* Image uploader modal */}
-      <ImageUploaderModal
-        isOpen={uploaderModalOpen}
-        onClose={() => setUploaderModalOpen(false)}
-      />
+      <ImageUploaderModal isOpen={uploaderModalOpen} onClose={() => setUploaderModalOpen(false)} />
     </div>
-  )
-}
+  );
+};
 
-export { AdminUploadsPage }
+export { AdminUploadsPage };

@@ -1,18 +1,18 @@
-import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { type Post } from '../content'
-import { BlogListPage } from './BlogListPage'
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { type Post } from '../content';
+import { BlogListPage } from './BlogListPage';
 
-const mockNavigate = vi.fn()
+const mockNavigate = vi.fn();
 
 vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
   return {
     ...actual,
     useNavigate: () => mockNavigate,
-  }
-})
+  };
+});
 
 const mockContextValue = {
   content: { posts: [] as Post[] },
@@ -27,24 +27,24 @@ const mockContextValue = {
   updateExperiences: vi.fn(),
   updateSections: vi.fn(),
   resetContent: vi.fn(),
-}
+};
 
 vi.mock('../context/ContentContext', () => ({
   useContent: () => mockContextValue,
-}))
+}));
 
 beforeAll(() => {
   Object.defineProperty(window, 'scrollTo', {
     value: vi.fn(),
     writable: true,
-  })
-})
+  });
+});
 
 beforeEach(() => {
-  mockContextValue.content = { posts: [] }
-  mockContextValue.loading = false
-  mockNavigate.mockReset()
-})
+  mockContextValue.content = { posts: [] };
+  mockContextValue.loading = false;
+  mockNavigate.mockReset();
+});
 
 describe('BlogListPage', () => {
   it('renders only posts that are not hidden', () => {
@@ -65,17 +65,17 @@ describe('BlogListPage', () => {
           hidden: true,
         },
       ],
-    }
+    };
 
     render(
       <MemoryRouter>
         <BlogListPage />
       </MemoryRouter>,
-    )
+    );
 
-    expect(screen.getByText('Visible Post')).toBeInTheDocument()
-    expect(screen.queryByText('Hidden Post')).not.toBeInTheDocument()
-  })
+    expect(screen.getByText('Visible Post')).toBeInTheDocument();
+    expect(screen.queryByText('Hidden Post')).not.toBeInTheDocument();
+  });
 
   it('shows empty state when all posts are hidden', () => {
     mockContextValue.content = {
@@ -88,17 +88,17 @@ describe('BlogListPage', () => {
           hidden: true,
         },
       ],
-    }
+    };
 
     render(
       <MemoryRouter>
         <BlogListPage />
       </MemoryRouter>,
-    )
+    );
 
+    expect(screen.getByText('No blogs are published yet. Check back soon.')).toBeInTheDocument();
     expect(
-      screen.getByText('No blogs are published yet. Check back soon.'),
-    ).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { level: 2, name: /Hidden Post/i })).not.toBeInTheDocument()
-  })
-})
+      screen.queryByRole('heading', { level: 2, name: /Hidden Post/i }),
+    ).not.toBeInTheDocument();
+  });
+});

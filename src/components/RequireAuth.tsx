@@ -1,10 +1,10 @@
-import type { ReactNode } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import type { ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const RequireAuth = ({ children }: { children: ReactNode }) => {
-  const { user, loading } = useAuth()
-  const location = useLocation()
+  const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -16,15 +16,15 @@ const RequireAuth = ({ children }: { children: ReactNode }) => {
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!user) {
-    const from = `${location.pathname}${location.search}${location.hash}`
-    return <Navigate to="/login" state={{ from }} replace />
+    const from = `${location.pathname}${location.search}${location.hash}`;
+    return <Navigate to="/login" state={{ from }} replace />;
   }
 
-  return <>{children}</>
-}
+  return <>{children}</>;
+};
 
-export { RequireAuth }
+export { RequireAuth };

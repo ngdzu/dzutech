@@ -1,54 +1,54 @@
-import { useEffect, useMemo } from 'react'
-import { FiArrowLeft } from 'react-icons/fi'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import Chip from '../components/Chip'
-import { useContent } from '../context/ContentContext'
-import { renderMarkdown } from '../lib/markdown'
+import { useEffect, useMemo } from 'react';
+import { FiArrowLeft } from 'react-icons/fi';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import Chip from '../components/Chip';
+import { useContent } from '../context/ContentContext';
+import { renderMarkdown } from '../lib/markdown';
 
 const BlogDetailPage = () => {
-  const { postId = '' } = useParams<{ postId: string }>()
-  const navigate = useNavigate()
-  const { content, loading } = useContent()
-  const posts = useMemo(() => (Array.isArray(content.posts) ? content.posts : []), [content.posts])
+  const { postId = '' } = useParams<{ postId: string }>();
+  const navigate = useNavigate();
+  const { content, loading } = useContent();
+  const posts = useMemo(() => (Array.isArray(content.posts) ? content.posts : []), [content.posts]);
 
-  const normalizedId = useMemo(() => decodeURIComponent(postId).trim(), [postId])
+  const normalizedId = useMemo(() => decodeURIComponent(postId).trim(), [postId]);
 
   const post = useMemo(() => {
-    if (normalizedId.length === 0) return null
-    const byId = posts.find((entry) => entry.id === normalizedId)
+    if (normalizedId.length === 0) return null;
+    const byId = posts.find((entry) => entry.id === normalizedId);
     if (byId) {
-      return byId.hidden ? null : byId
+      return byId.hidden ? null : byId;
     }
 
-    const parsedIndex = Number.parseInt(normalizedId, 10)
+    const parsedIndex = Number.parseInt(normalizedId, 10);
     if (!Number.isNaN(parsedIndex) && parsedIndex >= 0 && parsedIndex < posts.length) {
-      const candidate = posts[parsedIndex]
-      if (!candidate) return null
-      return candidate.hidden ? null : candidate
+      const candidate = posts[parsedIndex];
+      if (!candidate) return null;
+      return candidate.hidden ? null : candidate;
     }
 
-    return null
-  }, [normalizedId, posts])
+    return null;
+  }, [normalizedId, posts]);
   const contentHtml = useMemo(() => {
-    if (!post) return ''
+    if (!post) return '';
     if (typeof post.contentHtml === 'string' && post.contentHtml.trim().length > 0) {
-      return post.contentHtml
+      return post.contentHtml;
     }
-    return renderMarkdown(post.content ?? '')
-  }, [post])
+    return renderMarkdown(post.content ?? '');
+  }, [post]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [post?.id])
+  }, [post?.id]);
 
   if (loading && !post) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-night-900 px-6 text-center text-slate-300">
         <p className="text-sm text-slate-400">Loading blog…</p>
       </div>
-    )
+    );
   }
 
   if (!post) {
@@ -68,12 +68,12 @@ const BlogDetailPage = () => {
           Back to home
         </Link>
       </div>
-    )
+    );
   }
 
   const tags = Array.isArray(post.tags)
     ? post.tags.filter((tag): tag is string => Boolean(tag?.trim()))
-    : []
+    : [];
 
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
@@ -102,13 +102,13 @@ const BlogDetailPage = () => {
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2 text-xs text-slate-300">
               {tags.map((tag) => {
-                const trimmed = tag.trim()
-                const encoded = encodeURIComponent(trimmed.toLowerCase())
+                const trimmed = tag.trim();
+                const encoded = encodeURIComponent(trimmed.toLowerCase());
                 return (
                   <Chip key={trimmed} to={`/blogs/tags/${encoded}`}>
                     {trimmed}
                   </Chip>
-                )
+                );
               })}
             </div>
           )}
@@ -122,7 +122,7 @@ const BlogDetailPage = () => {
         </article>
       </main>
     </div>
-  )
-}
+  );
+};
 
-export { BlogDetailPage }
+export { BlogDetailPage };

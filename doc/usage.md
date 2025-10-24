@@ -60,7 +60,6 @@ Note: update both `./.env` and `./server/.env` as needed — some variables are 
 
 Security note: never commit `.env` to git. The repo includes `.env.example` for reference only.
 
-
 ## CI
 
 Run the repository's full verification (lint + tests + coverage):
@@ -94,6 +93,7 @@ npx lint-staged --debug
 ```
 
 Notes:
+
 - The ESLint commands include `--no-warn-ignored` to avoid failing on ignored-file warnings.
 - You may see a runtime informational warning about `.eslintignore` deprecation — it's safe to ignore after migrating ignores into `eslint.config.js`.
 
@@ -187,8 +187,6 @@ This script prefers `coverage/merged/coverage-final.json` if present; otherwise 
 
 ---
 
-
-
 ## Creating password hashes
 
 The server includes a small helper script to generate bcrypt password hashes for seeding the database or creating an initial admin user. Use this locally (do not share plaintext passwords in public chat or logs).
@@ -223,6 +221,7 @@ node -e "const b=require('bcryptjs'); console.log(b.compareSync('My$tr0ngP@ssw0r
 ```
 
 Security notes
+
 - Do not paste real production passwords into public logs, issue trackers, or chat.
 - Generate hashes on a trusted machine and copy only the hash into the database.
 - Prefer using at least 12 salt rounds; increase rounds if you require higher CPU-based protection (but expect slower hashing).

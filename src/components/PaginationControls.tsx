@@ -1,20 +1,20 @@
-import { useState } from 'react'
+import { useState } from 'react';
 
 type Props = {
-  totalItems: number
-  pageSize: number
-  currentPage: number
-  onPageChange: (page: number) => void
-}
+  totalItems: number;
+  pageSize: number;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+};
 
 const PaginationControls = ({ totalItems, pageSize, currentPage, onPageChange }: Props) => {
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
-  const [jump, setJump] = useState<string>('')
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+  const [jump, setJump] = useState<string>('');
 
   const goTo = (page: number) => {
-    const clamped = Math.max(1, Math.min(totalPages, page))
-    if (clamped !== currentPage) onPageChange(clamped)
-  }
+    const clamped = Math.max(1, Math.min(totalPages, page));
+    if (clamped !== currentPage) onPageChange(clamped);
+  };
 
   return (
     <div className="flex items-center gap-3">
@@ -63,7 +63,9 @@ const PaginationControls = ({ totalItems, pageSize, currentPage, onPageChange }:
       </div>
 
       <div className="ml-3 flex items-center gap-2">
-        <label htmlFor="jump-input" className="text-sm">Go to</label>
+        <label htmlFor="jump-input" className="text-sm">
+          Go to
+        </label>
         <input
           id="jump-input"
           type="number"
@@ -76,10 +78,10 @@ const PaginationControls = ({ totalItems, pageSize, currentPage, onPageChange }:
         <button
           type="button"
           onClick={() => {
-            const v = Number(jump)
-            if (!Number.isFinite(v) || v <= 0) return
-            goTo(v)
-            setJump('')
+            const v = Number(jump);
+            if (!Number.isFinite(v) || v <= 0) return;
+            goTo(v);
+            setJump('');
           }}
           className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white disabled:opacity-60 disabled:cursor-not-allowed"
         >
@@ -87,7 +89,7 @@ const PaginationControls = ({ totalItems, pageSize, currentPage, onPageChange }:
         </button>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PaginationControls
+export default PaginationControls;

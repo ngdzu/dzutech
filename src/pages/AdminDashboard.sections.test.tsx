@@ -1,113 +1,125 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { MemoryRouter } from 'react-router-dom'
-import { defaultContent } from '../content'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
+import { defaultContent } from '../content';
 
-const clone = () => JSON.parse(JSON.stringify(defaultContent))
+const clone = () => JSON.parse(JSON.stringify(defaultContent));
 
 type MockContent = {
-    content: typeof defaultContent
-    loading: boolean
-    error: null | string
-    refresh: ReturnType<typeof vi.fn>
-    updateSite: ReturnType<typeof vi.fn>
-    updateProfile: ReturnType<typeof vi.fn>
-    updatePosts: ReturnType<typeof vi.fn>
-    updateExperiences: ReturnType<typeof vi.fn>
-    updateSections: ReturnType<typeof vi.fn>
-    resetContent: ReturnType<typeof vi.fn>
-}
+  content: typeof defaultContent;
+  loading: boolean;
+  error: null | string;
+  refresh: ReturnType<typeof vi.fn>;
+  updateSite: ReturnType<typeof vi.fn>;
+  updateProfile: ReturnType<typeof vi.fn>;
+  updatePosts: ReturnType<typeof vi.fn>;
+  updateExperiences: ReturnType<typeof vi.fn>;
+  updateSections: ReturnType<typeof vi.fn>;
+  resetContent: ReturnType<typeof vi.fn>;
+};
 
 const mockContextValue: MockContent = {
-    content: clone(),
-    loading: false,
-    error: null,
-    refresh: vi.fn(),
-    updateSite: vi.fn(),
-    updateProfile: vi.fn(),
-    updatePosts: vi.fn(),
-    updateExperiences: vi.fn(),
-    updateSections: vi.fn(async (s: unknown) => s),
-    resetContent: vi.fn(),
-}
+  content: clone(),
+  loading: false,
+  error: null,
+  refresh: vi.fn(),
+  updateSite: vi.fn(),
+  updateProfile: vi.fn(),
+  updatePosts: vi.fn(),
+  updateExperiences: vi.fn(),
+  updateSections: vi.fn(async (s: unknown) => s),
+  resetContent: vi.fn(),
+};
 
 vi.mock('../context/ContentContext', () => ({
-    useContent: () => mockContextValue,
-}))
+  useContent: () => mockContextValue,
+}));
 
 // Mock the admin session actions (they use AuthContext) to avoid providing AuthProvider in tests
 vi.mock('../components/AdminSessionActions', () => ({
-    AdminSessionActions: () => {
-        return <div data-testid="admin-session-actions">actions</div>
-    },
-}))
+  AdminSessionActions: () => {
+    return <div data-testid="admin-session-actions">actions</div>;
+  },
+}));
 
 beforeEach(() => {
-    mockContextValue.content = clone()
-    mockContextValue.updateSections = vi.fn(async (s: unknown) => s)
-})
+  mockContextValue.content = clone();
+  mockContextValue.updateSections = vi.fn(async (s: unknown) => s);
+});
 
 describe('AdminDashboard sections editor', () => {
-    it('edits contact, adds education and programming language, and submits payload', async () => {
-        // sections related to experiences were moved to AdminExperiencesPage
-        const [{ AdminDashboard }, { AdminExperiencesPage }] = await Promise.all([import('./AdminDashboard'), import('./AdminExperiencesPage')])
+  it('edits contact, adds education and programming language, and submits payload', async () => {
+    // sections related to experiences were moved to AdminExperiencesPage
+    const [{ AdminDashboard }, { AdminExperiencesPage }] = await Promise.all([
+      import('./AdminDashboard'),
+      import('./AdminExperiencesPage'),
+    ]);
 
-        render(
-            <MemoryRouter>
-                <div>
-                    <AdminDashboard />
-                    <AdminExperiencesPage />
-                </div>
-            </MemoryRouter>,
-        )
+    render(
+      <MemoryRouter>
+        <div>
+          <AdminDashboard />
+          <AdminExperiencesPage />
+        </div>
+      </MemoryRouter>,
+    );
 
-        // Update contact description
-        const contactTextarea = screen.getByLabelText('Contact section description')
-        fireEvent.change(contactTextarea, { target: { value: 'Reach out via email' } })
+    // Update contact description
+    const contactTextarea = screen.getByLabelText('Contact section description');
+    fireEvent.change(contactTextarea, { target: { value: 'Reach out via email' } });
 
-        // Save contact description from AdminDashboard (contact UI remains on dashboard)
-        const saveDashboardButton = screen.getByRole('button', { name: /Save section copy/i })
-        fireEvent.click(saveDashboardButton)
+    // Save contact description from AdminDashboard (contact UI remains on dashboard)
+    const saveDashboardButton = screen.getByRole('button', { name: /Save section copy/i });
+    fireEvent.click(saveDashboardButton);
 
-        await waitFor(() => expect(mockContextValue.updateSections).toHaveBeenCalled())
+    await waitFor(() => expect(mockContextValue.updateSections).toHaveBeenCalled());
 
-        const firstCallRaw = (mockContextValue.updateSections as unknown as { mock: { calls: unknown[][] } }).mock.calls[0][0]
-        const firstCall = firstCallRaw as unknown as import('../content').SectionsContent
-        expect(firstCall).toHaveProperty('contact')
-        expect(firstCall.contact.description).toBe('Reach out via email')
+    const firstCallRaw = (
+      mockContextValue.updateSections as unknown as { mock: { calls: unknown[][] } }
+    ).mock.calls[0][0];
+    const firstCall = firstCallRaw as unknown as import('../content').SectionsContent;
+    expect(firstCall).toHaveProperty('contact');
+    expect(firstCall.contact.description).toBe('Reach out via email');
 
-        // Now add an education entry in the Experiences admin page
-        const addEduButton = screen.getByText('Add education')
-        fireEvent.click(addEduButton)
+    // Now add an education entry in the Experiences admin page
+    const addEduButton = screen.getByText('Add education');
+    fireEvent.click(addEduButton);
 
-        // Fill institution input inside the education block
-        const eduInstitution = screen.getByPlaceholderText('Institution')
-        fireEvent.change(eduInstitution, { target: { value: 'Test University' } })
+    // Fill institution input inside the education block
+    const eduInstitution = screen.getByPlaceholderText('Institution');
+    fireEvent.change(eduInstitution, { target: { value: 'Test University' } });
 
-        // Add a programming language via the comma-separated input
-        const plInput = screen.getByLabelText('Languages (comma separated)') as HTMLInputElement
-        fireEvent.change(plInput, { target: { value: 'TypeScript' } })
-        // Wait for the input value to be reflected in the DOM / component state
-        await waitFor(() => expect(plInput.value).toBe('TypeScript'))
+    // Add a programming language via the comma-separated input
+    const plInput = screen.getByLabelText('Languages (comma separated)') as HTMLInputElement;
+    fireEvent.change(plInput, { target: { value: 'TypeScript' } });
+    // Wait for the input value to be reflected in the DOM / component state
+    await waitFor(() => expect(plInput.value).toBe('TypeScript'));
 
-        // Submit the experiences page sections form
-        const saveExperiencesButton = screen.getByRole('button', { name: /Save sections/i })
-        fireEvent.click(saveExperiencesButton)
+    // Submit the experiences page sections form
+    const saveExperiencesButton = screen.getByRole('button', { name: /Save sections/i });
+    fireEvent.click(saveExperiencesButton);
 
-        // Expect updateSections to have been called again for the experiences page changes
-        await waitFor(() => expect((mockContextValue.updateSections as unknown as { mock: { calls: unknown[][] } }).mock.calls.length).toBeGreaterThanOrEqual(2))
+    // Expect updateSections to have been called again for the experiences page changes
+    await waitFor(() =>
+      expect(
+        (mockContextValue.updateSections as unknown as { mock: { calls: unknown[][] } }).mock.calls
+          .length,
+      ).toBeGreaterThanOrEqual(2),
+    );
 
-        const secondCallRaw = (mockContextValue.updateSections as unknown as { mock: { calls: unknown[][] } }).mock.calls[1][0]
-        const secondCall = secondCallRaw as unknown as import('../content').SectionsContent
-        expect(secondCall).toHaveProperty('educations')
-        if (secondCall.educations) {
-            expect(Array.isArray(secondCall.educations.items)).toBe(true)
-            expect(secondCall.educations.items.length).toBeGreaterThan(0)
-            expect(secondCall.educations.items[0].institution).toBe('Test University')
-        }
-        expect(secondCall).toHaveProperty('programmingLanguages')
-        if (secondCall.programmingLanguages) {
-            expect(secondCall.programmingLanguages.items).toContain('TypeScript')
-        }
-    })
-})
+    const secondCallRaw = (
+      mockContextValue.updateSections as unknown as { mock: { calls: unknown[][] } }
+    ).mock.calls[1][0];
+    const secondCall = secondCallRaw as unknown as import('../content').SectionsContent;
+    expect(secondCall).toHaveProperty('educations');
+    if (secondCall.educations) {
+      expect(Array.isArray(secondCall.educations.items)).toBe(true);
+      expect(secondCall.educations.items.length).toBeGreaterThan(0);
+      expect(secondCall.educations.items[0].institution).toBe('Test University');
+    }
+    expect(secondCall).toHaveProperty('programmingLanguages');
+    if (secondCall.programmingLanguages) {
+      expect(secondCall.programmingLanguages.items).toContain('TypeScript');
+    }
+  });
+});

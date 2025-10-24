@@ -1,51 +1,51 @@
-import { useMemo, useState } from 'react'
-import { FiArrowLeft, FiEdit2, FiEye, FiEyeOff, FiTrash2 } from 'react-icons/fi'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useContent } from '../context/ContentContext'
-import { AdminSessionActions } from '../components/AdminSessionActions'
-import { renderMarkdown } from '../lib/markdown'
+import { useMemo, useState } from 'react';
+import { FiArrowLeft, FiEdit2, FiEye, FiEyeOff, FiTrash2 } from 'react-icons/fi';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useContent } from '../context/ContentContext';
+import { AdminSessionActions } from '../components/AdminSessionActions';
+import { renderMarkdown } from '../lib/markdown';
 
 const AdminBlogDetailPage = () => {
-  const { postId = '' } = useParams<{ postId: string }>()
-  const navigate = useNavigate()
-  const { content, deletePost, setPostVisibility } = useContent()
-  const [status, setStatus] = useState<'idle' | 'updating' | 'deleting' | 'error'>('idle')
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const { postId = '' } = useParams<{ postId: string }>();
+  const navigate = useNavigate();
+  const { content, deletePost, setPostVisibility } = useContent();
+  const [status, setStatus] = useState<'idle' | 'updating' | 'deleting' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const post = useMemo(() => {
-    const posts = Array.isArray(content.posts) ? content.posts : []
-    return posts.find((entry) => entry.id === postId) ?? null
-  }, [content.posts, postId])
+    const posts = Array.isArray(content.posts) ? content.posts : [];
+    return posts.find((entry) => entry.id === postId) ?? null;
+  }, [content.posts, postId]);
 
   const toggleVisibility = async () => {
-    if (!post) return
-    setStatus('updating')
-    setErrorMessage(null)
+    if (!post) return;
+    setStatus('updating');
+    setErrorMessage(null);
     try {
-      await setPostVisibility(post.id, !post.hidden)
-      setStatus('idle')
+      await setPostVisibility(post.id, !post.hidden);
+      setStatus('idle');
     } catch (error) {
-      console.error('Failed to update post visibility', error)
-      setStatus('error')
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to update visibility')
+      console.error('Failed to update post visibility', error);
+      setStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to update visibility');
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!post) return
-    const confirmed = window.confirm('Delete this blog post? This action cannot be undone.')
-    if (!confirmed) return
-    setStatus('deleting')
-    setErrorMessage(null)
+    if (!post) return;
+    const confirmed = window.confirm('Delete this blog post? This action cannot be undone.');
+    if (!confirmed) return;
+    setStatus('deleting');
+    setErrorMessage(null);
     try {
-      await deletePost(post.id)
-      navigate('/admin/blogs')
+      await deletePost(post.id);
+      navigate('/admin/blogs');
     } catch (error) {
-      console.error('Failed to delete post', error)
-      setStatus('error')
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete post')
+      console.error('Failed to delete post', error);
+      setStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to delete post');
     }
-  }
+  };
 
   if (!post) {
     return (
@@ -64,14 +64,14 @@ const AdminBlogDetailPage = () => {
           Back to blogs
         </Link>
       </div>
-    )
+    );
   }
 
   const tags = Array.isArray(post.tags)
     ? post.tags.filter((tag): tag is string => Boolean(tag?.trim()))
-    : []
+    : [];
 
-  const actionDisabled = status === 'updating' || status === 'deleting'
+  const actionDisabled = status === 'updating' || status === 'deleting';
 
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
@@ -139,8 +139,8 @@ const AdminBlogDetailPage = () => {
         {tags.length > 0 && (
           <div className="flex flex-wrap gap-2 text-xs text-slate-300">
             {tags.map((tag) => {
-              const trimmed = tag.trim()
-              const encoded = encodeURIComponent(trimmed.toLowerCase())
+              const trimmed = tag.trim();
+              const encoded = encodeURIComponent(trimmed.toLowerCase());
               return (
                 <Link
                   key={`${trimmed}-${encoded}`}
@@ -149,7 +149,7 @@ const AdminBlogDetailPage = () => {
                 >
                   {trimmed}
                 </Link>
-              )
+              );
             })}
           </div>
         )}
@@ -162,7 +162,7 @@ const AdminBlogDetailPage = () => {
         </article>
       </main>
     </div>
-  )
-}
+  );
+};
 
-export { AdminBlogDetailPage }
+export { AdminBlogDetailPage };

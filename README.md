@@ -71,7 +71,7 @@ npm run preview
 
 You can exercise the upload endpoints directly to simulate image or Markdown imports. Admin routes are session-authenticated, so first log in and capture the session cookie, then POST files as multipart form data.
 
-1) Log in and save cookies to a jar (replace with admin credentials from `server/.env`):
+1. Log in and save cookies to a jar (replace with admin credentials from `server/.env`):
 
 ```bash
 curl -c cookiejar.txt -sS -X POST http://localhost:4000/api/auth/login \
@@ -79,7 +79,7 @@ curl -c cookiejar.txt -sS -X POST http://localhost:4000/api/auth/login \
   -d '{"email":"admin@example.com","password":"your-password"}'
 ```
 
-2) Upload a single image (field name `file`):
+2. Upload a single image (field name `file`):
 
 ```bash
 curl -b cookiejar.txt -sS -X POST http://localhost:4000/api/uploads \
@@ -89,10 +89,15 @@ curl -b cookiejar.txt -sS -X POST http://localhost:4000/api/uploads \
 Example successful response:
 
 ```json
-{ "url": "/photos/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx", "filename": "1678920000-abcdef1234.png", "mimetype": "image/png" }
+{
+  "url": "/photos/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "filename": "1678920000-abcdef1234.png",
+  "mimetype": "image/png"
+}
 ```
 
-3) Upload multiple Markdown files as new posts (admin route, field name `files`):
+3. Upload multiple Markdown files as new posts (admin route, field name `files`):
 
 ```bash
 curl -b cookiejar.txt -sS -X POST http://localhost:4000/api/admin/posts/upload \
@@ -108,9 +113,7 @@ Notes and troubleshooting:
 
 ## ✅ Quality checks & Git hooks
 
-
 Use `npm run verify:env` to make sure all security-critical environment variables are populated before deploying. This command enforces:
-
 
 Locally, export `FORCE_ENV_CHECK=true` if you want to run the verification outside of `NODE_ENV=production`/CI.
 
@@ -133,12 +136,14 @@ The project also includes a coverage gate that runs during pre-commit. The hook 
 GitHub Actions workflow `.github/workflows/ci.yml` installs dependencies, verifies the deployment environment, and runs lint/tests on every push and pull request. To enable it:
 
 1. Add the following repository secrets so the environment check can confirm production readiness:
-  - `DATABASE_URL`
-  - `SESSION_SECRET`
-  - `ALLOWED_ORIGIN`
-  - `ADMIN_EMAIL`
-  - `ADMIN_PASSWORD_HASH`
-  - `DB_SSL` (set to `true` for remote databases)
+
+- `DATABASE_URL`
+- `SESSION_SECRET`
+- `ALLOWED_ORIGIN`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD_HASH`
+- `DB_SSL` (set to `true` for remote databases)
+
 2. Optionally provide `DB_SSL_CA` or other secrets if your infrastructure requires them; the workflow will pass through anything you add.
 3. Monitor the Actions tab—deployments should only proceed once the environment check, lint, and test jobs finish successfully.
 
@@ -176,7 +181,6 @@ xdg-open coverage/merged/index.html
 - The merged artifact created by CI is uploaded as `coverage-merged` and contains the same LCOV (`lcov.info`) + HTML files.
 
 - Where staged/commit checks look: the pre-push hook runs coverage and produces the merged report before it enforces the staged-file coverage gate. If coverage fails, the push is aborted and the merged HTML is left under `coverage/merged` for inspection.
-
 
 ## �🐳 Docker
 
@@ -263,6 +267,7 @@ docker compose down
     ```
 
     Copy the resulting hash into `server/.env` (and optionally your production secrets manager)
+
 - The login form lives at `/login` and redirects back to the admin tool you originally requested once authenticated
 - Sessions are stored in PostgreSQL (`user_sessions` table) via `connect-pg-simple` and expire automatically after idle
 - Use the **Sign out** button in any admin view to terminate the current session immediately

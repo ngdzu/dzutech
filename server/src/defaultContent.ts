@@ -1,5 +1,5 @@
-import { markdownToHtml } from './markdown.js'
-import type { ContentState } from './types.js'
+import { markdownToHtml } from './markdown.js';
+import type { ContentState } from './types.js';
 
 export const defaultContent: ContentState = {
   site: {
@@ -115,4 +115,4 @@ export const defaultContent: ContentState = {
         'I partner with founders, product leaders, and engineering teams to untangle complex systems, accelerate delivery, and coach developers. Drop a note and let’s explore how we can collaborate.',
     },
   },
-}
+};

@@ -4,18 +4,18 @@ services:
   # Remap API host port from 4000 to 4001 for staging
   api:
     ports:
-      - "4001:4000"
+      - '4001:4000'
 
   # Remap website host port from 4173 to 5173 for staging
   website:
     ports:
-      - "5173:4173"
+      - '5173:4173'
 
   # MinIO remapped to avoid collision with prod MinIO
   minio:
     ports:
-      - "9002:9000"
-      - "9003:9001"
+      - '9002:9000'
+      - '9003:9001'
 
   # It's safer to NOT expose the Postgres DB port to the host on staging.
   # If you need host access to Postgres for debugging, uncomment and change the port below.

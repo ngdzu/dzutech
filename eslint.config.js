@@ -1,23 +1,18 @@
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import tseslint from 'typescript-eslint'
-import jsonc from 'eslint-plugin-jsonc'
-import markdown from '@eslint/markdown'
-import yml from 'eslint-plugin-yml'
-import { defineConfig, globalIgnores } from 'eslint/config'
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import tseslint from 'typescript-eslint';
+import jsonc from 'eslint-plugin-jsonc';
+import prettierPlugin from 'eslint-plugin-prettier';
+import prettierConfig from 'eslint-config-prettier';
+import markdown from '@eslint/markdown';
+import yml from 'eslint-plugin-yml';
+import { defineConfig, globalIgnores } from 'eslint/config';
 
-const [jsoncBaseConfig, ...jsoncFileConfigs] = jsonc.configs['flat/recommended-with-json']
+const [jsoncBaseConfig, ...jsoncFileConfigs] = jsonc.configs['flat/recommended-with-json'];
 
-const jsonFileGlobs = [
-  '*.json',
-  '**/*.json',
-  '*.json5',
-  '**/*.json5',
-  '*.jsonc',
-  '**/*.jsonc',
-]
+const jsonFileGlobs = ['*.json', '**/*.json', '*.json5', '**/*.json5', '*.jsonc', '**/*.jsonc'];
 
 const packageJsonConfigs = jsoncFileConfigs.map((config) => ({
   ...config,
@@ -44,7 +39,7 @@ const packageJsonConfigs = jsoncFileConfigs.map((config) => ({
       },
     ],
   },
-}))
+}));
 
 const jsonConfigFiles = jsoncFileConfigs.map((config) => ({
   ...config,
@@ -55,23 +50,30 @@ const jsonConfigFiles = jsoncFileConfigs.map((config) => ({
     'jsonc/indent': ['error', 2],
     'jsonc/no-comments': 'off',
   },
-}))
+}));
 
 const ymlConfigs = (() => {
-  const [ymlBaseConfig, ...ymlFileConfigs] = yml.configs['flat/recommended']
+  const [ymlBaseConfig, ...ymlFileConfigs] = yml.configs['flat/recommended'];
   return [
     ymlBaseConfig,
     ...ymlFileConfigs.map((config) => ({
       ...config,
       files: ['**/*.{yml,yaml}'],
     })),
-  ]
-})()
+  ];
+})();
 
-const markdownConfig = markdown.configs.recommended
+const markdownConfig = markdown.configs.recommended;
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage', 'server/dist', 'server/coverage', 'server/coverage/**', '.github']),
+  globalIgnores([
+    'dist',
+    'coverage',
+    'server/dist',
+    'server/coverage',
+    'server/coverage/**',
+    '.github',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -80,6 +82,11 @@ export default defineConfig([
       reactHooks.configs['recommended-latest'],
       reactRefresh.configs.vite,
     ],
+    plugins: { prettier: prettierPlugin },
+    // run Prettier as an ESLint rule so formatting issues surface as lint errors
+    rules: {
+      'prettier/prettier': 'error',
+    },
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
@@ -97,4 +104,4 @@ export default defineConfig([
   ...packageJsonConfigs,
   ...ymlConfigs,
   ...markdownConfig,
-])
+]);

@@ -1,23 +1,23 @@
-import { useMemo } from 'react'
-import { FiArrowLeft } from 'react-icons/fi'
-import { Link, useParams } from 'react-router-dom'
-import Chip from '../components/Chip'
-import { useContent } from '../context/ContentContext'
-import { markdownExcerpt } from '../lib/markdown'
+import { useMemo } from 'react';
+import { FiArrowLeft } from 'react-icons/fi';
+import { Link, useParams } from 'react-router-dom';
+import Chip from '../components/Chip';
+import { useContent } from '../context/ContentContext';
+import { markdownExcerpt } from '../lib/markdown';
 
 const cardStyle =
-  'group rounded-3xl border border-slate-800/80 bg-slate-900/40 p-6 transition hover:border-accent-500/40 hover:bg-night-800/70'
+  'group rounded-3xl border border-slate-800/80 bg-slate-900/40 p-6 transition hover:border-accent-500/40 hover:bg-night-800/70';
 
 const BlogTagPage = () => {
-  const { tagSlug = '' } = useParams<{ tagSlug: string }>()
-  const decodedTag = useMemo(() => decodeURIComponent(tagSlug), [tagSlug])
-  const normalizedTag = decodedTag.trim().toLowerCase()
+  const { tagSlug = '' } = useParams<{ tagSlug: string }>();
+  const decodedTag = useMemo(() => decodeURIComponent(tagSlug), [tagSlug]);
+  const normalizedTag = decodedTag.trim().toLowerCase();
 
-  const { content } = useContent()
+  const { content } = useContent();
   const posts = useMemo(
     () => (content.posts ?? []).filter((post) => post && post.hidden !== true),
     [content.posts],
-  )
+  );
 
   const matching = posts
     .map((post, index) => ({ post, index }))
@@ -25,9 +25,9 @@ const BlogTagPage = () => {
       Array.isArray(post.tags)
         ? post.tags.some((tag) => tag?.trim().toLowerCase() === normalizedTag)
         : false,
-    )
+    );
 
-  const heading = decodedTag ? `Posts tagged “${decodedTag}”` : 'Posts by tag'
+  const heading = decodedTag ? `Posts tagged “${decodedTag}”` : 'Posts by tag';
 
   return (
     <div className="min-h-screen bg-night-900 text-slate-100">
@@ -58,8 +58,8 @@ const BlogTagPage = () => {
         ) : (
           <div className="grid gap-5 md:grid-cols-2">
             {matching.map(({ post, index }) => {
-              const previewText = markdownExcerpt(post.content ?? '', 220)
-              const slug = encodeURIComponent((post.id ?? '').trim() || String(index))
+              const previewText = markdownExcerpt(post.content ?? '', 220);
+              const slug = encodeURIComponent((post.id ?? '').trim() || String(index));
 
               return (
                 <article key={post.id ?? `${index}-${post.title}`} className={cardStyle}>
@@ -77,25 +77,25 @@ const BlogTagPage = () => {
                     </p>
                     <div className="mt-auto flex flex-wrap gap-2 text-xs text-slate-300/80">
                       {(Array.isArray(post.tags) ? post.tags : []).map((tag) => {
-                        const trimmed = String(tag).trim()
-                        if (!trimmed) return null
-                        const encoded = encodeURIComponent(trimmed.toLowerCase())
+                        const trimmed = String(tag).trim();
+                        if (!trimmed) return null;
+                        const encoded = encodeURIComponent(trimmed.toLowerCase());
                         return (
                           <Chip key={trimmed} to={`/blogs/tags/${encoded}`}>
                             {trimmed}
                           </Chip>
-                        )
+                        );
                       })}
                     </div>
                   </div>
                 </article>
-              )
+              );
             })}
           </div>
         )}
       </main>
     </div>
-  )
-}
+  );
+};
 
-export { BlogTagPage }
+export { BlogTagPage };

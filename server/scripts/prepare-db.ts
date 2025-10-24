@@ -1,5 +1,5 @@
-import { pool, readJson, writeJson } from '../src/db.js'
-import { defaultContent } from '../src/defaultContent.js'
+import { pool, readJson, writeJson } from '../src/db.js';
+import { defaultContent } from '../src/defaultContent.js';
 
 const ensureSchema = async () => {
   await pool.query(`
@@ -8,7 +8,7 @@ const ensureSchema = async () => {
       value JSONB NOT NULL,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
-  `)
+  `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS user_sessions (
@@ -17,15 +17,15 @@ const ensureSchema = async () => {
       expire TIMESTAMPTZ NOT NULL,
       PRIMARY KEY (sid)
     )
-  `)
+  `);
 
   await pool.query(`
     CREATE INDEX IF NOT EXISTS user_sessions_expire_idx ON user_sessions (expire)
-  `)
+  `);
 
   await pool.query(`
     CREATE EXTENSION IF NOT EXISTS pgcrypto;
-  `)
+  `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS uploads (
@@ -38,39 +38,39 @@ const ensureSchema = async () => {
       height INT,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
-  `)
-}
+  `);
+};
 
 const ensureSeedData = async () => {
-  const result = await pool.query<{ key: string }>('SELECT key FROM content')
+  const result = await pool.query<{ key: string }>('SELECT key FROM content');
   if (result.rowCount === 0) {
-    console.log('Seeding default content...')
+    console.log('Seeding default content...');
     for (const [key, value] of Object.entries(defaultContent)) {
-      await writeJson(key, value)
+      await writeJson(key, value);
     }
-    return
+    return;
   }
 
   // Ensure all keys exist, but keep existing overrides
   for (const [key, value] of Object.entries(defaultContent)) {
-    const existing = await readJson(key)
+    const existing = await readJson(key);
     if (existing === undefined) {
-      await writeJson(key, value)
+      await writeJson(key, value);
     }
   }
-}
+};
 
 const main = async () => {
   try {
-    await ensureSchema()
-    await ensureSeedData()
-    console.log('Database ready.')
+    await ensureSchema();
+    await ensureSeedData();
+    console.log('Database ready.');
   } finally {
-    await pool.end()
+    await pool.end();
   }
-}
+};
 
 main().catch((error) => {
-  console.error('Failed to prepare database', error)
-  process.exitCode = 1
-})
+  console.error('Failed to prepare database', error);
+  process.exitCode = 1;
+});

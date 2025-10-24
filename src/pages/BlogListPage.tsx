@@ -1,33 +1,30 @@
-import { useEffect, useMemo, useState } from 'react'
-import { FiArrowLeft } from 'react-icons/fi'
-import { Link } from 'react-router-dom'
-import { useContent } from '../context/ContentContext'
-import { BlogList } from '../components/BlogList'
+import { useEffect, useMemo, useState } from 'react';
+import { FiArrowLeft } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { useContent } from '../context/ContentContext';
+import { BlogList } from '../components/BlogList';
 
 const BlogListPage = () => {
-  const { content, loading } = useContent()
-  const posts = useMemo(() => content.posts ?? [], [content.posts])
-  const visiblePosts = useMemo(
-    () => posts.filter((post) => post && post.hidden !== true),
-    [posts],
-  )
+  const { content, loading } = useContent();
+  const posts = useMemo(() => content.posts ?? [], [content.posts]);
+  const visiblePosts = useMemo(() => posts.filter((post) => post && post.hidden !== true), [posts]);
 
   // Pagination
-  const [currentPage, setCurrentPage] = useState<number>(1)
-  const pageSize = 10
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 10;
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [])
+  }, []);
 
   if (loading && visiblePosts.length === 0) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-night-900 px-6 text-center text-slate-300">
         <p className="text-sm text-slate-400">Loading blogs…</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -55,7 +52,8 @@ const BlogListPage = () => {
         <div className="space-y-3 text-center">
           <h1 className="text-3xl font-semibold text-white">All blog posts</h1>
           <p className="text-sm text-slate-400">
-            Dive into every article, from in-depth architecture walkthroughs to practical delivery tips.
+            Dive into every article, from in-depth architecture walkthroughs to practical delivery
+            tips.
           </p>
         </div>
 
@@ -71,7 +69,7 @@ const BlogListPage = () => {
         />
       </main>
     </div>
-  )
-}
+  );
+};
 
-export { BlogListPage }
+export { BlogListPage };

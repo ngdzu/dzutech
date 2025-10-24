@@ -36,7 +36,7 @@ function main() {
     process.exit(1);
   }
 
-  const files = fs.readdirSync(BLOG_DIR).filter(f => f.endsWith('.md'));
+  const files = fs.readdirSync(BLOG_DIR).filter((f) => f.endsWith('.md'));
   const seen = new Map(); // hash -> kept filename
   const duplicates = [];
   const metadata = readIndex();
@@ -148,13 +148,23 @@ function main() {
     } else {
       // create minimal metadata if missing
       const id = path.basename(fname, '.md');
-      newMeta.push({ id, title: id, content: path.join('dev-data', 'blogs', fname), tags: [], hidden: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+      newMeta.push({
+        id,
+        title: id,
+        content: path.join('dev-data', 'blogs', fname),
+        tags: [],
+        hidden: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      });
     }
   }
 
   writeIndex(newMeta);
 
-  console.log(`Found ${files.length} md files, ${seen.size} unique by hash, deleted ${deletedCount} files, keeping ${newMeta.length} entries in index.`);
+  console.log(
+    `Found ${files.length} md files, ${seen.size} unique by hash, deleted ${deletedCount} files, keeping ${newMeta.length} entries in index.`,
+  );
 }
 
 main();

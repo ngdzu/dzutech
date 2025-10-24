@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
-import { AdminSessionActions } from './AdminSessionActions'
+import { Link } from 'react-router-dom';
+import { AdminSessionActions } from './AdminSessionActions';
 
 export const AdminHeader = () => {
   return (
@@ -14,5 +14,5 @@ export const AdminHeader = () => {
         <AdminSessionActions />
       </div>
     </header>
-  )
-}
+  );
+};

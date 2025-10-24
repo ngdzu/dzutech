@@ -1,25 +1,25 @@
-import { type ReactNode, useEffect, useMemo } from 'react'
-import { motion } from 'framer-motion'
-import { FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import Chip from '../components/Chip'
-import { useContent } from '../context/ContentContext'
-import { markdownExcerpt } from '../lib/markdown'
+import { type ReactNode, useEffect, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Chip from '../components/Chip';
+import { useContent } from '../context/ContentContext';
+import { markdownExcerpt } from '../lib/markdown';
 
 const formatSocialDisplay = (url: string) => {
   try {
-    const parsed = new URL(url)
-    const hostname = parsed.hostname.replace(/^www\./, '')
-    const normalizedPath = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/$/, '')
-    return normalizedPath ? `${hostname}${normalizedPath}` : hostname
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace(/^www\./, '');
+    const normalizedPath = parsed.pathname === '/' ? '' : parsed.pathname.replace(/\/$/, '');
+    return normalizedPath ? `${hostname}${normalizedPath}` : hostname;
   } catch {
     if (url.startsWith('mailto:')) {
-      return url.replace('mailto:', '')
+      return url.replace('mailto:', '');
     }
 
-    return url.replace(/^https?:\/\//, '').replace(/^www\./, '')
+    return url.replace(/^https?:\/\//, '').replace(/^www\./, '');
   }
-}
+};
 
 const Section = ({
   id,
@@ -27,10 +27,10 @@ const Section = ({
   eyebrow,
   children,
 }: {
-  id: string
-  title: ReactNode
-  eyebrow?: string
-  children: ReactNode
+  id: string;
+  title: ReactNode;
+  eyebrow?: string;
+  children: ReactNode;
 }) => (
   <section id={id} className="scroll-mt-24">
     <motion.div
@@ -51,7 +51,7 @@ const Section = ({
       {children}
     </motion.div>
   </section>
-)
+);
 
 const ExperienceCard = ({
   role,
@@ -61,7 +61,7 @@ const ExperienceCard = ({
   achievements,
   stack,
   location,
-}: (ReturnType<typeof useContent>['content']['experiences'][number] & { location?: string })) => (
+}: ReturnType<typeof useContent>['content']['experiences'][number] & { location?: string }) => (
   <motion.article
     initial={{ opacity: 0, y: 24 }}
     whileInView={{ opacity: 1, y: 0 }}
@@ -83,16 +83,16 @@ const ExperienceCard = ({
       </div>
       <ul className="flex flex-wrap gap-2 text-xs font-medium text-slate-300">
         {stack.map((item) => {
-          const trimmed = typeof item === 'string' ? item.trim() : ''
-          if (!trimmed) return null
-          const encoded = encodeURIComponent(trimmed.toLowerCase())
+          const trimmed = typeof item === 'string' ? item.trim() : '';
+          if (!trimmed) return null;
+          const encoded = encodeURIComponent(trimmed.toLowerCase());
           return (
             <li key={trimmed}>
               <Chip to={`/blogs/tags/${encoded}`} ariaLabel={`Skill: ${trimmed}`}>
                 {trimmed}
               </Chip>
             </li>
-          )
+          );
         })}
       </ul>
     </div>
@@ -110,17 +110,17 @@ const ExperienceCard = ({
     </ul>
     <div className="pointer-events-none absolute -right-16 top-24 h-40 w-40 rounded-full bg-accent-500/10 blur-3xl transition-transform duration-500 group-hover:-translate-y-6" />
   </motion.article>
-)
+);
 
 const PostCard = ({
   post,
   index,
 }: {
-  post: ReturnType<typeof useContent>['content']['posts'][number]
-  index: number
+  post: ReturnType<typeof useContent>['content']['posts'][number];
+  index: number;
 }) => {
-  const previewText = markdownExcerpt(post.content ?? '', 220)
-  const slug = encodeURIComponent((post.id ?? '').trim() || String(index))
+  const previewText = markdownExcerpt(post.content ?? '', 220);
+  const slug = encodeURIComponent((post.id ?? '').trim() || String(index));
 
   return (
     <motion.article
@@ -137,111 +137,123 @@ const PostCard = ({
         <h3 className="text-xl font-semibold text-white transition-colors group-hover:text-accent-200">
           {post.title}
         </h3>
-        <p className="text-sm text-slate-300/80">
-          {previewText || 'Content coming soon.'}
-        </p>
+        <p className="text-sm text-slate-300/80">{previewText || 'Content coming soon.'}</p>
         <div className="mt-auto flex flex-wrap gap-2 text-xs text-slate-300/80">
           {post.tags.map((tag) => {
-            const trimmed = typeof tag === 'string' ? tag.trim() : ''
-            if (!trimmed) return null
-            const encoded = encodeURIComponent(trimmed.toLowerCase())
+            const trimmed = typeof tag === 'string' ? tag.trim() : '';
+            if (!trimmed) return null;
+            const encoded = encodeURIComponent(trimmed.toLowerCase());
             return (
               <Chip key={trimmed} to={`/blogs/tags/${encoded}`}>
                 {trimmed}
               </Chip>
-            )
+            );
           })}
         </div>
       </Link>
     </motion.article>
-  )
-}
-
+  );
+};
 
 const navItems = [
   { href: '/experiences', label: 'Experiences' },
   { href: '/blogs', label: 'Blogs' },
   { href: '#contact', label: 'Contact' },
-]
+];
 
 export const LandingPage = () => {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { content } = useContent()
-  const { site, profile, experiences, posts, sections } = content
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { content } = useContent();
+  const { site, profile, experiences, posts, sections } = content;
   const visiblePosts = useMemo(
     () => (posts ?? []).filter((post) => post && post.hidden !== true),
     [posts],
-  )
-  const firstName = profile.name.split(' ')[0] || profile.name
-  const siteTitle = site.title.trim()
-  const brandLabel = siteTitle ? siteTitle.toLowerCase() : firstName ? firstName.toLowerCase() : 'home'
-  const homeLinkLabel = siteTitle || profile.name || 'Home'
-  const homeUsesLogo = site.homeButtonMode === 'logo' && Boolean(site.logo?.data)
-  const homeLogoAlt = site.logo?.alt?.trim() || homeLinkLabel
+  );
+  const firstName = profile.name.split(' ')[0] || profile.name;
+  const siteTitle = site.title.trim();
+  const brandLabel = siteTitle
+    ? siteTitle.toLowerCase()
+    : firstName
+      ? firstName.toLowerCase()
+      : 'home';
+  const homeLinkLabel = siteTitle || profile.name || 'Home';
+  const homeUsesLogo = site.homeButtonMode === 'logo' && Boolean(site.logo?.data);
+  const homeLogoAlt = site.logo?.alt?.trim() || homeLinkLabel;
   const homeLinkClasses = homeUsesLogo
     ? 'inline-flex items-center gap-3 rounded-xl font-semibold text-white transition hover:text-accent-200'
-    : 'inline-flex items-center gap-2 text-lg font-semibold tracking-tight text-white transition hover:text-accent-200'
-  const contactVisibility = profile.contactVisibility ?? { email: true, linkedin: true, github: true }
-  const emailAddress = profile.email.trim()
-  const linkedinUrl = profile.social.linkedin.trim()
-  const githubUrl = profile.social.github.trim()
-  const showEmailContact = Boolean(contactVisibility.email && emailAddress)
-  const showLinkedinContact = Boolean(contactVisibility.linkedin && linkedinUrl)
-  const showGithubContact = Boolean(contactVisibility.github && githubUrl)
-  const highlightsEnabled = profile.highlightsEnabled !== false
-  const locationText = profile.location?.trim() ?? ''
-  const availabilityText = profile.availability?.value?.trim() ?? ''
-  const showAvailability = Boolean(highlightsEnabled && profile.availability?.enabled && availabilityText)
-  const focusAreasText = profile.focusAreas?.value?.trim() ?? ''
-  const showFocusAreas = Boolean(highlightsEnabled && profile.focusAreas?.enabled && focusAreasText)
-  const showLocation = Boolean(highlightsEnabled && locationText)
-  const showHighlights = showLocation || showAvailability || showFocusAreas
+    : 'inline-flex items-center gap-2 text-lg font-semibold tracking-tight text-white transition hover:text-accent-200';
+  const contactVisibility = profile.contactVisibility ?? {
+    email: true,
+    linkedin: true,
+    github: true,
+  };
+  const emailAddress = profile.email.trim();
+  const linkedinUrl = profile.social.linkedin.trim();
+  const githubUrl = profile.social.github.trim();
+  const showEmailContact = Boolean(contactVisibility.email && emailAddress);
+  const showLinkedinContact = Boolean(contactVisibility.linkedin && linkedinUrl);
+  const showGithubContact = Boolean(contactVisibility.github && githubUrl);
+  const highlightsEnabled = profile.highlightsEnabled !== false;
+  const locationText = profile.location?.trim() ?? '';
+  const availabilityText = profile.availability?.value?.trim() ?? '';
+  const showAvailability = Boolean(
+    highlightsEnabled && profile.availability?.enabled && availabilityText,
+  );
+  const focusAreasText = profile.focusAreas?.value?.trim() ?? '';
+  const showFocusAreas = Boolean(
+    highlightsEnabled && profile.focusAreas?.enabled && focusAreasText,
+  );
+  const showLocation = Boolean(highlightsEnabled && locationText);
+  const showHighlights = showLocation || showAvailability || showFocusAreas;
   const heroGridClasses = showHighlights
     ? 'relative z-10 grid gap-10 md:grid-cols-[2fr,1fr] md:items-center'
-    : 'relative z-10 grid gap-10'
+    : 'relative z-10 grid gap-10';
 
   const parseTimestamp = (value: string | undefined): number | null => {
-    if (typeof value !== 'string') return null
-    const parsed = Date.parse(value)
-    return Number.isNaN(parsed) ? null : parsed
-  }
+    if (typeof value !== 'string') return null;
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  };
 
   const postsWithIndex = visiblePosts
     .map((post, index) => {
-      const datedPost = post as typeof post & { updatedAt?: string; createdAt?: string }
-      const updatedAt = parseTimestamp(datedPost.updatedAt)
-      const createdAt = parseTimestamp(datedPost.createdAt)
-      const timestamp = updatedAt ?? createdAt ?? null
-      return { post, index, timestamp }
+      const datedPost = post as typeof post & { updatedAt?: string; createdAt?: string };
+      const updatedAt = parseTimestamp(datedPost.updatedAt);
+      const createdAt = parseTimestamp(datedPost.createdAt);
+      const timestamp = updatedAt ?? createdAt ?? null;
+      return { post, index, timestamp };
     })
     .sort((a, b) => {
       if (a.timestamp == null && b.timestamp == null) {
-        return a.index - b.index
+        return a.index - b.index;
       }
-      if (a.timestamp == null) return 1
-      if (b.timestamp == null) return -1
-      return b.timestamp - a.timestamp
-    })
+      if (a.timestamp == null) return 1;
+      if (b.timestamp == null) return -1;
+      return b.timestamp - a.timestamp;
+    });
 
-  const recentPosts = postsWithIndex.slice(0, 6)
+  const recentPosts = postsWithIndex.slice(0, 6);
 
   useEffect(() => {
-    if (typeof document === 'undefined') return
-    if (!location.hash) return
+    if (typeof document === 'undefined') return;
+    if (!location.hash) return;
 
-    const targetId = location.hash.replace('#', '')
-    if (!targetId) return
+    const targetId = location.hash.replace('#', '');
+    if (!targetId) return;
 
-    const targetElement = document.getElementById(targetId)
-    if (!targetElement) return
+    const targetElement = document.getElementById(targetId);
+    if (!targetElement) return;
 
-    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }, [location.hash])
+    targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [location.hash]);
 
   return (
     <div className="relative min-h-screen bg-night-900 text-slate-100">
-      <div className="pointer-events-none fixed inset-0 -z-10 bg-grid-radial opacity-60" aria-hidden />
+      <div
+        className="pointer-events-none fixed inset-0 -z-10 bg-grid-radial opacity-60"
+        aria-hidden
+      />
       <header className="sticky top-0 z-50 border-b border-white/5 bg-night-900/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
           <a
@@ -349,7 +361,9 @@ export const LandingPage = () => {
                   {showAvailability && (
                     <div className="flex items-baseline justify-between gap-4">
                       <dt className="text-slate-400">Availability</dt>
-                      <dd className="max-w-[200px] text-right font-medium text-white">{availabilityText}</dd>
+                      <dd className="max-w-[200px] text-right font-medium text-white">
+                        {availabilityText}
+                      </dd>
                     </div>
                   )}
                   {showFocusAreas && (
@@ -380,7 +394,7 @@ export const LandingPage = () => {
                 type="button"
                 onClick={() => {
                   /* navigate on click */
-                  navigate('/experiences')
+                  navigate('/experiences');
                 }}
                 className="inline text-inherit font-semibold leading-none p-0 m-0 bg-transparent border-0"
               >
@@ -416,7 +430,7 @@ export const LandingPage = () => {
               <button
                 type="button"
                 onClick={() => {
-                  navigate('/blogs')
+                  navigate('/blogs');
                 }}
                 className="inline text-inherit font-semibold leading-none p-0 m-0 bg-transparent border-0"
               >
@@ -457,7 +471,9 @@ export const LandingPage = () => {
         <Section id="contact" title="Let’s build something" eyebrow="Stay in touch">
           <div className="flex flex-col gap-6 rounded-3xl border border-slate-800/70 bg-gradient-to-br from-night-800/80 via-slate-900/40 to-night-900/80 p-8 text-center shadow-glow md:flex-row md:items-center md:justify-between md:text-left">
             <div className="space-y-3">
-              <h3 className="text-2xl font-semibold text-white">Ready to craft resilient software?</h3>
+              <h3 className="text-2xl font-semibold text-white">
+                Ready to craft resilient software?
+              </h3>
               <p className="max-w-2xl text-base text-slate-300/85 whitespace-pre-line">
                 {sections.contact.description}
               </p>
@@ -504,7 +520,8 @@ export const LandingPage = () => {
       <footer className="border-t border-white/5 bg-night-900/90 py-8">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 text-sm text-slate-400 md:flex-row md:items-center md:justify-between">
           <span>
-            © {new Date().getFullYear()} {profile.name}. Crafted with React, Tailwind, and curiosity.
+            © {new Date().getFullYear()} {profile.name}. Crafted with React, Tailwind, and
+            curiosity.
           </span>
           {(showLinkedinContact || showGithubContact) && (
             <div className="flex items-center gap-4">
@@ -533,5 +550,5 @@ export const LandingPage = () => {
         </div>
       </footer>
     </div>
-  )
-}
+  );
+};

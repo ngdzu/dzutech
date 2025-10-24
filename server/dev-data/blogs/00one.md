@@ -1,6 +1,5 @@
-
 ---
-tags: "javascript, tutorial, react"
+tags: 'javascript, tutorial, react'
 ---
 
 # C++/Qt High Performance Computing — Part 1

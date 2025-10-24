@@ -1,117 +1,120 @@
-import { useEffect, useRef, useState } from 'react'
-import { FiTrash2, FiX } from 'react-icons/fi'
+import { useEffect, useRef, useState } from 'react';
+import { FiTrash2, FiX } from 'react-icons/fi';
 
 type UploadRecord = {
-  id: string
-  key: string
-  filename: string | null
-  mimetype: string | null
-  size: number | null
-  created_at: string | null
-  presignedUrl?: string
-}
+  id: string;
+  key: string;
+  filename: string | null;
+  mimetype: string | null;
+  size: number | null;
+  created_at: string | null;
+  presignedUrl?: string;
+};
 
 type ImageUploaderModalProps = {
-  isOpen: boolean
-  onClose: () => void
-  onImageSelect?: (markdown: string) => void
-}
+  isOpen: boolean;
+  onClose: () => void;
+  onImageSelect?: (markdown: string) => void;
+};
 
 const formatFileSize = (bytes: number | null): string => {
-  if (bytes === null || bytes === 0) return '-'
+  if (bytes === null || bytes === 0) return '-';
 
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let size = bytes
-  let unitIndex = 0
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let size = bytes;
+  let unitIndex = 0;
 
   while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024
-    unitIndex++
+    size /= 1024;
+    unitIndex++;
   }
 
-  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`
-}
+  return `${size.toFixed(unitIndex === 0 ? 0 : 1)} ${units[unitIndex]}`;
+};
 
 const formatDate = (dateString: string | null): { short: string; full: string } => {
-  if (!dateString) return { short: '-', full: '' }
+  if (!dateString) return { short: '-', full: '' };
 
-  const date = new Date(dateString)
+  const date = new Date(dateString);
   const short = date.toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
-    year: '2-digit'
-  })
+    year: '2-digit',
+  });
   const full = date.toLocaleString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    second: '2-digit'
-  })
+    second: '2-digit',
+  });
 
-  return { short, full }
-}
+  return { short, full };
+};
 
 export const ImageUploaderModal = ({ isOpen, onClose, onImageSelect }: ImageUploaderModalProps) => {
-  const [uploads, setUploads] = useState<UploadRecord[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [selectedFileName, setSelectedFileName] = useState<string | null>(null)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; filename: string | null } | null>(null)
-  const [deleting, setDeleting] = useState(false)
-  const [copiedUploadId, setCopiedUploadId] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [uploads, setUploads] = useState<UploadRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    id: string;
+    filename: string | null;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [copiedUploadId, setCopiedUploadId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
 
-    let mounted = true
-    setLoading(true)
+    let mounted = true;
+    setLoading(true);
     fetch('/api/admin/uploads?limit=200')
       .then(async (res) => {
-        if (!res.ok) throw new Error(await res.text())
-        return res.json()
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
       })
       .then((data) => {
-        if (!mounted) return
-        setUploads(Array.isArray(data.uploads) ? data.uploads : [])
+        if (!mounted) return;
+        setUploads(Array.isArray(data.uploads) ? data.uploads : []);
       })
       .catch((err) => {
-        console.error('Failed to fetch uploads', err)
-        if (mounted) setError(String(err?.message ?? err))
+        console.error('Failed to fetch uploads', err);
+        if (mounted) setError(String(err?.message ?? err));
       })
-      .finally(() => mounted && setLoading(false))
+      .finally(() => mounted && setLoading(false));
 
     return () => {
-      mounted = false
-    }
-  }, [isOpen])
+      mounted = false;
+    };
+  }, [isOpen]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files && e.target.files[0]
-    if (f) setSelectedFileName(f.name)
-    else setSelectedFileName(null)
-  }
+    const f = e.target.files && e.target.files[0];
+    if (f) setSelectedFileName(f.name);
+    else setSelectedFileName(null);
+  };
 
   const doUpload = async () => {
-    const el = fileInputRef.current
+    const el = fileInputRef.current;
     if (!el || !el.files || el.files.length === 0) {
-      return alert('Please choose a file to upload')
+      return alert('Please choose a file to upload');
     }
-    const file = el.files[0]
-    setUploading(true)
-    setError(null)
+    const file = el.files[0];
+    setUploading(true);
+    setError(null);
     try {
-      const fd = new FormData()
-      fd.append('file', file)
-      const resp = await fetch('/api/uploads', { method: 'POST', body: fd })
+      const fd = new FormData();
+      fd.append('file', file);
+      const resp = await fetch('/api/uploads', { method: 'POST', body: fd });
       if (!resp.ok) {
-        const txt = await resp.text()
-        throw new Error(txt || resp.statusText)
+        const txt = await resp.text();
+        throw new Error(txt || resp.statusText);
       }
-      const data = await resp.json()
+      const data = await resp.json();
       // The API returns { id, url, filename, mimetype }
       // Refresh list by prepending the new item (or re-fetch fully if you prefer)
       const newItem: UploadRecord = {
@@ -121,83 +124,83 @@ export const ImageUploaderModal = ({ isOpen, onClose, onImageSelect }: ImageUplo
         mimetype: (data.mimetype ?? file.type) || null,
         size: data.size ?? file.size ?? null,
         created_at: new Date().toISOString(),
-      }
-      setUploads((s) => [newItem, ...s])
+      };
+      setUploads((s) => [newItem, ...s]);
       // clear file input
-      el.value = ''
-      setSelectedFileName(null)
+      el.value = '';
+      setSelectedFileName(null);
     } catch (err) {
-      console.error('Upload failed', err)
-      setError(String((err as Error).message || err))
+      console.error('Upload failed', err);
+      setError(String((err as Error).message || err));
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const copy = async (text: string) => {
     try {
       // Try modern Clipboard API first
-      await navigator.clipboard.writeText(text)
+      await navigator.clipboard.writeText(text);
       // small feedback could be added later
     } catch (err) {
-      console.error('Modern clipboard API failed, trying fallback', err)
+      console.error('Modern clipboard API failed, trying fallback', err);
       try {
         // Fallback for older browsers or when Clipboard API is blocked
-        const textArea = document.createElement('textarea')
-        textArea.value = text
-        textArea.style.position = 'fixed'
-        textArea.style.left = '-999999px'
-        textArea.style.top = '-999999px'
-        document.body.appendChild(textArea)
-        textArea.focus()
-        textArea.select()
-        const successful = document.execCommand('copy')
-        document.body.removeChild(textArea)
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
 
         if (!successful) {
-          throw new Error('Fallback copy method also failed')
+          throw new Error('Fallback copy method also failed');
         }
       } catch (fallbackErr) {
-        console.error('Fallback copy failed', fallbackErr)
-        void alert('Unable to copy to clipboard — your browser may block it.')
+        console.error('Fallback copy failed', fallbackErr);
+        void alert('Unable to copy to clipboard — your browser may block it.');
       }
     }
-  }
+  };
 
   const copyMarkdown = (id: string) => {
-    const md = `![](/photos/${id})`
-    void copy(md)
-    setCopiedUploadId(id)
-    setTimeout(() => setCopiedUploadId(null), 2000)
+    const md = `![](/photos/${id})`;
+    void copy(md);
+    setCopiedUploadId(id);
+    setTimeout(() => setCopiedUploadId(null), 2000);
 
     // If onImageSelect callback is provided, call it with the markdown
     if (onImageSelect) {
-      onImageSelect(md)
-      onClose() // Close modal after selection
+      onImageSelect(md);
+      onClose(); // Close modal after selection
     }
-  }
+  };
 
   const handleDelete = async (id: string) => {
-    setDeleting(true)
-    setError(null)
+    setDeleting(true);
+    setError(null);
     try {
-      const resp = await fetch(`/api/admin/uploads/${id}`, { method: 'DELETE' })
+      const resp = await fetch(`/api/admin/uploads/${id}`, { method: 'DELETE' });
       if (!resp.ok) {
-        const txt = await resp.text()
-        throw new Error(txt || resp.statusText)
+        const txt = await resp.text();
+        throw new Error(txt || resp.statusText);
       }
       // Remove from local state
-      setUploads((s) => s.filter((u) => u.id !== id))
-      setDeleteConfirm(null)
+      setUploads((s) => s.filter((u) => u.id !== id));
+      setDeleteConfirm(null);
     } catch (err) {
-      console.error('Delete failed', err)
-      setError(String((err as Error).message || err))
+      console.error('Delete failed', err);
+      setError(String((err as Error).message || err));
     } finally {
-      setDeleting(false)
+      setDeleting(false);
     }
-  }
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -216,7 +219,13 @@ export const ImageUploaderModal = ({ isOpen, onClose, onImageSelect }: ImageUplo
         <div className="p-6">
           <div className="flex items-center gap-3 mb-6">
             <label className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-3 py-1 text-sm text-slate-200">
-              <input ref={fileInputRef} onChange={handleFileSelect} type="file" accept="image/*" className="hidden" />
+              <input
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                type="file"
+                accept="image/*"
+                className="hidden"
+              />
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -268,9 +277,9 @@ export const ImageUploaderModal = ({ isOpen, onClose, onImageSelect }: ImageUplo
                               u.presignedUrl
                                 ? u.presignedUrl
                                 : `/uploads/${encodeURIComponent(
-                                  // prefer filename if present, otherwise derive from key
-                                  (u.filename ?? u.key.replace(/^uploads\//, '')) as string,
-                                )}`
+                                    // prefer filename if present, otherwise derive from key
+                                    (u.filename ?? u.key.replace(/^uploads\//, '')) as string,
+                                  )}`
                             }
                             alt={u.filename ?? ''}
                             className="h-12 w-12 cursor-pointer rounded object-cover transition hover:opacity-80"
@@ -279,8 +288,12 @@ export const ImageUploaderModal = ({ isOpen, onClose, onImageSelect }: ImageUplo
                           <div className="h-12 w-12 rounded bg-slate-800/60" />
                         )}
                       </td>
-                      <td className="px-4 py-3 align-middle text-slate-200">{u.filename ?? u.key}</td>
-                      <td className="px-4 py-3 align-middle text-slate-400">{formatFileSize(u.size)}</td>
+                      <td className="px-4 py-3 align-middle text-slate-200">
+                        {u.filename ?? u.key}
+                      </td>
+                      <td className="px-4 py-3 align-middle text-slate-400">
+                        {formatFileSize(u.size)}
+                      </td>
                       <td className="px-4 py-3 align-middle text-slate-400">
                         <span title={formatDate(u.created_at).full}>
                           {formatDate(u.created_at).short}
@@ -326,7 +339,8 @@ export const ImageUploaderModal = ({ isOpen, onClose, onImageSelect }: ImageUplo
             <div className="mx-4 max-w-md rounded-lg border border-slate-700/70 bg-slate-900 p-6 shadow-xl">
               <h3 className="text-lg font-semibold text-white">Delete Upload</h3>
               <p className="mt-2 text-sm text-slate-300">
-                Are you sure you want to delete "{deleteConfirm.filename ?? 'this upload'}"? This action cannot be undone.
+                Are you sure you want to delete "{deleteConfirm.filename ?? 'this upload'}"? This
+                action cannot be undone.
               </p>
               <div className="mt-6 flex gap-3">
                 <button
@@ -351,5 +365,5 @@ export const ImageUploaderModal = ({ isOpen, onClose, onImageSelect }: ImageUplo
         )}
       </div>
     </div>
-  )
-}
+  );
+};

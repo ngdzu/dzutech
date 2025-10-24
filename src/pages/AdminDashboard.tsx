@@ -1,58 +1,58 @@
-import { useEffect, useMemo, useState } from 'react'
-import type { ChangeEvent, FormEvent } from 'react'
-import { Link } from 'react-router-dom'
-import { useContent } from '../context/ContentContext'
-import { AdminHeader } from '../components/AdminHeader'
-import type { SiteLogo, SiteMeta } from '../content'
-import { fieldStyle, labelStyle } from '../lib/adminHelpers'
+import { useEffect, useMemo, useState } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
+import { Link } from 'react-router-dom';
+import { useContent } from '../context/ContentContext';
+import { AdminHeader } from '../components/AdminHeader';
+import type { SiteLogo, SiteMeta } from '../content';
+import { fieldStyle, labelStyle } from '../lib/adminHelpers';
 
-const allowedLogoTypes = new Set(['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp'])
-const MAX_LOGO_SIZE_BYTES = 512 * 1024
+const allowedLogoTypes = new Set(['image/png', 'image/svg+xml', 'image/jpeg', 'image/webp']);
+const MAX_LOGO_SIZE_BYTES = 512 * 1024;
 
 const readFileAsDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = () => {
-      const result = reader.result
+      const result = reader.result;
       if (typeof result === 'string') {
-        resolve(result)
+        resolve(result);
       } else {
-        reject(new Error('Failed to read file'))
+        reject(new Error('Failed to read file'));
       }
-    }
-    reader.onerror = () => reject(new Error('Failed to read file'))
-    reader.readAsDataURL(file)
-  })
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
 
-type SiteFormState = Pick<SiteMeta, 'title' | 'description' | 'homeButtonMode' | 'logo'>
+type SiteFormState = Pick<SiteMeta, 'title' | 'description' | 'homeButtonMode' | 'logo'>;
 
 type ProfileFormState = {
-  name: string
-  title: string
-  tagline: string
-  summary: string
-  location: string
-  email: string
-  linkedin: string
-  github: string
-  showEmail: boolean
-  showLinkedin: boolean
-  showGithub: boolean
-  highlightsEnabled: boolean
-  availabilityValue: string
-  focusAreasValue: string
-}
+  name: string;
+  title: string;
+  tagline: string;
+  summary: string;
+  location: string;
+  email: string;
+  linkedin: string;
+  github: string;
+  showEmail: boolean;
+  showLinkedin: boolean;
+  showGithub: boolean;
+  highlightsEnabled: boolean;
+  availabilityValue: string;
+  focusAreasValue: string;
+};
 
 type ProfileFormTextField = Exclude<
   keyof ProfileFormState,
   'showEmail' | 'showLinkedin' | 'showGithub' | 'highlightsEnabled'
->
+>;
 
 // ExperienceFormEntry is provided by ./adminHelpers
 
-const AVAILABILITY_MAX_LENGTH = 50
-const FOCUS_AREAS_MAX_LENGTH = 80
-const EMPTY_HIGHLIGHT = { value: '', enabled: false } as const
+const AVAILABILITY_MAX_LENGTH = 50;
+const FOCUS_AREAS_MAX_LENGTH = 80;
+const EMPTY_HIGHLIGHT = { value: '', enabled: false } as const;
 
 type ActionStatus =
   | { state: 'idle' }
@@ -60,22 +60,15 @@ type ActionStatus =
   | { state: 'saved' }
   | { state: 'resetting' }
   | { state: 'reset' }
-  | { state: 'error'; message: string }
+  | { state: 'error'; message: string };
 
 const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) => {
-  const {
-    content,
-    loading,
-    error,
-    updateSite,
-    updateProfile,
-    updateSections,
-    resetContent,
-  } = useContent()
-  const { site, profile, sections } = content
-  const [siteStatus, setSiteStatus] = useState<ActionStatus>({ state: 'idle' })
-  const [status, setStatus] = useState<ActionStatus>({ state: 'idle' })
-  const [sectionsStatus, setSectionsStatus] = useState<ActionStatus>({ state: 'idle' })
+  const { content, loading, error, updateSite, updateProfile, updateSections, resetContent } =
+    useContent();
+  const { site, profile, sections } = content;
+  const [siteStatus, setSiteStatus] = useState<ActionStatus>({ state: 'idle' });
+  const [status, setStatus] = useState<ActionStatus>({ state: 'idle' });
+  const [sectionsStatus, setSectionsStatus] = useState<ActionStatus>({ state: 'idle' });
   const sectionNav = useMemo(
     () => [
       { id: 'site-metadata', label: 'Site metadata' },
@@ -86,8 +79,10 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
       { id: 'site-sections', label: 'Site sections' },
     ],
     [],
-  )
-  const [activeSection, setActiveSection] = useState<string>(testActiveSection ?? sectionNav[0]?.id ?? '')
+  );
+  const [activeSection, setActiveSection] = useState<string>(
+    testActiveSection ?? sectionNav[0]?.id ?? '',
+  );
 
   const siteInitialForm = useMemo<SiteFormState>(
     () => ({
@@ -97,15 +92,15 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
       logo: site.logo ? { ...site.logo } : null,
     }),
     [site],
-  )
+  );
 
-  const [siteForm, setSiteForm] = useState<SiteFormState>(siteInitialForm)
+  const [siteForm, setSiteForm] = useState<SiteFormState>(siteInitialForm);
 
   const initialForm = useMemo<ProfileFormState>(() => {
-    const availabilityHighlight = profile.availability ?? EMPTY_HIGHLIGHT
-    const focusAreasHighlight = profile.focusAreas ?? EMPTY_HIGHLIGHT
+    const availabilityHighlight = profile.availability ?? EMPTY_HIGHLIGHT;
+    const focusAreasHighlight = profile.focusAreas ?? EMPTY_HIGHLIGHT;
     const highlightsEnabled =
-      typeof profile.highlightsEnabled === 'boolean' ? profile.highlightsEnabled : true
+      typeof profile.highlightsEnabled === 'boolean' ? profile.highlightsEnabled : true;
 
     return {
       name: profile.name,
@@ -129,12 +124,14 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
           ? profile.contactVisibility.github
           : true,
       highlightsEnabled,
-      availabilityValue: typeof availabilityHighlight.value === 'string' ? availabilityHighlight.value : '',
-      focusAreasValue: typeof focusAreasHighlight.value === 'string' ? focusAreasHighlight.value : '',
-    }
-  }, [profile])
+      availabilityValue:
+        typeof availabilityHighlight.value === 'string' ? availabilityHighlight.value : '',
+      focusAreasValue:
+        typeof focusAreasHighlight.value === 'string' ? focusAreasHighlight.value : '',
+    };
+  }, [profile]);
 
-  const [form, setForm] = useState<ProfileFormState>(initialForm)
+  const [form, setForm] = useState<ProfileFormState>(initialForm);
 
   const sectionsInitialForm = useMemo(
     () => ({
@@ -150,143 +147,160 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
       achievementsItems: (sections.achievements?.items ?? []).slice(),
     }),
     [sections],
-  )
+  );
 
   type SectionsFormState = {
-    contactDescription: string
-    experiencesVisible: boolean
-    educationsVisible: boolean
-    educationsItems: { institution: string; degree?: string; year?: string; description?: string }[]
-    programmingLanguagesVisible: boolean
-    programmingLanguagesItems: string[]
-    languagesSpokenVisible: boolean
-    languagesSpokenItems: string[]
-    achievementsVisible: boolean
-    achievementsItems: string[]
-  }
+    contactDescription: string;
+    experiencesVisible: boolean;
+    educationsVisible: boolean;
+    educationsItems: {
+      institution: string;
+      degree?: string;
+      year?: string;
+      description?: string;
+    }[];
+    programmingLanguagesVisible: boolean;
+    programmingLanguagesItems: string[];
+    languagesSpokenVisible: boolean;
+    languagesSpokenItems: string[];
+    achievementsVisible: boolean;
+    achievementsItems: string[];
+  };
 
-  const [sectionsForm, setSectionsForm] = useState<SectionsFormState>(sectionsInitialForm as unknown as SectionsFormState)
+  const [sectionsForm, setSectionsForm] = useState<SectionsFormState>(
+    sectionsInitialForm as unknown as SectionsFormState,
+  );
   // experiences moved to AdminExperiencesPage
   // experiences moved to separate admin page (see src/pages/AdminExperiencesPage.tsx)
 
   useEffect(() => {
-    setSiteForm(siteInitialForm)
-  }, [siteInitialForm])
+    setSiteForm(siteInitialForm);
+  }, [siteInitialForm]);
 
   useEffect(() => {
-    setForm(initialForm)
-  }, [initialForm])
+    setForm(initialForm);
+  }, [initialForm]);
 
   useEffect(() => {
-    setSectionsForm(sectionsInitialForm)
-  }, [sectionsInitialForm])
+    setSectionsForm(sectionsInitialForm);
+  }, [sectionsInitialForm]);
 
   // experiences state and handlers moved to AdminExperiencesPage
 
   useEffect(() => {
-    if (status.state === 'idle' || status.state === 'saving' || status.state === 'resetting') return
-    const timeout = window.setTimeout(() => setStatus({ state: 'idle' }), 2500)
-    return () => window.clearTimeout(timeout)
-  }, [status])
+    if (status.state === 'idle' || status.state === 'saving' || status.state === 'resetting')
+      return;
+    const timeout = window.setTimeout(() => setStatus({ state: 'idle' }), 2500);
+    return () => window.clearTimeout(timeout);
+  }, [status]);
 
   useEffect(() => {
-    if (siteStatus.state === 'idle' || siteStatus.state === 'saving' || siteStatus.state === 'resetting') return
-    const timeout = window.setTimeout(() => setSiteStatus({ state: 'idle' }), 2500)
-    return () => window.clearTimeout(timeout)
-  }, [siteStatus])
+    if (
+      siteStatus.state === 'idle' ||
+      siteStatus.state === 'saving' ||
+      siteStatus.state === 'resetting'
+    )
+      return;
+    const timeout = window.setTimeout(() => setSiteStatus({ state: 'idle' }), 2500);
+    return () => window.clearTimeout(timeout);
+  }, [siteStatus]);
 
   useEffect(() => {
-    if (sectionsStatus.state === 'idle' || sectionsStatus.state === 'saving' || sectionsStatus.state === 'resetting')
-      return
-    const timeout = window.setTimeout(() => setSectionsStatus({ state: 'idle' }), 2500)
-    return () => window.clearTimeout(timeout)
-  }, [sectionsStatus])
+    if (
+      sectionsStatus.state === 'idle' ||
+      sectionsStatus.state === 'saving' ||
+      sectionsStatus.state === 'resetting'
+    )
+      return;
+    const timeout = window.setTimeout(() => setSectionsStatus({ state: 'idle' }), 2500);
+    return () => window.clearTimeout(timeout);
+  }, [sectionsStatus]);
 
   // experiences status handling moved to AdminExperiencesPage
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
           .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
         if (visible.length > 0) {
-          setActiveSection(visible[0].target.id)
+          setActiveSection(visible[0].target.id);
         }
       },
       {
         rootMargin: '-40% 0px -40% 0px',
         threshold: [0, 0.25, 0.5, 0.75, 1],
       },
-    )
+    );
 
     sectionNav.forEach(({ id }) => {
-      const element = document.getElementById(id)
+      const element = document.getElementById(id);
       if (element) {
-        observer.observe(element)
+        observer.observe(element);
       }
-    })
+    });
 
-    return () => observer.disconnect()
-  }, [sectionNav])
+    return () => observer.disconnect();
+  }, [sectionNav]);
 
-  const handleChange = (
-    field: ProfileFormTextField,
-    transform?: (value: string) => string,
-  ) =>
+  const handleChange =
+    (field: ProfileFormTextField, transform?: (value: string) => string) =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value = transform ? transform(event.target.value) : event.target.value
-      setForm((prev) => ({ ...prev, [field]: value }))
-    }
+      const value = transform ? transform(event.target.value) : event.target.value;
+      setForm((prev) => ({ ...prev, [field]: value }));
+    };
 
   const handleHighlightsToggle = (event: ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, highlightsEnabled: event.target.checked }))
-  }
+    setForm((prev) => ({ ...prev, highlightsEnabled: event.target.checked }));
+  };
 
-  const handleContactToggle = (field: 'showEmail' | 'showLinkedin' | 'showGithub') =>
+  const handleContactToggle =
+    (field: 'showEmail' | 'showLinkedin' | 'showGithub') =>
     (event: ChangeEvent<HTMLInputElement>) => {
-      setForm((prev) => ({ ...prev, [field]: event.target.checked }))
-    }
+      setForm((prev) => ({ ...prev, [field]: event.target.checked }));
+    };
 
-  const handleSiteTextChange = (field: 'title' | 'description') =>
+  const handleSiteTextChange =
+    (field: 'title' | 'description') =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setSiteForm((prev) => ({ ...prev, [field]: event.target.value }))
-    }
+      setSiteForm((prev) => ({ ...prev, [field]: event.target.value }));
+    };
 
   const handleHomeButtonModeChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const mode = event.target.value === 'logo' ? 'logo' : 'text'
-    setSiteForm((prev) => ({ ...prev, homeButtonMode: mode }))
-  }
+    const mode = event.target.value === 'logo' ? 'logo' : 'text';
+    setSiteForm((prev) => ({ ...prev, homeButtonMode: mode }));
+  };
 
   const handleLogoAltChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const altValue = event.target.value
-    setSiteForm((prev) => (prev.logo ? { ...prev, logo: { ...prev.logo, alt: altValue } } : prev))
-  }
+    const altValue = event.target.value;
+    setSiteForm((prev) => (prev.logo ? { ...prev, logo: { ...prev.logo, alt: altValue } } : prev));
+  };
 
   const handleLogoUpload = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
 
     if (!file) {
-      setSiteForm((prev) => ({ ...prev, logo: null }))
-      return
+      setSiteForm((prev) => ({ ...prev, logo: null }));
+      return;
     }
 
     if (!allowedLogoTypes.has(file.type)) {
-      setSiteStatus({ state: 'error', message: 'Logo must be PNG, SVG, JPG, or WEBP' })
-      event.target.value = ''
-      return
+      setSiteStatus({ state: 'error', message: 'Logo must be PNG, SVG, JPG, or WEBP' });
+      event.target.value = '';
+      return;
     }
 
     if (file.size > MAX_LOGO_SIZE_BYTES) {
-      setSiteStatus({ state: 'error', message: 'Logo must be smaller than 512KB' })
-      event.target.value = ''
-      return
+      setSiteStatus({ state: 'error', message: 'Logo must be smaller than 512KB' });
+      event.target.value = '';
+      return;
     }
 
     try {
-      const dataUrl = await readFileAsDataUrl(file)
+      const dataUrl = await readFileAsDataUrl(file);
       setSiteForm((prev) => ({
         ...prev,
         logo: {
@@ -294,26 +308,30 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
           type: file.type,
           ...(prev.logo?.alt ? { alt: prev.logo.alt } : {}),
         },
-      }))
-      setSiteStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev))
+      }));
+      setSiteStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev));
     } catch (uploadError) {
-      console.error('Failed to load logo', uploadError)
-      setSiteStatus({ state: 'error', message: 'Unable to read logo file' })
+      console.error('Failed to load logo', uploadError);
+      setSiteStatus({ state: 'error', message: 'Unable to read logo file' });
     } finally {
-      event.target.value = ''
+      event.target.value = '';
     }
-  }
+  };
 
   const handleLogoClear = () => {
-    setSiteForm((prev) => ({ ...prev, logo: null, homeButtonMode: prev.homeButtonMode === 'logo' ? 'text' : prev.homeButtonMode }))
-    setSiteStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev))
-  }
+    setSiteForm((prev) => ({
+      ...prev,
+      logo: null,
+      homeButtonMode: prev.homeButtonMode === 'logo' ? 'text' : prev.homeButtonMode,
+    }));
+    setSiteStatus((prev) => (prev.state === 'error' ? { state: 'idle' } : prev));
+  };
 
   // Only contactDescription is edited via textarea handler in this form
-  const handleSectionsChange = (field: 'contactDescription') =>
-    (event: ChangeEvent<HTMLTextAreaElement>) => {
-      setSectionsForm((prev) => ({ ...prev, [field]: event.target.value }))
-    }
+  const handleSectionsChange =
+    (field: 'contactDescription') => (event: ChangeEvent<HTMLTextAreaElement>) => {
+      setSectionsForm((prev) => ({ ...prev, [field]: event.target.value }));
+    };
 
   // Note: array/toggle handlers and related helper types were moved to AdminExperiencesPage.
 
@@ -322,48 +340,60 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
   // experience add/remove handled in AdminExperiencesPage
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setStatus({ state: 'saving' })
-    const trimmedLocation = form.location.trim()
-    const trimmedAvailability = form.availabilityValue.trim()
-    const trimmedFocusAreas = form.focusAreasValue.trim()
-    const trimmedLinkedin = form.linkedin.trim()
-    const trimmedGithub = form.github.trim()
-    const trimmedEmail = form.email.trim()
+    event.preventDefault();
+    setStatus({ state: 'saving' });
+    const trimmedLocation = form.location.trim();
+    const trimmedAvailability = form.availabilityValue.trim();
+    const trimmedFocusAreas = form.focusAreasValue.trim();
+    const trimmedLinkedin = form.linkedin.trim();
+    const trimmedGithub = form.github.trim();
+    const trimmedEmail = form.email.trim();
 
     if (trimmedAvailability.length > AVAILABILITY_MAX_LENGTH) {
-      setStatus({ state: 'error', message: `Availability must be ${AVAILABILITY_MAX_LENGTH} characters or fewer` })
-      return
+      setStatus({
+        state: 'error',
+        message: `Availability must be ${AVAILABILITY_MAX_LENGTH} characters or fewer`,
+      });
+      return;
     }
 
     if (trimmedFocusAreas.length > FOCUS_AREAS_MAX_LENGTH) {
-      setStatus({ state: 'error', message: `Focus areas must be ${FOCUS_AREAS_MAX_LENGTH} characters or fewer` })
-      return
+      setStatus({
+        state: 'error',
+        message: `Focus areas must be ${FOCUS_AREAS_MAX_LENGTH} characters or fewer`,
+      });
+      return;
     }
 
     if (form.highlightsEnabled && trimmedLocation.length === 0) {
-      setStatus({ state: 'error', message: 'Location is required when highlights are visible' })
-      return
+      setStatus({ state: 'error', message: 'Location is required when highlights are visible' });
+      return;
     }
 
     if (form.highlightsEnabled && trimmedAvailability.length === 0) {
-      setStatus({ state: 'error', message: 'Availability is required when highlights are visible' })
-      return
+      setStatus({
+        state: 'error',
+        message: 'Availability is required when highlights are visible',
+      });
+      return;
     }
 
     if (form.highlightsEnabled && trimmedFocusAreas.length === 0) {
-      setStatus({ state: 'error', message: 'Focus areas are required when highlights are visible' })
-      return
+      setStatus({
+        state: 'error',
+        message: 'Focus areas are required when highlights are visible',
+      });
+      return;
     }
 
     if (form.showLinkedin && trimmedLinkedin.length === 0) {
-      setStatus({ state: 'error', message: 'Add a LinkedIn URL or hide the link' })
-      return
+      setStatus({ state: 'error', message: 'Add a LinkedIn URL or hide the link' });
+      return;
     }
 
     if (form.showGithub && trimmedGithub.length === 0) {
-      setStatus({ state: 'error', message: 'Add a GitHub URL or hide the link' })
-      return
+      setStatus({ state: 'error', message: 'Add a GitHub URL or hide the link' });
+      return;
     }
 
     try {
@@ -392,66 +422,73 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
           value: trimmedFocusAreas,
           enabled: form.highlightsEnabled && trimmedFocusAreas.length > 0,
         },
-      })
-      setStatus({ state: 'saved' })
+      });
+      setStatus({ state: 'saved' });
     } catch (saveError) {
-      const message = saveError instanceof Error ? saveError.message : 'Failed to save profile'
-      setStatus({ state: 'error', message })
+      const message = saveError instanceof Error ? saveError.message : 'Failed to save profile';
+      setStatus({ state: 'error', message });
     }
-  }
+  };
 
   // experiences submit handler moved to AdminExperiencesPage
 
   const handleSiteSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setSiteStatus({ state: 'saving' })
-    const trimmedTitle = siteForm.title.trim()
-    const trimmedDescription = siteForm.description.trim()
+    event.preventDefault();
+    setSiteStatus({ state: 'saving' });
+    const trimmedTitle = siteForm.title.trim();
+    const trimmedDescription = siteForm.description.trim();
     const sanitizedLogo: SiteLogo | null = siteForm.logo
       ? {
-        data: siteForm.logo.data,
-        type: siteForm.logo.type,
-        ...(siteForm.logo.alt && siteForm.logo.alt.trim().length > 0
-          ? { alt: siteForm.logo.alt.trim() }
-          : {}),
-      }
-      : null
+          data: siteForm.logo.data,
+          type: siteForm.logo.type,
+          ...(siteForm.logo.alt && siteForm.logo.alt.trim().length > 0
+            ? { alt: siteForm.logo.alt.trim() }
+            : {}),
+        }
+      : null;
 
     if (!trimmedTitle || !trimmedDescription) {
-      setSiteStatus({ state: 'error', message: 'Title and description are required' })
-      return
+      setSiteStatus({ state: 'error', message: 'Title and description are required' });
+      return;
     }
 
     if (siteForm.homeButtonMode === 'logo' && !sanitizedLogo) {
-      setSiteStatus({ state: 'error', message: 'Upload a logo before enabling the logo home button' })
-      return
+      setSiteStatus({
+        state: 'error',
+        message: 'Upload a logo before enabling the logo home button',
+      });
+      return;
     }
 
     if (siteForm.homeButtonMode === 'logo' && sanitizedLogo && !sanitizedLogo.alt) {
-      setSiteStatus({ state: 'error', message: 'Add alt text so the logo link remains accessible' })
-      return
+      setSiteStatus({
+        state: 'error',
+        message: 'Add alt text so the logo link remains accessible',
+      });
+      return;
     }
 
     const payload: SiteMeta = {
       title: trimmedTitle,
       description: trimmedDescription,
-      homeButtonMode: siteForm.homeButtonMode === 'logo' && !sanitizedLogo ? 'text' : siteForm.homeButtonMode,
+      homeButtonMode:
+        siteForm.homeButtonMode === 'logo' && !sanitizedLogo ? 'text' : siteForm.homeButtonMode,
       logo: sanitizedLogo,
-    }
+    };
 
     try {
-      await updateSite(payload)
-      setSiteStatus({ state: 'saved' })
+      await updateSite(payload);
+      setSiteStatus({ state: 'saved' });
     } catch (saveError) {
       const message =
-        saveError instanceof Error ? saveError.message : 'Failed to save site metadata'
-      setSiteStatus({ state: 'error', message })
+        saveError instanceof Error ? saveError.message : 'Failed to save site metadata';
+      setSiteStatus({ state: 'error', message });
     }
-  }
+  };
 
   const handleSectionsSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setSectionsStatus({ state: 'saving' })
+    event.preventDefault();
+    setSectionsStatus({ state: 'saving' });
     const nextSections = {
       contact: {
         description: sectionsForm.contactDescription.trim(),
@@ -468,52 +505,63 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
       },
       programmingLanguages: {
         visible: Boolean(sectionsForm.programmingLanguagesVisible),
-        items: (sectionsForm.programmingLanguagesItems ?? []).map((s) => (s ?? '').trim()).filter(Boolean),
+        items: (sectionsForm.programmingLanguagesItems ?? [])
+          .map((s) => (s ?? '').trim())
+          .filter(Boolean),
       },
       languagesSpoken: {
         visible: Boolean(sectionsForm.languagesSpokenVisible),
-        items: (sectionsForm.languagesSpokenItems ?? []).map((s) => (s ?? '').trim()).filter(Boolean),
+        items: (sectionsForm.languagesSpokenItems ?? [])
+          .map((s) => (s ?? '').trim())
+          .filter(Boolean),
       },
       achievements: {
         visible: Boolean(sectionsForm.achievementsVisible),
         items: (sectionsForm.achievementsItems ?? []).map((s) => (s ?? '').trim()).filter(Boolean),
       },
-    }
+    };
 
     try {
-      await updateSections(nextSections)
-      setSectionsStatus({ state: 'saved' })
+      await updateSections(nextSections);
+      setSectionsStatus({ state: 'saved' });
     } catch (saveError) {
-      const message = saveError instanceof Error ? saveError.message : 'Failed to save sections'
-      setSectionsStatus({ state: 'error', message })
+      const message = saveError instanceof Error ? saveError.message : 'Failed to save sections';
+      setSectionsStatus({ state: 'error', message });
     }
-  }
+  };
 
   const handleReset = async () => {
-    setStatus({ state: 'resetting' })
-    setSiteStatus({ state: 'resetting' })
-    setSectionsStatus({ state: 'resetting' })
+    setStatus({ state: 'resetting' });
+    setSiteStatus({ state: 'resetting' });
+    setSectionsStatus({ state: 'resetting' });
     // experiences reset moved to AdminExperiencesPage
     try {
-      await resetContent()
-      setStatus({ state: 'reset' })
-      setSiteStatus({ state: 'reset' })
-      setSectionsStatus({ state: 'reset' })
+      await resetContent();
+      setStatus({ state: 'reset' });
+      setSiteStatus({ state: 'reset' });
+      setSectionsStatus({ state: 'reset' });
       // experiences reset moved to AdminExperiencesPage
     } catch (resetError) {
-      const message = resetError instanceof Error ? resetError.message : 'Failed to reset content'
-      setStatus({ state: 'error', message })
-      setSiteStatus({ state: 'error', message })
-      setSectionsStatus({ state: 'error', message })
+      const message = resetError instanceof Error ? resetError.message : 'Failed to reset content';
+      setStatus({ state: 'error', message });
+      setSiteStatus({ state: 'error', message });
+      setSectionsStatus({ state: 'error', message });
       // experiences error reporting is handled in AdminExperiencesPage
     }
-  }
+  };
 
-  const profileBusy = loading || status.state === 'saving' || status.state === 'resetting'
+  const profileBusy = loading || status.state === 'saving' || status.state === 'resetting';
   const siteBusy =
-    loading || status.state === 'resetting' || sectionsStatus.state === 'resetting' || siteStatus.state === 'saving' || siteStatus.state === 'resetting'
+    loading ||
+    status.state === 'resetting' ||
+    sectionsStatus.state === 'resetting' ||
+    siteStatus.state === 'saving' ||
+    siteStatus.state === 'resetting';
   const sectionsBusy =
-    loading || status.state === 'resetting' || sectionsStatus.state === 'saving' || sectionsStatus.state === 'resetting'
+    loading ||
+    status.state === 'resetting' ||
+    sectionsStatus.state === 'saving' ||
+    sectionsStatus.state === 'resetting';
 
   const getStatusLabel = (
     currentStatus: ActionStatus,
@@ -521,29 +569,29 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
   ) => {
     switch (currentStatus.state) {
       case 'saving':
-        if (scope === 'profile') return 'Saving profile...'
-        if (scope === 'site') return 'Saving site metadata...'
-        if (scope === 'experiences') return 'Saving experiences...'
-        return 'Saving section copy...'
+        if (scope === 'profile') return 'Saving profile...';
+        if (scope === 'site') return 'Saving site metadata...';
+        if (scope === 'experiences') return 'Saving experiences...';
+        return 'Saving section copy...';
       case 'saved':
-        if (scope === 'profile') return 'Profile updated'
-        if (scope === 'site') return 'Site metadata updated'
-        if (scope === 'experiences') return 'Experiences updated'
-        return 'Section copy updated'
+        if (scope === 'profile') return 'Profile updated';
+        if (scope === 'site') return 'Site metadata updated';
+        if (scope === 'experiences') return 'Experiences updated';
+        return 'Section copy updated';
       case 'resetting':
-        return 'Restoring defaults...'
+        return 'Restoring defaults...';
       case 'reset':
-        return 'Defaults restored'
+        return 'Defaults restored';
       case 'error':
-        return currentStatus.message
+        return currentStatus.message;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
-  const siteStatusLabel = getStatusLabel(siteStatus, 'site')
-  const profileStatusLabel = getStatusLabel(status, 'profile')
-  const sectionsStatusLabel = getStatusLabel(sectionsStatus, 'sections')
+  const siteStatusLabel = getStatusLabel(siteStatus, 'site');
+  const profileStatusLabel = getStatusLabel(status, 'profile');
+  const sectionsStatusLabel = getStatusLabel(sectionsStatus, 'sections');
   // experiences status label moved to AdminExperiencesPage
 
   const statusMessages = [
@@ -562,7 +610,7 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
     // experiences status handled by AdminExperiencesPage
   ]
     .filter((item): item is { message: string; tone: 'error' | 'default' } => Boolean(item))
-    .concat(error ? [{ message: error, tone: 'error' as const }] : [])
+    .concat(error ? [{ message: error, tone: 'error' as const }] : []);
 
   return (
     <div className="min-h-screen bg-night-900">
@@ -599,18 +647,19 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
             </div>
           </div>
           <p className="max-w-2xl text-sm text-slate-400">
-            Manage the profile content that powers your public site. Updates are saved to the server and reflected on
-            the landing page as soon as they persist.
+            Manage the profile content that powers your public site. Updates are saved to the server
+            and reflected on the landing page as soon as they persist.
           </p>
           {statusMessages.length > 0 && (
             <div className="flex flex-wrap gap-2" role="status">
               {statusMessages.map(({ message, tone }, index) => (
                 <div
                   key={`${tone}-${index}-${message}`}
-                  className={`inline-flex w-fit items-center gap-2 rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${tone === 'error'
-                    ? 'border-red-500/40 bg-red-500/10 text-red-300'
-                    : 'border-slate-700/60 bg-slate-900/60 text-slate-300'
-                    }`}
+                  className={`inline-flex w-fit items-center gap-2 rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${
+                    tone === 'error'
+                      ? 'border-red-500/40 bg-red-500/10 text-red-300'
+                      : 'border-slate-700/60 bg-slate-900/60 text-slate-300'
+                  }`}
                 >
                   {message}
                 </div>
@@ -622,29 +671,33 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
         <div className="flex flex-col gap-10 lg:flex-row">
           <nav className="lg:w-60 xl:w-64">
             <div className="sticky top-24 rounded-3xl border border-slate-800/80 bg-slate-900/60 p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Navigate</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">
+                Navigate
+              </p>
               <ul className="mt-4 space-y-2">
                 {sectionNav.map(({ id, label }) => {
-                  const isActive = activeSection === id
+                  const isActive = activeSection === id;
                   return (
                     <li key={id}>
                       <a
                         href={`#${id}`}
-                        className={`group flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium transition ${isActive
-                          ? 'bg-accent-500/15 text-accent-200 shadow-glow'
-                          : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
-                          }`}
+                        className={`group flex items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                          isActive
+                            ? 'bg-accent-500/15 text-accent-200 shadow-glow'
+                            : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                        }`}
                         aria-current={isActive ? 'true' : undefined}
                       >
                         <span>{label}</span>
                         <span
-                          className={`h-2 w-2 rounded-full transition ${isActive ? 'bg-accent-400' : 'bg-slate-700/80 group-hover:bg-slate-500'
-                            }`}
+                          className={`h-2 w-2 rounded-full transition ${
+                            isActive ? 'bg-accent-400' : 'bg-slate-700/80 group-hover:bg-slate-500'
+                          }`}
                           aria-hidden
                         />
                       </a>
                     </li>
-                  )
+                  );
                 })}
               </ul>
             </div>
@@ -659,8 +712,8 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
               <div className="space-y-2">
                 <h2 className="text-lg font-semibold text-white">Site metadata</h2>
                 <p className="text-sm text-slate-400">
-                  Control how the site identifies itself in browser tabs and search results. These values
-                  drive the document title and meta description.
+                  Control how the site identifies itself in browser tabs and search results. These
+                  values drive the document title and meta description.
                 </p>
               </div>
               <div className="space-y-6">
@@ -697,10 +750,13 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                     </p>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <label className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${siteForm.homeButtonMode === 'text'
-                      ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
-                      : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
-                      }`}>
+                    <label
+                      className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${
+                        siteForm.homeButtonMode === 'text'
+                          ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
+                          : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
+                      }`}
+                    >
                       <div className="flex items-center gap-2">
                         <input
                           type="radio"
@@ -717,10 +773,13 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                         Uses the site title for the header link.
                       </span>
                     </label>
-                    <label className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${siteForm.homeButtonMode === 'logo'
-                      ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
-                      : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
-                      }`}>
+                    <label
+                      className={`flex cursor-pointer flex-col gap-2 rounded-xl border px-4 py-3 text-sm transition ${
+                        siteForm.homeButtonMode === 'logo'
+                          ? 'border-accent-500/50 bg-accent-500/10 text-accent-100'
+                          : 'border-slate-800/70 bg-night-900/60 text-slate-300 hover:border-slate-700/60 hover:text-white'
+                      }`}
+                    >
                       <div className="flex items-center gap-2">
                         <input
                           type="radio"
@@ -743,7 +802,8 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-slate-200">Logo</p>
                         <p className="text-xs text-slate-500">
-                          Upload an SVG, PNG, JPG, or WEBP file up to 512KB. Transparent backgrounds work best.
+                          Upload an SVG, PNG, JPG, or WEBP file up to 512KB. Transparent backgrounds
+                          work best.
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
@@ -852,7 +912,8 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                     <div className="space-y-1">
                       <span className={labelStyle}>Highlight group</span>
                       <p className="text-xs text-slate-500">
-                        Control the quick facts (location, availability, focus areas) that appear beside your hero copy.
+                        Control the quick facts (location, availability, focus areas) that appear
+                        beside your hero copy.
                       </p>
                     </div>
                     <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
@@ -864,10 +925,14 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                         disabled={profileBusy}
                       />
                       <span>Show highlights</span>
-                      <span className="ml-1">({form.highlightsEnabled ? 'Visible' : 'Hidden'})</span>
+                      <span className="ml-1">
+                        ({form.highlightsEnabled ? 'Visible' : 'Hidden'})
+                      </span>
                     </label>
                   </div>
-                  <div className={`space-y-4 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4 transition ${form.highlightsEnabled ? '' : 'opacity-50'}`}>
+                  <div
+                    className={`space-y-4 rounded-2xl border border-slate-800/60 bg-slate-900/40 p-4 transition ${form.highlightsEnabled ? '' : 'opacity-50'}`}
+                  >
                     <label className="flex flex-col gap-2">
                       <span className={labelStyle}>Location</span>
                       <input
@@ -891,7 +956,9 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                         />
                         <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
                           <span>Max {AVAILABILITY_MAX_LENGTH} chars</span>
-                          <span>{form.availabilityValue.trim().length}/{AVAILABILITY_MAX_LENGTH}</span>
+                          <span>
+                            {form.availabilityValue.trim().length}/{AVAILABILITY_MAX_LENGTH}
+                          </span>
                         </div>
                       </div>
                       <div className="space-y-3">
@@ -906,7 +973,9 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                         />
                         <div className="flex justify-between text-[10px] uppercase tracking-[0.2em] text-slate-500">
                           <span>Max {FOCUS_AREAS_MAX_LENGTH} chars</span>
-                          <span>{form.focusAreasValue.trim().length}/{FOCUS_AREAS_MAX_LENGTH}</span>
+                          <span>
+                            {form.focusAreasValue.trim().length}/{FOCUS_AREAS_MAX_LENGTH}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -928,7 +997,9 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                     maxLength={160}
                     disabled={profileBusy}
                   />
-                  <span className="text-xs text-slate-500">Use a concise statement up to 160 characters.</span>
+                  <span className="text-xs text-slate-500">
+                    Use a concise statement up to 160 characters.
+                  </span>
                 </label>
                 <label className="flex flex-col gap-2">
                   <span className={labelStyle}>Summary</span>
@@ -951,7 +1022,9 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-white">Email</p>
-                        <p className="text-xs text-slate-500">Used for direct contact buttons across the site.</p>
+                        <p className="text-xs text-slate-500">
+                          Used for direct contact buttons across the site.
+                        </p>
                       </div>
                       <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
                         <input
@@ -977,7 +1050,9 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-white">LinkedIn</p>
-                        <p className="text-xs text-slate-500">Appears as a social link when visible.</p>
+                        <p className="text-xs text-slate-500">
+                          Appears as a social link when visible.
+                        </p>
                       </div>
                       <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
                         <input
@@ -1003,7 +1078,9 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-sm font-semibold text-white">GitHub</p>
-                        <p className="text-xs text-slate-500">Shown wherever your developer presence is highlighted.</p>
+                        <p className="text-xs text-slate-500">
+                          Shown wherever your developer presence is highlighted.
+                        </p>
                       </div>
                       <label className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-300">
                         <input
@@ -1030,7 +1107,8 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
 
               <div className="flex flex-col gap-3 border-t border-slate-800/80 pt-6 sm:flex-row sm:items-center sm:justify-between">
                 <div className="text-xs text-slate-500">
-                  Changes are stored on the server. Use restore defaults to repopulate the original profile content.
+                  Changes are stored on the server. Use restore defaults to repopulate the original
+                  profile content.
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <button
@@ -1095,7 +1173,7 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export { AdminDashboard }
+export { AdminDashboard };
