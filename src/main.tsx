@@ -5,14 +5,17 @@ import './index.css';
 import App from './App.tsx';
 import { ContentProvider } from './context/ContentContext';
 import { AuthProvider } from './context/AuthContext';
+import { PluginsProvider } from './context/PluginsContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <ContentProvider>
-          <App />
-        </ContentProvider>
+        <PluginsProvider>
+          <ContentProvider>
+            <App />
+          </ContentProvider>
+        </PluginsProvider>
       </AuthProvider>
     </BrowserRouter>
   </StrictMode>,

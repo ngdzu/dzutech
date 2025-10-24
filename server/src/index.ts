@@ -150,6 +150,14 @@ export { resolveCookieSecure, parseSameSite, normalizeEmail, asyncHandler };
 
 import { requireAuth } from './requireAuth.js';
 import { getUploadById } from './repository.js';
+import {
+  ensurePluginsDir,
+  listPlugins,
+  readManifest,
+  installPluginFromZipBase64,
+  uninstallPlugin,
+  setPluginEnabled,
+} from './plugins.js';
 
 // Create a shared S3 client when S3 is configured so it can be reused by
 // the proxy, presigner, and other routes. dotenv.config() already ran.
@@ -464,6 +472,27 @@ app.get('/api/content', async (_req: Request, res: Response) => {
   }
 });
 
+// Public: list enabled plugins (used by the frontend to render nav)
+app.get('/api/plugins', async (_req: Request, res: Response) => {
+  try {
+    await ensurePluginsDir();
+    const plugins = await listPlugins();
+    const enabled = plugins
+      .filter((p) => p.enabled !== false)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        nav: p.nav,
+        admin: p.admin,
+        enabled: p.enabled ?? true,
+      }));
+    res.json({ plugins: enabled });
+  } catch (err) {
+    console.error('Failed to list plugins', err);
+    res.status(500).json({ message: 'Failed to list plugins' });
+  }
+});
+
 // Admin: list uploaded photos (paginated)
 app.get('/api/admin/uploads', requireAuth, async (req: Request, res: Response) => {
   try {
@@ -529,6 +558,92 @@ app.delete('/api/admin/uploads/:id', requireAuth, async (req: Request, res: Resp
     res.status(500).json({ message: 'Failed to delete upload' });
   }
 });
+
+// Admin: plugins management
+app.get(
+  '/api/admin/plugins',
+  requireAuth,
+  asyncHandler(async (_req: Request, res: Response) => {
+    await ensurePluginsDir();
+    const plugins = await listPlugins();
+    res.json({ plugins });
+  }),
+);
+
+app.post(
+  '/api/admin/plugins/install',
+  requireAuth,
+  asyncHandler(async (req: Request, res: Response) => {
+    const { pluginId, zipBase64 } = req.body as { pluginId?: unknown; zipBase64?: unknown };
+    if (typeof pluginId !== 'string' || typeof zipBase64 !== 'string') {
+      res.status(400).json({ message: 'pluginId and zipBase64 (base64 ZIP) are required' });
+      return;
+    }
+
+    try {
+      const manifest = await installPluginFromZipBase64(pluginId, zipBase64);
+      res.status(201).json(manifest);
+    } catch (err) {
+      console.error('Failed to install plugin', err);
+      res.status(500).json({ message: 'Failed to install plugin' });
+    }
+  }),
+);
+
+app.post(
+  '/api/admin/plugins/:id/enable',
+  requireAuth,
+  asyncHandler(async (req: Request, res: Response) => {
+    const id = String(req.params.id || '').trim();
+    if (!id) {
+      res.status(400).json({ message: 'Plugin id is required' });
+      return;
+    }
+    const updated = await setPluginEnabled(id, true);
+    if (!updated) {
+      res.status(404).json({ message: 'Plugin not found' });
+      return;
+    }
+    res.json(updated);
+  }),
+);
+
+app.post(
+  '/api/admin/plugins/:id/disable',
+  requireAuth,
+  asyncHandler(async (req: Request, res: Response) => {
+    const id = String(req.params.id || '').trim();
+    if (!id) {
+      res.status(400).json({ message: 'Plugin id is required' });
+      return;
+    }
+    const updated = await setPluginEnabled(id, false);
+    if (!updated) {
+      res.status(404).json({ message: 'Plugin not found' });
+      return;
+    }
+    res.json(updated);
+  }),
+);
+
+app.delete(
+  '/api/admin/plugins/:id',
+  requireAuth,
+  asyncHandler(async (req: Request, res: Response) => {
+    const id = String(req.params.id || '').trim();
+    if (!id) {
+      res.status(400).json({ message: 'Plugin id is required' });
+      return;
+    }
+    try {
+      await uninstallPlugin(id);
+      res.json({ message: 'Plugin uninstalled' });
+    } catch (err) {
+      console.error('Failed to uninstall plugin', err);
+      res.status(500).json({ message: 'Failed to uninstall plugin' });
+    }
+  }),
+);
 
 app.put('/api/profile', requireAuth, async (req: Request, res: Response) => {
   const payload = req.body as Partial<Profile>;

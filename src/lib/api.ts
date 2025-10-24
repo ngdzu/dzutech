@@ -159,3 +159,18 @@ export const fetchCurrentUser = async (): Promise<AuthUser> => {
   const response = await request('/api/auth/me');
   return handleResponse<AuthUser>(response);
 };
+
+export type PluginManifest = {
+  id: string;
+  name: string;
+  description?: string;
+  nav?: { label: string; path: string };
+  admin?: { path: string };
+  enabled?: boolean;
+};
+
+export const fetchPlugins = async (): Promise<PluginManifest[]> => {
+  const response = await request('/api/plugins');
+  const body = await handleResponse<{ plugins: PluginManifest[] }>(response);
+  return body.plugins ?? [];
+};

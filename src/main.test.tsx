@@ -5,6 +5,15 @@ vi.mock('react', () => ({
   StrictMode: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="strict-mode">{children}</div>
   ),
+  // Some tests partially mock 'react' and expect createContext to exist — provide a
+  // minimal createContext implementation to avoid missing-export errors during those
+  // tests. The real React createContext isn't needed here; we only require a Provider
+  // component shape for the tree to render.
+  createContext: () => ({
+    Provider: ({ children }: { children: React.ReactNode }) => (
+      <div data-testid="mock-plugins-context">{children}</div>
+    ),
+  }),
 }));
 
 const mockRender = vi.fn();

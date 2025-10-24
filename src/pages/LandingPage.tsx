@@ -1,9 +1,10 @@
-import { type ReactNode, useEffect, useMemo } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FiArrowRight, FiGithub, FiLinkedin, FiMail } from 'react-icons/fi';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Chip from '../components/Chip';
 import { useContent } from '../context/ContentContext';
+import { fetchPlugins } from '../lib/api';
 import { markdownExcerpt } from '../lib/markdown';
 
 const formatSocialDisplay = (url: string) => {
@@ -155,7 +156,7 @@ const PostCard = ({
   );
 };
 
-const navItems = [
+const baseNavItems = [
   { href: '/experiences', label: 'Experiences' },
   { href: '/blogs', label: 'Blogs' },
   { href: '#contact', label: 'Contact' },
@@ -234,6 +235,28 @@ export const LandingPage = () => {
     });
 
   const recentPosts = postsWithIndex.slice(0, 6);
+
+  const [pluginNavItems, setPluginNavItems] = useState<{ href: string; label: string }[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    void fetchPlugins()
+      .then((list) => {
+        if (!mounted) return;
+        const nav = (list ?? [])
+          .filter((p) => Boolean(p && p.enabled !== false && p.nav && p.nav.path && p.nav.label))
+          .map((p) => ({ href: p.nav!.path, label: p.nav!.label }));
+        setPluginNavItems(nav);
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const navItems = useMemo(() => [...baseNavItems, ...pluginNavItems], [pluginNavItems]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;

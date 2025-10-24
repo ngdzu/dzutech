@@ -1,0 +1,8 @@
+{
+  "id": "blogs",
+  "name": "Blogs",
+  "description": "Migrated blog content packaged as a plugin.",
+  "nav": { "label": "Blogs", "path": "/blogs" },
+  "admin": { "path": "/admin/plugins/blogs" },
+  "enabled": true
+}
