@@ -5,6 +5,7 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminBlogsPage } from './pages/AdminBlogsPage';
 import { AdminExperiencesPage } from './pages/AdminExperiencesPage';
 import { AdminUploadsPage } from './pages/AdminUploadsPage';
+import { AdminPluginsPage } from './pages/AdminPluginsPage';
 import { BlogListPage } from './pages/BlogListPage';
 import { AdminBlogDetailPage } from './pages/AdminBlogDetailPage';
 import { AdminBlogEditorPage } from './pages/AdminBlogEditorPage';
@@ -84,6 +85,14 @@ function App() {
         element={
           <RequireAuth>
             <AdminUploadsPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/admin/plugins"
+        element={
+          <RequireAuth>
+            <AdminPluginsPage />
           </RequireAuth>
         }
       />

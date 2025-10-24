@@ -633,6 +633,12 @@ const AdminDashboard = ({ testActiveSection }: { testActiveSection?: string }) =
                 Experiences
               </Link>
               <Link
+                to="/admin/plugins"
+                className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
+              >
+                Plugins
+              </Link>
+              <Link
                 to="/admin/uploads"
                 className="inline-flex items-center gap-2 rounded-full border border-slate-700/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent-400 hover:text-white"
               >
