@@ -156,11 +156,7 @@ const PostCard = ({
   );
 };
 
-const baseNavItems = [
-  { href: '/experiences', label: 'Experiences' },
-  { href: '/blogs', label: 'Blogs' },
-  { href: '#contact', label: 'Contact' },
-];
+const baseNavItems = [{ href: '#contact', label: 'Contact' }];
 
 export const LandingPage = () => {
   const location = useLocation();
@@ -408,88 +404,92 @@ export const LandingPage = () => {
             transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
           />
         </section>
-        <Section
-          id="experiences"
-          title={
-            <>
-              {/* Visible, clickable heading (button) — keeps role separate from header's link */}
-              <button
-                type="button"
-                onClick={() => {
-                  /* navigate on click */
-                  navigate('/experiences');
-                }}
-                className="inline text-inherit font-semibold leading-none p-0 m-0 bg-transparent border-0"
-              >
-                Experiences
-              </button>
-              <Link to="/experiences" className="sr-only">
-                Open full timeline
-              </Link>
-            </>
-          }
-          eyebrow="Career timeline"
-        >
-          <div className="space-y-8">
-            {experiences.map((experience) => (
-              <ExperienceCard key={`${experience.company}-${experience.role}`} {...experience} />
-            ))}
-            <div className="flex justify-end">
-              <Link
-                to="/experiences"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-accent-200 transition hover:text-accent-100"
-              >
-                See full list
-                <FiArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-        </Section>
-
-        <Section
-          id="blogs"
-          title={
-            <>
-              <button
-                type="button"
-                onClick={() => {
-                  navigate('/blogs');
-                }}
-                className="inline text-inherit font-semibold leading-none p-0 m-0 bg-transparent border-0"
-              >
-                Blogs
-              </button>
-              <Link to="/blogs" className="sr-only">
-                Open blog listing
-              </Link>
-            </>
-          }
-          eyebrow="Knowledge sharing"
-        >
-          <div className="grid gap-10">
-            {recentPosts.length > 0 ? (
-              <div className="grid gap-6 md:grid-cols-2">
-                {recentPosts.map(({ post, index: postIndex }) => (
-                  <PostCard key={`${post.title}-${postIndex}`} post={post} index={postIndex} />
-                ))}
+        {pluginNavItems.some((p) => p.href === '/experiences') && (
+          <Section
+            id="experiences"
+            title={
+              <>
+                {/* Visible, clickable heading (button) — keeps role separate from header's link */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    /* navigate on click */
+                    navigate('/experiences');
+                  }}
+                  className="inline text-inherit font-semibold leading-none p-0 m-0 bg-transparent border-0"
+                >
+                  Experiences
+                </button>
+                <Link to="/experiences" className="sr-only">
+                  Open full timeline
+                </Link>
+              </>
+            }
+            eyebrow="Career timeline"
+          >
+            <div className="space-y-8">
+              {experiences.map((experience) => (
+                <ExperienceCard key={`${experience.company}-${experience.role}`} {...experience} />
+              ))}
+              <div className="flex justify-end">
+                <Link
+                  to="/experiences"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-accent-200 transition hover:text-accent-100"
+                >
+                  See full list
+                  <FiArrowRight className="h-4 w-4" />
+                </Link>
               </div>
-            ) : (
-              <p className="rounded-2xl border border-slate-800/60 bg-slate-900/40 px-6 py-8 text-center text-sm text-slate-300/80">
-                Blog posts are on the way. Check back soon.
-              </p>
-            )}
-
-            <div className="flex justify-end">
-              <Link
-                to="/blogs"
-                className="inline-flex items-center gap-2 text-sm font-semibold text-accent-200 transition hover:text-accent-100"
-              >
-                View all blogs
-                <FiArrowRight className="h-4 w-4" />
-              </Link>
             </div>
-          </div>
-        </Section>
+          </Section>
+        )}
+
+        {pluginNavItems.some((p) => p.href === '/blogs') && (
+          <Section
+            id="blogs"
+            title={
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigate('/blogs');
+                  }}
+                  className="inline text-inherit font-semibold leading-none p-0 m-0 bg-transparent border-0"
+                >
+                  Blogs
+                </button>
+                <Link to="/blogs" className="sr-only">
+                  Open blog listing
+                </Link>
+              </>
+            }
+            eyebrow="Knowledge sharing"
+          >
+            <div className="grid gap-10">
+              {recentPosts.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2">
+                  {recentPosts.map(({ post, index: postIndex }) => (
+                    <PostCard key={`${post.title}-${postIndex}`} post={post} index={postIndex} />
+                  ))}
+                </div>
+              ) : (
+                <p className="rounded-2xl border border-slate-800/60 bg-slate-900/40 px-6 py-8 text-center text-sm text-slate-300/80">
+                  Blog posts are on the way. Check back soon.
+                </p>
+              )}
+
+              <div className="flex justify-end">
+                <Link
+                  to="/blogs"
+                  className="inline-flex items-center gap-2 text-sm font-semibold text-accent-200 transition hover:text-accent-100"
+                >
+                  View all blogs
+                  <FiArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+          </Section>
+        )}
 
         <Section id="contact" title="Let’s build something" eyebrow="Stay in touch">
           <div className="flex flex-col gap-6 rounded-3xl border border-slate-800/70 bg-gradient-to-br from-night-800/80 via-slate-900/40 to-night-900/80 p-8 text-center shadow-glow md:flex-row md:items-center md:justify-between md:text-left">

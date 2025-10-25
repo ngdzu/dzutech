@@ -1,11 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { useContext } from 'react';
+import { PluginsContext } from './context/pluginsContextValue';
 import { LandingPage } from './pages/LandingPage';
 import ExperiencesPage from './pages/ExperiencesPage';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminBlogsPage } from './pages/AdminBlogsPage';
 import { AdminExperiencesPage } from './pages/AdminExperiencesPage';
 import { AdminUploadsPage } from './pages/AdminUploadsPage';
-import { AdminPluginsPage } from './pages/AdminPluginsPage';
+import AdminPluginsPage from './pages/AdminPluginsPage';
 import { BlogListPage } from './pages/BlogListPage';
 import { AdminBlogDetailPage } from './pages/AdminBlogDetailPage';
 import { AdminBlogEditorPage } from './pages/AdminBlogEditorPage';
@@ -16,13 +18,24 @@ import { LoginPage } from './pages/LoginPage';
 import { RequireAuth } from './components/RequireAuth';
 
 function App() {
+  const { plugins } = useContext(PluginsContext);
+  const blogPlugin = plugins.find((p) => p.id === 'blogs');
+  const blogsEnabled = Boolean(blogPlugin && blogPlugin.enabled !== false);
+  const experiencesPlugin = plugins.find((p) => p.id === 'experiences');
+  const experiencesEnabled = Boolean(experiencesPlugin && experiencesPlugin.enabled !== false);
+
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      <Route path="/blogs" element={<BlogListPage />} />
-      <Route path="/blogs/:postId" element={<BlogDetailPage />} />
-      <Route path="/blogs/tags/:tagSlug" element={<BlogTagPage />} />
-      <Route path="/experiences" element={<ExperiencesPage />} />
+      {/* Blog routes are only registered when the 'blogs' plugin is enabled */}
+      {blogsEnabled && (
+        <>
+          <Route path="/blogs" element={<BlogListPage />} />
+          <Route path="/blogs/:postId" element={<BlogDetailPage />} />
+          <Route path="/blogs/tags/:tagSlug" element={<BlogTagPage />} />
+        </>
+      )}
+      {experiencesEnabled && <Route path="/experiences" element={<ExperiencesPage />} />}
       <Route path="/login" element={<LoginPage />} />
       <Route
         path="/admin"

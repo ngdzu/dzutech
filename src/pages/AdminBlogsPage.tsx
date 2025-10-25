@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { usePlugins } from '../context/usePlugins';
 import { FiPlus } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { useContent } from '../context/ContentContext';
@@ -47,6 +48,11 @@ const AdminBlogsPage = () => {
     });
   }, [posts]);
 
+  // Plugins snapshot (used to detect whether Blogs plugin is enabled)
+  const { plugins } = usePlugins();
+  const blogPlugin = plugins.find((p) => p.id === 'blogs');
+  const blogEnabled = Boolean(blogPlugin && blogPlugin.enabled !== false);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
@@ -89,6 +95,22 @@ const AdminBlogsPage = () => {
             <p className="text-sm text-slate-400">
               Review existing blog posts, manage visibility, or add new entries.
             </p>
+            {/* Plugin status indicator: shows if the Blogs plugin is enabled */}
+            <div className="mt-3">
+              <label className="inline-flex items-center gap-2 text-sm text-slate-300">
+                <input type="checkbox" checked={blogEnabled} readOnly disabled />
+                <span className="text-sm text-slate-400">Blogs plugin enabled</span>
+              </label>
+              {!blogEnabled && (
+                <div className="mt-2 text-sm text-slate-400">
+                  The Blogs plugin is disabled. Enable it on the{' '}
+                  <a href="/admin/plugins" className="text-accent-200">
+                    Plugins page
+                  </a>{' '}
+                  to show public blog pages.
+                </div>
+              )}
+            </div>
             <div className="mt-3 flex flex-wrap gap-2">
               {loading && (
                 <span

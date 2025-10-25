@@ -9,5 +9,5 @@
   "admin": {
     "path": "/admin/plugins/blogs"
   },
-  "enabled": false
+  "enabled": true
 }

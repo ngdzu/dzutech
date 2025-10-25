@@ -2,7 +2,12 @@
   "id": "experiences",
   "name": "Experiences",
   "description": "Migrated experiences content packaged as a plugin.",
-  "nav": { "label": "Experiences", "path": "/experiences" },
-  "admin": { "path": "/admin/plugins/experiences" },
+  "nav": {
+    "label": "Experiences",
+    "path": "/experiences"
+  },
+  "admin": {
+    "path": "/admin/plugins/experiences"
+  },
   "enabled": true
 }

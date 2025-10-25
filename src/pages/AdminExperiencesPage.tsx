@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { usePlugins } from '../context/usePlugins';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useContent } from '../context/ContentContext';
@@ -18,6 +19,10 @@ const AdminExperiencesPage = () => {
   const { experiences } = content;
   const { sections } = content;
   const { updateSections } = useContent();
+  // Plugins snapshot used to detect whether Experiences plugin is enabled
+  const { plugins } = usePlugins();
+  const expPlugin = plugins.find((p) => p.id === 'experiences');
+  const expEnabled = Boolean(expPlugin && expPlugin.enabled !== false);
 
   const experiencesInitialForm = useMemo<ExperienceFormEntry[]>(() => {
     if (experiences.length === 0) return [createEmptyExperience()];
@@ -361,6 +366,22 @@ const AdminExperiencesPage = () => {
             <p className="text-sm text-slate-400">
               Edit the experiences shown on the landing page.
             </p>
+            {/* Plugin status indicator: shows if the Experiences plugin is enabled */}
+            <div className="mt-3">
+              <label className="inline-flex items-center gap-2 text-sm text-slate-300">
+                <input type="checkbox" checked={expEnabled} readOnly disabled />
+                <span className="text-sm text-slate-400">Experiences plugin enabled</span>
+              </label>
+              {!expEnabled && (
+                <div className="mt-2 text-sm text-slate-400">
+                  The Experiences plugin is disabled. Enable it on the{' '}
+                  <a href="/admin/plugins" className="text-accent-200">
+                    Plugins page
+                  </a>{' '}
+                  to show the public experiences page and navigation.
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex flex-wrap justify-end gap-3">
             <Link

@@ -45,13 +45,32 @@ vi.mock('../context/ContentContext', () => ({
   useContent: () => mockContextValue,
 }));
 
+// Ensure the landing page's plugin fetch returns a blogs plugin during tests so
+// the Blogs section is rendered (tests expect blog content/navigation).
+vi.mock('../lib/api', () => ({
+  fetchPlugins: vi.fn().mockResolvedValue([
+    {
+      id: 'blogs',
+      name: 'Blogs',
+      nav: { path: '/blogs', label: 'Blogs' },
+      enabled: true,
+    },
+    {
+      id: 'experiences',
+      name: 'Experiences',
+      nav: { path: '/experiences', label: 'Experiences' },
+      enabled: true,
+    },
+  ]),
+}));
+
 beforeEach(() => {
   mockContextValue.content = cloneContent();
   mockContextValue.loading = false;
 });
 
 describe('LandingPage', () => {
-  it('renders profile headline and contact link', () => {
+  it('renders profile headline and contact link', async () => {
     // ensure an experience includes a location so the UI shows it
     mockContextValue.content = cloneContent();
     // set location on the first experience in the cloned default content
@@ -67,29 +86,29 @@ describe('LandingPage', () => {
     );
 
     expect(screen.getByRole('heading', { level: 1, name: /Your Name/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Experiences?/i })).toHaveAttribute(
-      'href',
-      '/experiences',
-    );
+    // plugin-driven navigation is populated asynchronously; wait for the Experiences link
+    const experiencesLink = await screen.findByRole('link', { name: /Experiences?/i });
+    expect(experiencesLink).toHaveAttribute('href', '/experiences');
 
     const contactLink = screen.getByRole('link', { name: /Contact me/i });
     expect(contactLink).toHaveAttribute('href', expect.stringContaining('mailto:'));
 
     // Verify the experience location is rendered inline with the experience header
-    const expHeading = screen.getByRole('heading', { name: /Experiences?/i });
+    const expHeading = await screen.findByRole('heading', { name: /Experiences?/i });
     const expSection = expHeading.closest('section');
     expect(expSection).not.toBeNull();
     expect(within(expSection!).getByText(/Seattle,\s*WA/)).toBeInTheDocument();
   });
 
-  it('shows recent posts with navigation', () => {
+  it('shows recent posts with navigation', async () => {
     render(
       <MemoryRouter>
         <LandingPage />
       </MemoryRouter>,
     );
 
-    const [postsHeading] = screen.getAllByRole('heading', { name: /Blogs/i });
+    // wait for blogs section to appear (plugin fetch is async)
+    const postsHeading = await screen.findByRole('heading', { name: /Blogs/i });
     const postsSection = postsHeading?.closest('section');
     expect(postsSection).not.toBeNull();
     const postHeadings = within(postsSection!).getAllByRole('heading', { level: 3 });
@@ -105,7 +124,7 @@ describe('LandingPage', () => {
     }
   });
 
-  it('omits hidden posts from recent list', () => {
+  it('omits hidden posts from recent list', async () => {
     const contentCopy = cloneContent();
     contentCopy.posts = [
       {
@@ -132,7 +151,8 @@ describe('LandingPage', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole('heading', { name: 'Visible Post' })).toBeInTheDocument();
+    // wait for the blogs section / post to appear (plugin fetch is async)
+    expect(await screen.findByRole('heading', { name: 'Visible Post' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Hidden Post' })).not.toBeInTheDocument();
   });
 });
