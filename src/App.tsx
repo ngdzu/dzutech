@@ -2,41 +2,33 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { useContext } from 'react';
 import { PluginsContext } from './context/pluginsContextValue';
 import { LandingPage } from './pages/LandingPage';
-import ExperiencesPage from './pages/ExperiencesPage';
 import { AdminDashboard } from './pages/AdminDashboard';
-import { AdminBlogsPage } from './pages/AdminBlogsPage';
-import { AdminExperiencesPage } from './pages/AdminExperiencesPage';
 import { AdminUploadsPage } from './pages/AdminUploadsPage';
 import AdminPluginsPage from './pages/AdminPluginsPage';
-import { BlogListPage } from './pages/BlogListPage';
-import { AdminBlogDetailPage } from './pages/AdminBlogDetailPage';
-import { AdminBlogEditorPage } from './pages/AdminBlogEditorPage';
-import { AdminBlogsByTagPage } from './pages/AdminBlogsByTagPage';
-import { BlogDetailPage } from './pages/BlogDetailPage';
-import { BlogTagPage } from './pages/BlogTagPage';
 import { LoginPage } from './pages/LoginPage';
 import { RequireAuth } from './components/RequireAuth';
+import pluginRouteRegistry from './plugins/registry';
 
 function App() {
   const { plugins } = useContext(PluginsContext);
-  const blogPlugin = plugins.find((p) => p.id === 'blogs');
-  const blogsEnabled = Boolean(blogPlugin && blogPlugin.enabled !== false);
-  const experiencesPlugin = plugins.find((p) => p.id === 'experiences');
-  const experiencesEnabled = Boolean(experiencesPlugin && experiencesPlugin.enabled !== false);
+
+  const enabledPlugins = plugins.filter((p) => p.enabled !== false);
 
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
-      {/* Blog routes are only registered when the 'blogs' plugin is enabled */}
-      {blogsEnabled && (
-        <>
-          <Route path="/blogs" element={<BlogListPage />} />
-          <Route path="/blogs/:postId" element={<BlogDetailPage />} />
-          <Route path="/blogs/tags/:tagSlug" element={<BlogTagPage />} />
-        </>
-      )}
-      {experiencesEnabled && <Route path="/experiences" element={<ExperiencesPage />} />}
+
+      {/* Register public routes for each enabled plugin using the registry */}
+      {enabledPlugins.map((plugin) => {
+        const def = pluginRouteRegistry[plugin.id];
+        if (!def?.public) return null;
+        return def.public.map((r) => (
+          <Route key={`public-${plugin.id}-${r.path}`} path={r.path} element={r.element} />
+        ));
+      })}
+
       <Route path="/login" element={<LoginPage />} />
+
       <Route
         path="/admin"
         element={
@@ -45,54 +37,20 @@ function App() {
           </RequireAuth>
         }
       />
-      <Route
-        path="/admin/blogs"
-        element={
-          <RequireAuth>
-            <AdminBlogsPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/admin/blogs/new"
-        element={
-          <RequireAuth>
-            <AdminBlogEditorPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/admin/blogs/:postId"
-        element={
-          <RequireAuth>
-            <AdminBlogDetailPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/admin/blogs/:postId/edit"
-        element={
-          <RequireAuth>
-            <AdminBlogEditorPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/admin/blogs/tags/:tagSlug"
-        element={
-          <RequireAuth>
-            <AdminBlogsByTagPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="/admin/experiences"
-        element={
-          <RequireAuth>
-            <AdminExperiencesPage />
-          </RequireAuth>
-        }
-      />
+
+      {/* Register admin routes from plugin registry */}
+      {enabledPlugins.map((plugin) => {
+        const def = pluginRouteRegistry[plugin.id];
+        if (!def?.admin) return null;
+        return def.admin.map((r) => (
+          <Route
+            key={`admin-${plugin.id}-${r.path}`}
+            path={r.path}
+            element={<RequireAuth>{r.element}</RequireAuth>}
+          />
+        ));
+      })}
+
       <Route
         path="/admin/uploads"
         element={

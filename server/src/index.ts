@@ -479,13 +479,28 @@ app.get('/api/plugins', async (_req: Request, res: Response) => {
     const plugins = await listPlugins();
     const enabled = plugins
       .filter((p) => p.enabled !== false)
-      .map((p) => ({
-        id: p.id,
-        name: p.name,
-        nav: p.nav,
-        admin: p.admin,
-        enabled: p.enabled ?? true,
-      }));
+      .map((p) => {
+        // Normalize nav information so the client can render links even when
+        // plugin manifests only include a public URL (common for static plugins).
+        let normalizedNav: any = p.nav ?? undefined;
+        try {
+          const pubUrl = (p as any).public?.url;
+          if ((!normalizedNav || !normalizedNav.path) && pubUrl) {
+            normalizedNav = { ...(p.nav ?? {}), path: pubUrl };
+            if (!normalizedNav.label) normalizedNav.label = p.name ?? p.id;
+          }
+        } catch {
+          // ignore normalization errors and fallback to raw manifest
+        }
+
+        return {
+          id: p.id,
+          name: p.name,
+          nav: normalizedNav,
+          admin: p.admin,
+          enabled: p.enabled ?? true,
+        };
+      });
     res.json({ plugins: enabled });
   } catch (err) {
     console.error('Failed to list plugins', err);

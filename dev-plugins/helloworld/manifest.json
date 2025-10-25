@@ -1,0 +1,17 @@
+{
+  "id": "helloworld",
+  "name": "Hello World",
+  "description": "A demo plugin that shows a static Hello World page.",
+  "version": "0.1.0",
+  "author": "dzutech",
+  "public": {
+    "url": "/plugins/helloworld/index.html"
+  },
+  "nav": {
+    "label": "Hello",
+    "position": 100
+  },
+  "admin": {
+    "enabledByDefault": false
+  }
+}
