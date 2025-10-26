@@ -5,13 +5,30 @@ import AdmZip from 'adm-zip';
 export type PluginManifest = {
   id: string;
   name: string;
+  version?: string;
   description?: string;
-  nav?: { label: string; path: string };
-  admin?: { path: string };
+  author?: string;
+  homepage?: string;
+  public?: {
+    nav?: { title: string; href: string; position?: number };
+    routes?: { path: string; entry: string }[];
+    url?: string; // legacy
+  };
+  admin?: {
+    menu?: { title: string; href: string; position?: number };
+    entry?: string;
+    path?: string; // legacy
+  };
+  nav?: { label: string; path: string }; // legacy
+  capabilities?: string[];
+  permissions?: Record<string, string[]>;
+  compatibility?: { dzutech?: string };
+  files?: { public?: string; admin?: string };
   enabled?: boolean;
 };
 
 const PLUGINS_DIR = path.resolve(process.cwd(), 'server', 'plugins');
+const PLUGINS_DEV_DIR = path.resolve(process.cwd(), 'server', 'plugins-dev');
 
 export const ensurePluginsDir = async () => {
   try {
@@ -24,6 +41,10 @@ export const ensurePluginsDir = async () => {
 export const listPlugins = async (): Promise<PluginManifest[]> => {
   await ensurePluginsDir();
   const entries = await fs.readdir(PLUGINS_DIR, { withFileTypes: true });
+  const devEntries =
+    process.env.NODE_ENV === 'development'
+      ? await fs.readdir(PLUGINS_DEV_DIR, { withFileTypes: true }).catch(() => [])
+      : [];
   const manifests: PluginManifest[] = [];
   for (const entry of entries) {
     if (!entry.isDirectory()) continue;
@@ -31,7 +52,19 @@ export const listPlugins = async (): Promise<PluginManifest[]> => {
     try {
       const raw = await fs.readFile(manifestPath, 'utf8');
       const parsed = JSON.parse(raw) as PluginManifest;
-      manifests.push({ ...parsed, id: entry.name, enabled: parsed.enabled ?? true });
+      manifests.push({ ...parsed, id: entry.name, enabled: parsed.enabled ?? false });
+    } catch {
+      // ignore malformed plugins
+      console.error('Failed to read plugin manifest', manifestPath);
+    }
+  }
+  for (const entry of devEntries) {
+    if (!entry.isDirectory()) continue;
+    const manifestPath = path.join(PLUGINS_DEV_DIR, entry.name, 'manifest.json');
+    try {
+      const raw = await fs.readFile(manifestPath, 'utf8');
+      const parsed = JSON.parse(raw) as PluginManifest;
+      manifests.push({ ...parsed, id: entry.name, enabled: parsed.enabled ?? false });
     } catch {
       // ignore malformed plugins
       console.error('Failed to read plugin manifest', manifestPath);
@@ -45,7 +78,7 @@ export const readManifest = async (pluginId: string): Promise<PluginManifest | n
   try {
     const raw = await fs.readFile(manifestPath, 'utf8');
     const parsed = JSON.parse(raw) as PluginManifest;
-    return { ...parsed, id: pluginId, enabled: parsed.enabled ?? true };
+    return { ...parsed, id: pluginId, enabled: parsed.enabled ?? false };
   } catch {
     return null;
   }

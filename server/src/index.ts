@@ -27,6 +27,8 @@ import type { Experience, Post, Profile, SectionsContent } from './types.js';
 import { validateExperience, validatePost, validateSections } from './validators.js';
 import { pool } from './db.js';
 
+const PLUGINS_DIR = path.resolve(process.cwd(), 'server', 'plugins');
+
 const validEmail = (email: string) => /.+@.+\..+/.test(email);
 
 dotenv.config();
@@ -483,11 +485,23 @@ app.get('/api/plugins', async (_req: Request, res: Response) => {
         // Normalize nav information so the client can render links even when
         // plugin manifests only include a public URL (common for static plugins).
         let normalizedNav: any = p.nav ?? undefined;
+        let normalizedAdmin: any = p.admin ?? undefined;
         try {
+          const pubNav = (p as any).public?.nav;
+          if ((!normalizedNav || !normalizedNav.path) && pubNav?.href) {
+            normalizedNav = { ...(p.nav ?? {}), path: pubNav.href };
+            if (!normalizedNav.label) normalizedNav.label = pubNav.title ?? p.name ?? p.id;
+          }
+          // Legacy support for public.url
           const pubUrl = (p as any).public?.url;
           if ((!normalizedNav || !normalizedNav.path) && pubUrl) {
             normalizedNav = { ...(p.nav ?? {}), path: pubUrl };
             if (!normalizedNav.label) normalizedNav.label = p.name ?? p.id;
+          }
+          // Normalize admin
+          const adminMenu = (p as any).admin?.menu;
+          if ((!normalizedAdmin || !normalizedAdmin.path) && adminMenu?.href) {
+            normalizedAdmin = { ...(p.admin ?? {}), path: adminMenu.href };
           }
         } catch {
           // ignore normalization errors and fallback to raw manifest
@@ -497,8 +511,8 @@ app.get('/api/plugins', async (_req: Request, res: Response) => {
           id: p.id,
           name: p.name,
           nav: normalizedNav,
-          admin: p.admin,
-          enabled: p.enabled ?? true,
+          admin: normalizedAdmin,
+          enabled: p.enabled ?? false,
         };
       });
     res.json({ plugins: enabled });
@@ -506,6 +520,36 @@ app.get('/api/plugins', async (_req: Request, res: Response) => {
     console.error('Failed to list plugins', err);
     res.status(500).json({ message: 'Failed to list plugins' });
   }
+});
+
+// Serve plugin HTML files
+app.get('/admin/:pluginId', async (req: Request, res: Response) => {
+  const { pluginId } = req.params;
+  try {
+    const manifest = await readManifest(pluginId);
+    if (!manifest?.files?.admin) {
+      return res.status(404).json({ message: 'Plugin admin page not found' });
+    }
+
+    const pluginDir = path.join(PLUGINS_DIR, pluginId);
+    const adminFilePath = path.join(pluginDir, manifest.files.admin);
+
+    // Check if file exists
+    try {
+      await fs.access(adminFilePath);
+      return res.sendFile(adminFilePath);
+    } catch {
+      return res.status(404).json({ message: 'Plugin admin file not found' });
+    }
+  } catch (err) {
+    console.error('Failed to serve plugin admin page', err);
+    return res.status(500).json({ message: 'Failed to load plugin admin page' });
+  }
+});
+
+// Serve plugin public HTML files
+app.get('/helloworld', async (_req: Request, res: Response) => {
+  res.send('Hello from plugin!');
 });
 
 // Admin: list uploaded photos (paginated)

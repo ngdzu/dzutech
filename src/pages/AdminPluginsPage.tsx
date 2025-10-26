@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AdminHeader } from '../components/AdminHeader';
 
 type PluginManifest = {
@@ -48,6 +49,8 @@ export const AdminPluginsPage = () => {
   useEffect(() => {
     void fetchPlugins();
   }, []);
+
+  const navigate = useNavigate();
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] ?? null;
@@ -197,7 +200,18 @@ export const AdminPluginsPage = () => {
                   plugins.map((p) => (
                     <tr key={p.id} className="border-t border-slate-800/60">
                       <td className="px-2 py-3 align-middle text-slate-200">{p.id}</td>
-                      <td className="px-2 py-3 align-middle text-slate-200">{p.name ?? '-'}</td>
+                      <td className="px-2 py-3 align-middle text-slate-200">
+                        <a
+                          href={`/admin/${encodeURIComponent(p.id)}`}
+                          className="text-accent-200 underline hover:opacity-80"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigate(`/admin/${p.id}`);
+                          }}
+                        >
+                          {p.name ?? p.id}
+                        </a>
+                      </td>
                       <td className="px-2 py-3 align-middle text-slate-400">
                         {p.description ?? '-'}
                       </td>

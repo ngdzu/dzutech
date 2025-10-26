@@ -115,7 +115,10 @@ describe('admin plugins install endpoint', () => {
     expect(found).toBeDefined();
     expect(found).toHaveProperty('name');
 
-    // Also verify public endpoint includes it (enabled by default)
+    // Also verify public endpoint includes it after enabling
+    const enableRes = await request(app).post(`/api/admin/plugins/${pluginId}/enable`);
+    expect(enableRes.status).toBe(200);
+
     const pub = await request(app).get('/api/plugins');
     expect(pub.status).toBe(200);
     const pubFound = pub.body.plugins.find((p: any) => p.id === pluginId);

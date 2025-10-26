@@ -8,6 +8,8 @@ import { AdminBlogEditorPage } from '../pages/AdminBlogEditorPage';
 import { AdminBlogDetailPage } from '../pages/AdminBlogDetailPage';
 import { AdminBlogsByTagPage } from '../pages/AdminBlogsByTagPage';
 import { AdminExperiencesPage } from '../pages/AdminExperiencesPage';
+import HelloWorldPage from '../pages/HelloWorldPage';
+import AdminHelloWorldPage from '../pages/AdminHelloWorldPage';
 
 type RouteDef = { path: string; element: React.ReactElement };
 
@@ -36,6 +38,10 @@ export const pluginRouteRegistry: Record<string, PluginRoutes> = {
   experiences: {
     public: [{ path: '/experiences', element: <ExperiencesPage /> }],
     admin: [{ path: '/admin/experiences', element: <AdminExperiencesPage /> }],
+  },
+  helloworld: {
+    public: [{ path: '/helloworld', element: <HelloWorldPage /> }],
+    admin: [{ path: '/admin/helloworld', element: <AdminHelloWorldPage /> }],
   },
 };
 

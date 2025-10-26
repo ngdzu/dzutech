@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hello World Plugin - Admin</title>
+    <!-- Redirect to the SPA admin route so the admin UI uses site styles and auth -->
+    <meta http-equiv="refresh" content="0;url=/admin/helloworld">
+    <script>window.location.replace('/admin/helloworld');</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Minimal fallback while redirecting */
+      html,body{height:100%;margin:0;font-family:Plus Jakarta Sans, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+      .wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;color:#e6eef8;padding:2rem}
+      .card{max-width:720px;background:rgba(255,255,255,0.03);padding:2rem;border-radius:12px;border:1px solid rgba(255,255,255,0.03);text-align:center}
+      a{color:#7dd3fc}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <h1 style="margin:0 0 0.5rem 0">Hello World Plugin — Admin</h1>
+        <p style="margin:0 0 1rem 0;opacity:0.9">Opening the plugin admin in the website admin UI to ensure consistent styling and authentication.</p>
+        <p style="margin:0.5rem 0 0 0;font-size:0.95rem">If the redirect doesn't work, <a href="/admin/helloworld">click here</a>.</p>
+      </div>
+    </div>
+  </body>
+</html>

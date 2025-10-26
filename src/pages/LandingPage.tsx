@@ -295,7 +295,15 @@ export const LandingPage = () => {
           </a>
           <nav className="hidden items-center gap-6 text-sm font-medium text-slate-300 md:flex">
             {navItems.map((item) => (
-              <a key={item.href} href={item.href} className="transition hover:text-white">
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate(item.href);
+                }}
+                className="transition hover:text-white"
+              >
                 {item.label}
               </a>
             ))}

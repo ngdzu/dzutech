@@ -1,17 +1,26 @@
 {
   "id": "helloworld",
   "name": "Hello World",
-  "description": "A demo plugin that shows a static Hello World page.",
   "version": "0.1.0",
+  "description": "A configurable Hello World plugin with customizable greeting and styling.",
   "author": "dzutech",
   "public": {
-    "url": "/plugins/helloworld/index.html"
-  },
-  "nav": {
-    "label": "Hello",
-    "position": 100
+    "nav": {
+      "title": "Hello",
+      "href": "/helloworld",
+      "position": 100
+    }
   },
   "admin": {
-    "enabledByDefault": false
-  }
+    "menu": {
+      "title": "Hello World",
+      "href": "/admin/helloworld",
+      "position": 100
+    }
+  },
+  "files": {
+    "public": "public/index.html",
+    "admin": "admin/index.html"
+  },
+  "enabled": true
 }
