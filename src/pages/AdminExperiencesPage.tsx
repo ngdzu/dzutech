@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { usePlugins } from '../context/usePlugins';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Link } from 'react-router-dom';
@@ -43,6 +43,23 @@ const AdminExperiencesPage = () => {
     state: 'idle' | 'saving' | 'saved' | 'error';
     message?: string;
   }>({ state: 'idle' });
+
+  // ref to store a timer handle so we can clear it on unmount and avoid state updates
+  const resetStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // clear any pending timers when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (resetStatusTimerRef.current) {
+        try {
+          clearTimeout(resetStatusTimerRef.current);
+        } catch {
+          // ignore
+        }
+        resetStatusTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const sectionsInitialForm = useMemo(
     () => ({
@@ -241,7 +258,10 @@ const AdminExperiencesPage = () => {
       await updateSections(nextSections);
       // show simple feedback in experiencesStatus
       setExperiencesStatus({ state: 'saved' });
-      setTimeout(() => setExperiencesStatus({ state: 'idle' }), 2000);
+      // schedule resetting the status, but track the timer so we can clear it on unmount
+      const timer = setTimeout(() => setExperiencesStatus({ state: 'idle' }), 2000);
+      // store timer handle so cleanup can cancel it
+      resetStatusTimerRef.current = timer;
     } catch (err) {
       setExperiencesStatus({
         state: 'error',
