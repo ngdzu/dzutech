@@ -9,6 +9,7 @@
 
 import { execSync } from 'child_process';
 import fs from 'fs/promises';
+import net from 'net';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
@@ -48,6 +49,35 @@ async function main() {
   let browser = null;
   let pluginId = null;
   let sessionCookie = null;
+  // compute free host ports for isolation so we don't conflict with local dev services
+  const dbPort = await getFreePort();
+  const apiHostPort = await getFreePort();
+  const minioHostPort1 = await getFreePort();
+  const minioHostPort2 = await getFreePort();
+  const websiteHostPort = await getFreePort();
+
+  const COMPOSE_PROJECT = 'plugin_integration';
+  const TEST_WEBSITE_NAME = 'test-website-integration';
+
+  const ENV_PREFIX = `DB_PORT=${dbPort} API_HOST_PORT=${apiHostPort} MINIO_HOST_PORT_1=${minioHostPort1} MINIO_HOST_PORT_2=${minioHostPort2} COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT}`;
+  const API_BASE = `http://localhost:${apiHostPort}/api`;
+  const WEBSITE_HOST = `http://localhost:${websiteHostPort}`;
+
+  // Helper to find an available host port
+  async function getFreePort() {
+    return await new Promise((resolve, reject) => {
+      const srv = net.createServer();
+      srv.listen(0, () => {
+        const addr = srv.address();
+        const port = typeof addr === 'string' ? 0 : addr.port;
+        srv.close((err) => {
+          if (err) return reject(err);
+          resolve(port);
+        });
+      });
+      srv.on('error', reject);
+    });
+  }
 
   try {
     console.log('🚀 Starting Plugin Integration Test...\n');
@@ -59,7 +89,7 @@ async function main() {
 
     // 2. Start the test environment
     console.log('🐳 Starting test environment...');
-    await runCommand('docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d db api');
+  await runCommand(`${ENV_PREFIX} docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d db api`);
     // Stop and remove the default website container, then start our custom one with correct API URL
     try {
       await runCommand('docker-compose -f docker-compose.yml -f docker-compose.dev.yml stop website', undefined, { stdio: 'pipe' });
@@ -73,24 +103,31 @@ async function main() {
     } catch {
       // Ignore if container doesn't exist
     }
-    await runCommand('docker-compose -f docker-compose.yml -f docker-compose.dev.yml run -d --name test-website -p 4173:4173 -e VITE_API_URL=http://api:4000/api website');
+    // Also remove any previous test-website-integration container left from earlier runs
+    try {
+      await runCommand(`docker stop ${TEST_WEBSITE_NAME}`, undefined, { stdio: 'pipe' });
+      await runCommand(`docker rm ${TEST_WEBSITE_NAME}`, undefined, { stdio: 'pipe' });
+    } catch {
+      // Ignore if container doesn't exist
+    }
+  await runCommand(`${ENV_PREFIX} docker-compose -f docker-compose.yml -f docker-compose.dev.yml run -d --name ${TEST_WEBSITE_NAME} -p ${websiteHostPort}:4173 -e VITE_API_URL=http://api:4000/api website`);
     containersStarted = true;
 
     // Wait for services to be ready
     console.log('⏳ Waiting for services to be ready...');
-    await waitForService('http://localhost:4000/api/health');
-    await waitForService('http://localhost:4173');
+  await waitForService(`${API_BASE}/health`);
+  await waitForService(WEBSITE_HOST);
 
     // 3. Initialize database
     console.log('🗄️  Initializing database...');
-    await runCommand('docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec -T api node dist/scripts/prepare-db.js');
+  await runCommand(`${ENV_PREFIX} docker-compose -f docker-compose.yml -f docker-compose.dev.yml exec -T api node dist/scripts/prepare-db.js`);
     console.log('✅ Database initialized\n');
 
     // 4. Authenticate and install/enable the plugin
     console.log('🔐 Authenticating...');
     await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limit protection
 
-    const loginResponse = await fetch('http://localhost:4000/api/auth/login', {
+  const loginResponse = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -119,7 +156,7 @@ async function main() {
 
     // First, get all plugins and clean up any existing helloworld plugins
     console.log('  🧹 Cleaning up any existing helloworld plugins...');
-    const allPluginsResponse = await fetch('http://localhost:4000/api/admin/plugins', {
+  const allPluginsResponse = await fetch(`${API_BASE}/admin/plugins`, {
       headers: {
         'Cookie': sessionCookie
       }
@@ -131,7 +168,7 @@ async function main() {
 
       for (const plugin of helloworldPlugins) {
         try {
-          const uninstallResponse = await fetch(`http://localhost:4000/api/admin/plugins/${plugin.id}`, {
+          const uninstallResponse = await fetch(`${API_BASE}/admin/plugins/${plugin.id}`, {
             method: 'DELETE',
             headers: {
               'Cookie': sessionCookie
@@ -151,7 +188,7 @@ async function main() {
     const base64Zip = pluginZipBuffer.toString('base64');
 
     // Install plugin with the expected ID that matches the registry
-    const installResponse = await fetch('http://localhost:4000/api/admin/plugins/install', {
+  const installResponse = await fetch(`${API_BASE}/admin/plugins/install`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -174,7 +211,7 @@ async function main() {
     await new Promise(resolve => setTimeout(resolve, 500)); // Rate limit protection
 
     // Enable plugin
-    const enableResponse = await fetch(`http://localhost:4000/api/admin/plugins/${pluginId}/enable`, {
+  const enableResponse = await fetch(`${API_BASE}/admin/plugins/${pluginId}/enable`, {
       method: 'POST',
       headers: {
         'Cookie': sessionCookie
@@ -190,7 +227,7 @@ async function main() {
 
     // Verify plugin is enabled via API
     console.log('🔍 Verifying plugin status...');
-    const pluginsResponse = await fetch('http://localhost:4000/api/plugins', {
+  const pluginsResponse = await fetch(`${API_BASE}/plugins`, {
       headers: {
         'Cookie': sessionCookie
       }
@@ -218,7 +255,7 @@ async function main() {
     // 5. Run browser tests
     console.log('🌐 Running browser integration tests...');
   browser = await chromium.launch();
-  await runBrowserTests(browser, sessionCookie);
+  await runBrowserTests(browser, sessionCookie, WEBSITE_HOST);
     console.log('✅ Browser tests passed\n');
 
     console.log('🎉 All plugin integration tests passed!\n');
@@ -246,7 +283,7 @@ async function main() {
       if (pluginId && sessionCookie) {
         console.log('🔌 Uninstalling plugin...');
         try {
-          const uninstallResponse = await fetch(`http://localhost:4000/api/admin/plugins/${pluginId}`, {
+          const uninstallResponse = await fetch(`${API_BASE}/admin/plugins/${pluginId}`, {
             method: 'DELETE',
             headers: {
               'Cookie': sessionCookie
@@ -266,24 +303,25 @@ async function main() {
         console.log('🐳 Stopping containers...');
         // Ensure the test-website container is removed so the host port is freed
         try {
-          await runCommand('docker rm -f test-website', undefined, { stdio: 'pipe' });
+          await runCommand(`docker rm -f ${TEST_WEBSITE_NAME}`, undefined, { stdio: 'pipe' });
         } catch {
           // Ignore if container doesn't exist or already removed
         }
 
         try {
-          await runCommand('docker stop test-website', undefined, { stdio: 'pipe' });
+          await runCommand(`docker stop ${TEST_WEBSITE_NAME}`, undefined, { stdio: 'pipe' });
         } catch {
           // Ignore if container doesn't exist
         }
 
         try {
-          await runCommand('docker rm test-website', undefined, { stdio: 'pipe' });
+          await runCommand(`docker rm ${TEST_WEBSITE_NAME}`, undefined, { stdio: 'pipe' });
         } catch {
           // Ignore if already removed
         }
 
-        await runCommand('docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v');
+        // Tear down only the integration compose project (remove its volumes) so local dev volumes are preserved.
+        await runCommand(`COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT} docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v`);
         console.log('✅ Containers stopped');
       }
 
@@ -295,7 +333,7 @@ async function main() {
   }
 }
 
-async function runBrowserTests(browser, sessionCookie) {
+async function runBrowserTests(browser, sessionCookie, websiteHost) {
   const context = await browser.newContext();
 
   // If we have a session cookie from the API login, inject it into the browser
@@ -344,7 +382,7 @@ async function runBrowserTests(browser, sessionCookie) {
     console.log('  📱 Testing landing page navigation...');
 
     // Test landing page loads
-    await page.goto('http://localhost:4173/');
+  await page.goto(websiteHost + '/');
     await page.waitForLoadState('networkidle');
 
     // Check that "Hello" appears in navigation (be more specific to avoid email link)
@@ -411,9 +449,9 @@ async function runBrowserTests(browser, sessionCookie) {
     }
 
     if (!currentUrlAfter.includes('/helloworld')) {
-      // Try accessing /helloworld directly
-      console.log('  🔄 Trying direct navigation to /helloworld...');
-      await page.goto('http://localhost:4173/helloworld');
+    // Try accessing /helloworld directly
+    console.log('  🔄 Trying direct navigation to /helloworld...');
+  await page.goto(websiteHost + '/helloworld');
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(1000);
 
@@ -445,7 +483,7 @@ async function runBrowserTests(browser, sessionCookie) {
     console.log('  ⚙️  Testing /admin/helloworld configuration page...');
 
     // Navigate to admin page (would need authentication in real scenario)
-    await page.goto('http://localhost:4173/admin/helloworld');
+  await page.goto(websiteHost + '/admin/helloworld');
     await page.waitForLoadState('networkidle');
 
     // Check that we're not getting a 404
