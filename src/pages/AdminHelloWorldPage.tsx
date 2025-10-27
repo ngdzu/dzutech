@@ -84,10 +84,10 @@ const AdminHelloWorldPage: React.FC = () => {
                 id="greeting"
                 value={greeting}
                 onChange={(e) => setGreeting(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 rounded border border-slate-800/60 bg-slate-900/50 text-sm text-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your greeting"
               />
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-slate-400">
                 The main greeting displayed on the Hello World page.
               </p>
             </div>
@@ -104,9 +104,9 @@ const AdminHelloWorldPage: React.FC = () => {
                 max="48"
                 value={fontSize}
                 onChange={(e) => setFontSize(parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                className="w-full h-2 bg-slate-800/30 rounded-lg appearance-none cursor-pointer"
               />
-              <div className="flex justify-between text-sm text-gray-500 mt-1">
+              <div className="flex justify-between text-sm text-slate-400 mt-1">
                 <span>16px</span>
                 <span className="font-medium">{fontSize}px</span>
                 <span>48px</span>
@@ -128,13 +128,13 @@ const AdminHelloWorldPage: React.FC = () => {
                     id="backgroundColor"
                     value={backgroundColor ?? ''}
                     onChange={(e) => setBackgroundColor(e.target.value)}
-                    className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                    className="w-12 h-10 border border-slate-800/60 rounded cursor-pointer bg-slate-900/50"
                   />
                   <input
                     type="text"
                     value={backgroundColor ?? ''}
                     onChange={(e) => setBackgroundColor(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 px-3 py-2 rounded border border-slate-800/60 bg-slate-900/50 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-200"
                     placeholder="#f8fafc"
                   />
                 </div>
@@ -153,13 +153,13 @@ const AdminHelloWorldPage: React.FC = () => {
                     id="textColor"
                     value={textColor ?? ''}
                     onChange={(e) => setTextColor(e.target.value)}
-                    className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
+                    className="w-12 h-10 border border-slate-800/60 rounded cursor-pointer bg-slate-900/50"
                   />
                   <input
                     type="text"
                     value={textColor ?? ''}
                     onChange={(e) => setTextColor(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="flex-1 px-3 py-2 rounded border border-slate-800/60 bg-slate-900/50 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-200"
                     placeholder="#1f2937"
                   />
                 </div>

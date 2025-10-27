@@ -44,14 +44,17 @@ const HelloWorldPage: React.FC = () => {
             Welcome to the Hello World plugin! This greeting is fully customizable.
           </p>
           <div className="flex flex-wrap gap-4 justify-center">
-            <div className="bg-white bg-opacity-20 rounded-lg px-4 py-2">
-              <strong>Plugin ID:</strong> helloworld
+            <div className="bg-slate-800/40 rounded-lg px-4 py-2">
+              <strong className="text-slate-100">Plugin ID:</strong>{' '}
+              <span className="text-slate-300">helloworld</span>
             </div>
-            <div className="bg-white bg-opacity-20 rounded-lg px-4 py-2">
-              <strong>Version:</strong> 0.1.0
+            <div className="bg-slate-800/40 rounded-lg px-4 py-2">
+              <strong className="text-slate-100">Version:</strong>{' '}
+              <span className="text-slate-300">0.1.0</span>
             </div>
-            <div className="bg-white bg-opacity-20 rounded-lg px-4 py-2">
-              <strong>Author:</strong> dzutech
+            <div className="bg-slate-800/40 rounded-lg px-4 py-2">
+              <strong className="text-slate-100">Author:</strong>{' '}
+              <span className="text-slate-300">dzutech</span>
             </div>
           </div>
           <div className="mt-6 text-sm opacity-60">
@@ -65,9 +68,9 @@ const HelloWorldPage: React.FC = () => {
         </div>
 
         <div className="mt-8 grid md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Features</h2>
-            <ul className="space-y-2 text-gray-600">
+          <div className="rounded-lg shadow p-6 bg-slate-900/50 border border-slate-800/60">
+            <h2 className="text-xl font-semibold mb-4 text-slate-100">Features</h2>
+            <ul className="space-y-2 text-slate-400">
               <li>✅ Customizable greeting text</li>
               <li>✅ Adjustable colors and styling</li>
               <li>✅ Configurable font size</li>
@@ -75,9 +78,8 @@ const HelloWorldPage: React.FC = () => {
               <li>✅ Persistent settings</li>
             </ul>
           </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+          <div className="rounded-lg shadow p-6 bg-slate-900/50 border border-slate-800/60">
+            <h2 className="text-xl font-semibold mb-4 text-slate-100">Quick Actions</h2>
             <div className="space-y-3">
               <Link
                 to="/admin/helloworld"
