@@ -1,0 +1,50 @@
+name: Plugin Integration Tests
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  integration:
+    name: Integration (ephemeral runner)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Make docker-compose shim (so scripts using `docker-compose` work)
+        run: |
+          sudo tee /usr/local/bin/docker-compose > /dev/null <<'EOF'
+          #!/bin/sh
+          exec docker compose "$@"
+          EOF
+          sudo chmod +x /usr/local/bin/docker-compose
+
+      - name: Run plugin integration tests
+        env:
+          # Make the compose project unique per run so teardown only touches this run's resources
+          COMPOSE_PROJECT_NAME: plugin_integration_${{ github.run_id }}
+        run: |
+          echo "Running integration script with COMPOSE_PROJECT_NAME=$COMPOSE_PROJECT_NAME"
+          npm run test:plugin:integration
+
+      - name: Final cleanup (best-effort)
+        if: always()
+        env:
+          COMPOSE_PROJECT_NAME: plugin_integration_${{ github.run_id }}
+        run: |
+          echo "Cleaning up compose project: $COMPOSE_PROJECT_NAME"
+          # Best-effort down; the integration script does its own teardown, but ensure leftover resources removed
+          docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v || true

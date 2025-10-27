@@ -49,19 +49,90 @@ async function main() {
   let browser = null;
   let pluginId = null;
   let sessionCookie = null;
-  // compute free host ports for isolation so we don't conflict with local dev services
-  const dbPort = await getFreePort();
-  const apiHostPort = await getFreePort();
-  const minioHostPort1 = await getFreePort();
-  const minioHostPort2 = await getFreePort();
-  const websiteHostPort = await getFreePort();
 
   const COMPOSE_PROJECT = 'plugin_integration';
   const TEST_WEBSITE_NAME = 'test-website-integration';
 
-  const ENV_PREFIX = `DB_PORT=${dbPort} API_HOST_PORT=${apiHostPort} MINIO_HOST_PORT_1=${minioHostPort1} MINIO_HOST_PORT_2=${minioHostPort2} COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT}`;
-  const API_BASE = `http://localhost:${apiHostPort}/api`;
-  const WEBSITE_HOST = `http://localhost:${websiteHostPort}`;
+  // These will be populated by startServicesWithRetries
+  let ENV_PREFIX = null;
+  let API_BASE = null;
+  let WEBSITE_HOST = null;
+
+  // Start services with retries to handle transient port allocation races on busy hosts/runners
+  async function startServicesWithRetries(maxAttempts = 3) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const dbPort = await getFreePort();
+      const apiHostPort = await getFreePort();
+      const minioHostPort1 = await getFreePort();
+      const minioHostPort2 = await getFreePort();
+      const websiteHostPort = await getFreePort();
+
+      const envPrefixLocal = `DB_PORT=${dbPort} API_HOST_PORT=${apiHostPort} MINIO_HOST_PORT_1=${minioHostPort1} MINIO_HOST_PORT_2=${minioHostPort2} COMPOSE_PROJECT_NAME=${COMPOSE_PROJECT}`;
+      const apiBaseLocal = `http://localhost:${apiHostPort}/api`;
+      const websiteHostLocal = `http://localhost:${websiteHostPort}`;
+
+      try {
+        console.log(`� Starting test environment (attempt ${attempt}/${maxAttempts})...`);
+        await runCommand(`${envPrefixLocal} docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d db api`);
+
+        // Ensure no previous website containers remain
+        try {
+          await runCommand('docker-compose -f docker-compose.yml -f docker-compose.dev.yml stop website', undefined, { stdio: 'pipe' });
+          await runCommand('docker-compose -f docker-compose.yml -f docker-compose.dev.yml rm -f website', undefined, { stdio: 'pipe' });
+        } catch {
+          // ignore
+        }
+        try {
+          await runCommand('docker stop test-website', undefined, { stdio: 'pipe' });
+          await runCommand('docker rm test-website', undefined, { stdio: 'pipe' });
+        } catch {
+          // ignore
+        }
+        // Also remove any previous test-website-integration container left from earlier runs
+        try {
+          await runCommand(`docker stop ${TEST_WEBSITE_NAME}`, undefined, { stdio: 'pipe' });
+          await runCommand(`docker rm ${TEST_WEBSITE_NAME}`, undefined, { stdio: 'pipe' });
+        } catch {
+          // Ignore if container doesn't exist
+        }
+
+        await runCommand(`${envPrefixLocal} docker-compose -f docker-compose.yml -f docker-compose.dev.yml run -d --name ${TEST_WEBSITE_NAME} -p ${websiteHostPort}:4173 -e VITE_API_URL=http://api:4000/api website`);
+        containersStarted = true;
+
+        // Wait for services to be ready
+        console.log('⏳ Waiting for services to be ready...');
+        await waitForService(`${apiBaseLocal}/health`);
+        await waitForService(websiteHostLocal);
+
+        // success: store values and return
+        ENV_PREFIX = envPrefixLocal;
+        API_BASE = apiBaseLocal;
+        WEBSITE_HOST = websiteHostLocal;
+        console.log(`✅ Services started on API ${API_BASE} and Website ${WEBSITE_HOST}`);
+        return;
+      } catch (err) {
+        console.log(`⚠️  Attempt ${attempt} failed: ${err.message}`);
+        // Best-effort cleanup for this attempt
+        try {
+          await runCommand(`docker rm -f ${TEST_WEBSITE_NAME}`, undefined, { stdio: 'pipe' });
+        } catch {
+          // ignore
+        }
+        try {
+          await runCommand(`${envPrefixLocal} docker-compose -f docker-compose.yml -f docker-compose.dev.yml down -v`, undefined, { stdio: 'pipe' });
+        } catch {
+          // ignore
+        }
+
+        if (attempt === maxAttempts) {
+          throw new Error(`Failed to start test environment after ${maxAttempts} attempts: ${err.message}`);
+        }
+
+        // brief backoff before retry
+        await new Promise((r) => setTimeout(r, 1000 * attempt));
+      }
+    }
+  }
 
   // Helper to find an available host port
   async function getFreePort() {
@@ -87,36 +158,8 @@ async function main() {
     await runCommand('node ./scripts/pack-plugin.mjs dev-plugins/helloworld dev-plugins/helloworld-integration-test.zip');
     console.log('✅ Plugin packaged successfully\n');
 
-    // 2. Start the test environment
-    console.log('🐳 Starting test environment...');
-  await runCommand(`${ENV_PREFIX} docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d db api`);
-    // Stop and remove the default website container, then start our custom one with correct API URL
-    try {
-      await runCommand('docker-compose -f docker-compose.yml -f docker-compose.dev.yml stop website', undefined, { stdio: 'pipe' });
-      await runCommand('docker-compose -f docker-compose.yml -f docker-compose.dev.yml rm -f website', undefined, { stdio: 'pipe' });
-    } catch {
-      // Ignore if container doesn't exist
-    }
-    try {
-      await runCommand('docker stop test-website', undefined, { stdio: 'pipe' });
-      await runCommand('docker rm test-website', undefined, { stdio: 'pipe' });
-    } catch {
-      // Ignore if container doesn't exist
-    }
-    // Also remove any previous test-website-integration container left from earlier runs
-    try {
-      await runCommand(`docker stop ${TEST_WEBSITE_NAME}`, undefined, { stdio: 'pipe' });
-      await runCommand(`docker rm ${TEST_WEBSITE_NAME}`, undefined, { stdio: 'pipe' });
-    } catch {
-      // Ignore if container doesn't exist
-    }
-  await runCommand(`${ENV_PREFIX} docker-compose -f docker-compose.yml -f docker-compose.dev.yml run -d --name ${TEST_WEBSITE_NAME} -p ${websiteHostPort}:4173 -e VITE_API_URL=http://api:4000/api website`);
-    containersStarted = true;
-
-    // Wait for services to be ready
-    console.log('⏳ Waiting for services to be ready...');
-  await waitForService(`${API_BASE}/health`);
-  await waitForService(WEBSITE_HOST);
+    // 2. Start the test environment (with retries to handle transient port races)
+    await startServicesWithRetries(3);
 
     // 3. Initialize database
     console.log('🗄️  Initializing database...');

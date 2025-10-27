@@ -163,6 +163,28 @@ This script parses `.github/workflows/ci.yml` and executes the job steps in your
 
 The simulator uses bash for shell commands and respects the workflow's `working-directory` and `env` settings.
 
+### Plugin integration workflow
+
+This repository includes a dedicated GitHub Actions workflow that runs the plugin integration tests in an isolated, ephemeral runner: `.github/workflows/integration.yml`.
+
+- The job runs `npm run test:plugin:integration` inside an Ubuntu runner.
+- It sets a unique `COMPOSE_PROJECT_NAME` per run (using the GitHub run id) so Docker Compose resources are isolated and teardown only removes the job's resources.
+- The workflow provides a small shim so calls to the legacy `docker-compose` command work by delegating to the newer `docker compose` plugin available on the runner.
+
+Trigger it manually via the Actions UI (workflow dispatch) or open a pull request — the job will run automatically for PRs. This is useful for verifying the full plugin lifecycle (package, start services, install/enable plugin, run browser E2E) in CI without affecting local developer volumes.
+
+You can also run the integration script locally for debugging with:
+
+```bash
+# run unit/lint checks first
+npm run ci:local
+
+# run the integration orchestration (requires Docker)
+npm run test:plugin:integration
+```
+
+The integration script includes retry logic to reduce flakiness when picking free host ports on busy runners; if a start attempt fails it will clean up and retry a small number of times before giving up.
+
 ## � Coverage
 
 This repository produces separate coverage reports for the frontend and server during test runs, then merges them into a single human-readable report.
